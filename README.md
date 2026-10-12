@@ -1,10 +1,5 @@
-# Marine Weather — GitHub Pages frontend
+Marine Weather GitHub Pages frontend — loading overlay fix.
 
-Upload `index.html` to the root of the `andrewcheeky/marine-weather` repository and commit to `main`. Enable GitHub Pages under Settings → Pages → Deploy from a branch → main → / (root).
+Upload index.html to the root of the marine-weather GitHub repository, replacing the existing file. Commit to main and wait for Pages deployment. Hard refresh the site.
 
-Test at https://andrewcheeky.github.io/marine-weather/
-
-## Loading animation
-A centered spinning marine-blue loading indicator appears whenever you select Current, Tomorrow, Weekend, Fishing Banks, or Refresh. It disappears when the iframe load event fires. If loading takes more than 30 seconds, the page offers refresh/direct-open guidance. Note that iframe load does not guarantee the remote forecast loaded successfully; Google-controlled errors may still be displayed within the iframe.
-
-The frontend retains the existing Google Apps Script deployment and does not change weather caches, scheduled emails, or subscriber data. Keep the Apps Script source and credentials private.
+Fix: navigation replaces only the iframe; the loading overlay stays in the DOM and can show its animated spinner. No Google Apps Script changes are required.

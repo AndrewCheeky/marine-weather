@@ -28,7 +28,9 @@ function show(view){
   next.id='forecast';next.title=labels[view]+' marine weather forecast';
   next.loading='eager';next.referrerPolicy='no-referrer';
   next.addEventListener('load',()=>{if(id===requestId){clearTimeout(loadingTimer);overlay.hidden=true;status.textContent='Showing '+labels[view]+'.';}});
-  frameHost.replaceChildren(next);
+  const previous=frameHost.querySelector('iframe');
+  if(previous) previous.replaceWith(next);
+  else frameHost.appendChild(next);
   document.getElementById('direct').href=directUrl;
   document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.view===view)));
   if(location.hash.slice(1)!==view)history.replaceState(null,'','#'+view);
