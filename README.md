@@ -1,19 +1,10 @@
-# Marine Weather — GitHub Pages pilot (navigation fix)
+# Marine Weather — GitHub Pages frontend
 
-Repository: `andrewcheeky/marine-weather`
+Upload `index.html` to the root of the `andrewcheeky/marine-weather` repository and commit to `main`. Enable GitHub Pages under Settings → Pages → Deploy from a branch → main → / (root).
 
-Test URL: https://andrewcheeky.github.io/marine-weather/
+Test at https://andrewcheeky.github.io/marine-weather/
 
-This update replaces the iframe on each navigation, appends a unique reload parameter to avoid stale iframe pages, and adds a Refresh button and loading status. It does not change Google Apps Script, the subscriber system, or forecast calculations.
+## Loading animation
+A centered spinning marine-blue loading indicator appears whenever you select Current, Tomorrow, Weekend, Fishing Banks, or Refresh. It disappears when the iframe load event fires. If loading takes more than 30 seconds, the page offers refresh/direct-open guidance. Note that iframe load does not guarantee the remote forecast loaded successfully; Google-controlled errors may still be displayed within the iframe.
 
-## Update GitHub
-
-1. Open the `marine-weather` repository on GitHub.
-2. Open `index.html`, click the pencil (Edit), and replace its contents with this package's `index.html`; commit to `main`. Alternatively upload and overwrite the file using GitHub's web interface.
-3. Go to Actions and wait for the Pages deployment to finish.
-4. Hard-refresh the test URL (Cmd+Shift+R on Mac or Ctrl+Shift+R on Windows).
-5. Test all four tabs and the Refresh button.
-
-Note: The iframe still depends on Google Apps Script permitting embedding. The reload query parameter refreshes the web page, but does **not** force a weather-provider API refresh; the Apps Script cache and its existing refresh schedules remain in effect.
-
-Keep the Apps Script `.gs` source and API credentials out of this public repository.
+The frontend retains the existing Google Apps Script deployment and does not change weather caches, scheduled emails, or subscriber data. Keep the Apps Script source and credentials private.
