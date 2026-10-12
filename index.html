@@ -85,7 +85,7 @@ function checkMarineAlert(){
     card.classList.toggle('red',data.level==='RED');
     document.getElementById('marine-alert-title').textContent='⚠ '+data.level+' MARINE ALERT IN EFFECT';
     document.getElementById('marine-alert-message').textContent=data.message;
-    document.getElementById('marine-alert-issued').textContent=(data.issued?'Issued: '+data.issued+' · ':'')+'Source: Jamaica Meteorological Service';
+    document.getElementById('marine-alert-issued').textContent=(data.issued?'Issued: '+data.issued+' · ':'')+'Source: Jamaica Met Service';
     modal.hidden=false;ack.focus();
     ack.onclick=()=>{try{sessionStorage.setItem('marineAlertAcknowledged',signature);}catch(_){}modal.hidden=true;};
   };
