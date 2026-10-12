@@ -1,7 +1,14 @@
-Marine Weather — 15-second loading fallback
+# Marine Weather GitHub Pages frontend
 
-Replace index.html in the marine-weather GitHub repository root and commit to main.
+Upload `index.html` to the root of the `andrewcheeky/marine-weather` GitHub repository.
 
-The loading overlay starts immediately for the initial page and each forecast selection or Refresh. It disappears on a matching Apps Script ready signal, or automatically 15 seconds after the request begins if no signal is received. Switching views resets the 15-second timer. The iframe load event does not dismiss it.
+## Loading overlay — 15-second minimum
+- Shows spinner immediately on first visit and each forecast selection.
+- Ensures at least 15 seconds of visible loading state, even if an iframe fires an early load event.
+- Defers iframe navigation by two animation frames to allow the overlay to paint.
+- Retains the overlay until iframe load (or a 30-second timeout).
+- Removes the Google Apps Script direct-forecast link and fallback paragraph.
 
-No Apps Script or Cloudflare changes required.
+No changes to the Google Apps Script backend or Cloudflare DNS are required.
+
+Note: iframe `load` indicates that the embedded document has loaded, not necessarily that all internal forecast calculations have completed.

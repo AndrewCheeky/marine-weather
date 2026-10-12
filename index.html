@@ -9,63 +9,55 @@ const loadingDetail=document.getElementById('loading-detail');
 let currentView='';
 let requestId=0;
 let loadingTimer=null;
-
-let waitingToken='';
-let activeFrame=null;
-const labels={current:'Current 6 Hours',tomorrow:'Tomorrow',weekend:'Weekend',banks:'Fishing Banks'};
+let minimumDisplayTimer=null;
+const MINIMUM_SPINNER_MS=15000;
 function show(view){
   if(!allowed.includes(view))view='current';
   currentView=view;
   const id=++requestId;
-  waitingToken=Array.from(crypto.getRandomValues(new Uint8Array(20)), b=>b.toString(16).padStart(2,'0')).join('')+'_'+id;
-  const url=BASE+'?action='+encodeURIComponent(view)+'&_loadtoken='+encodeURIComponent(waitingToken);
+  // Unique URL for each navigation prevents browser iframe caching.
+  const url=BASE+'?action='+encodeURIComponent(view)+'&_reload='+Date.now()+'_'+id;
+  const labels={current:'Current 6 Hours',tomorrow:'Tomorrow',weekend:'Weekend',banks:'Fishing Banks'};
   status.textContent='Loading '+labels[view]+'…';
   overlay.hidden=false;
   overlay.style.display='flex';
   overlay.style.opacity='1';
+  const startedAt=performance.now();
   loadingTitle.textContent='Loading '+labels[view]+'…';
-  loadingDetail.textContent='Retrieving and preparing your marine forecast';
+  loadingDetail.textContent='Please wait while the forecast opens';
   clearTimeout(loadingTimer);
-  // Start the fallback at the moment this forecast request begins.
-  // A valid readiness signal dismisses sooner; otherwise dismiss at 15 seconds.
+  clearTimeout(minimumDisplayTimer);
+  function finishLoading(message){
+    if(id!==requestId)return;
+    const remaining=Math.max(0,MINIMUM_SPINNER_MS-(performance.now()-startedAt));
+    clearTimeout(minimumDisplayTimer);
+    minimumDisplayTimer=setTimeout(()=>{
+      if(id!==requestId)return;
+      overlay.hidden=true;
+      overlay.style.display='none';
+      status.textContent=message;
+    },remaining);
+  }
   loadingTimer=setTimeout(()=>{
-    if(id!==requestId || overlay.hidden)return;
-    finishLoading(true);
-  },15000);
+    finishLoading('The forecast is taking longer than expected. Select Refresh to try again.');
+  },30000);
+  // Replacing the iframe ensures a fresh navigation even if Google redirects internally.
   const next=document.createElement('iframe');
   next.id='forecast';next.title=labels[view]+' marine weather forecast';
   next.loading='eager';next.referrerPolicy='no-referrer';
-  // The iframe load event may occur before the forecast is ready,
-  // so it must not dismiss the overlay.
+  next.addEventListener('load',()=>{
+    if(id!==requestId)return;
+    clearTimeout(loadingTimer);
+    finishLoading('Showing '+labels[view]+'.');
+  });
   const previous=frameHost.querySelector('iframe');
-  if(previous)previous.replaceWith(next);
+  if(previous) previous.replaceWith(next);
   else frameHost.appendChild(next);
-  activeFrame=next;
   document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.view===view)));
   if(location.hash.slice(1)!==view)history.replaceState(null,'','#'+view);
+  // Two paint opportunities ensure the overlay renders before iframe navigation begins.
   requestAnimationFrame(()=>requestAnimationFrame(()=>{if(id===requestId)next.src=url;}));
 }
-function finishLoading(usedFallback, ok=true){
-  clearTimeout(loadingTimer);
-  overlay.hidden=true;
-  overlay.style.display='none';
-  status.textContent=ok?'Showing '+labels[currentView]+'.':'Forecast unavailable. Select Refresh to retry.';
-}
-window.addEventListener('message',(event)=>{
-  // Google Apps Script HTML Service serves iframe documents from googleusercontent.com.
-  // Apps Script HTML Service may send from a sandbox with origin "null".
-  // A fresh cryptographically random request token must match before we act.
-  const trustedGoogle = /^https:\/\/([a-z0-9-]+\.)*googleusercontent\.com$/i.test(event.origin) ||
-                        event.origin === 'https://script.google.com';
-  if(!trustedGoogle && event.origin !== 'null')return;
-  const data=event.data;
-  if(!data || data.type!=='marine-weather:ready' || data.token!==waitingToken ||
-     data.action!==currentView)return;
-  // Google HTML Service can nest its own sandboxed iframe, so its message
-  // source may be a descendant rather than the outer iframe window.
-  // A per-request token plus Google origin checks identify this response.
-  finishLoading(false,!!data.ok);
-});
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.view)));
 document.getElementById('refresh').addEventListener('click',()=>show(currentView));
 window.addEventListener('hashchange',()=>show(location.hash.slice(1)));
