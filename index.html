@@ -9,6 +9,8 @@ const loadingDetail=document.getElementById('loading-detail');
 let currentView='';
 let requestId=0;
 let loadingTimer=null;
+let loadFallbackTimer=null;
+let loadedAt=0;
 
 let waitingToken='';
 let activeFrame=null;
@@ -26,6 +28,8 @@ function show(view){
   loadingTitle.textContent='Loading '+labels[view]+'…';
   loadingDetail.textContent='Retrieving and preparing your marine forecast';
   clearTimeout(loadingTimer);
+  clearTimeout(loadFallbackTimer);
+  loadedAt=0;
   // Do NOT dismiss the overlay on iframe load. Google's redirect can fire
   // that event before the Apps Script forecast is actually ready.
   loadingTimer=setTimeout(()=>{
@@ -38,8 +42,15 @@ function show(view){
   next.loading='eager';next.referrerPolicy='no-referrer';
   next.addEventListener('load',()=>{
     if(id!==requestId)return;
-    // Intentionally wait for the authenticated ready message instead.
-    loadingDetail.textContent='Waiting for forecast data to finish loading';
+    // Prefer the Apps Script ready signal, but its sandbox may block delivery.
+    // Give it time to arrive before falling back to the final iframe load.
+    loadedAt=Date.now();
+    loadingDetail.textContent='Finishing forecast display…';
+    clearTimeout(loadFallbackTimer);
+    loadFallbackTimer=setTimeout(()=>{
+      if(id!==requestId || overlay.hidden)return;
+      finishLoading(true);
+    },2500);
   });
   const previous=frameHost.querySelector('iframe');
   if(previous)previous.replaceWith(next);
@@ -48,6 +59,13 @@ function show(view){
   document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.view===view)));
   if(location.hash.slice(1)!==view)history.replaceState(null,'','#'+view);
   requestAnimationFrame(()=>requestAnimationFrame(()=>{if(id===requestId)next.src=url;}));
+}
+function finishLoading(usedFallback, ok=true){
+  clearTimeout(loadingTimer);
+  clearTimeout(loadFallbackTimer);
+  overlay.hidden=true;
+  overlay.style.display='none';
+  status.textContent=ok?'Showing '+labels[currentView]+'.':'Forecast unavailable. Select Refresh to retry.';
 }
 window.addEventListener('message',(event)=>{
   // Google Apps Script HTML Service serves iframe documents from googleusercontent.com.
@@ -62,10 +80,7 @@ window.addEventListener('message',(event)=>{
   // Google HTML Service can nest its own sandboxed iframe, so its message
   // source may be a descendant rather than the outer iframe window.
   // A per-request token plus Google origin checks identify this response.
-  clearTimeout(loadingTimer);
-  overlay.hidden=true;
-  overlay.style.display='none';
-  status.textContent=data.ok?'Showing '+labels[currentView]+'.':'Forecast unavailable. Select Refresh to retry.';
+  finishLoading(false,!!data.ok);
 });
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.view)));
 document.getElementById('refresh').addEventListener('click',()=>show(currentView));
