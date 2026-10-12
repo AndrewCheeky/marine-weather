@@ -9,8 +9,6 @@ const loadingDetail=document.getElementById('loading-detail');
 let currentView='';
 let requestId=0;
 let loadingTimer=null;
-let loadFallbackTimer=null;
-let loadedAt=0;
 
 let waitingToken='';
 let activeFrame=null;
@@ -28,30 +26,17 @@ function show(view){
   loadingTitle.textContent='Loading '+labels[view]+'…';
   loadingDetail.textContent='Retrieving and preparing your marine forecast';
   clearTimeout(loadingTimer);
-  clearTimeout(loadFallbackTimer);
-  loadedAt=0;
-  // Do NOT dismiss the overlay on iframe load. Google's redirect can fire
-  // that event before the Apps Script forecast is actually ready.
+  // Start the fallback at the moment this forecast request begins.
+  // A valid readiness signal dismisses sooner; otherwise dismiss at 15 seconds.
   loadingTimer=setTimeout(()=>{
-    if(id!==requestId)return;
-    loadingTitle.textContent='Still preparing the forecast…';
-    loadingDetail.textContent='This is taking longer than usual. You can select Refresh to retry.';
-  },30000);
+    if(id!==requestId || overlay.hidden)return;
+    finishLoading(true);
+  },15000);
   const next=document.createElement('iframe');
   next.id='forecast';next.title=labels[view]+' marine weather forecast';
   next.loading='eager';next.referrerPolicy='no-referrer';
-  next.addEventListener('load',()=>{
-    if(id!==requestId)return;
-    // Prefer the Apps Script ready signal, but its sandbox may block delivery.
-    // Give it time to arrive before falling back to the final iframe load.
-    loadedAt=Date.now();
-    loadingDetail.textContent='Finishing forecast display…';
-    clearTimeout(loadFallbackTimer);
-    loadFallbackTimer=setTimeout(()=>{
-      if(id!==requestId || overlay.hidden)return;
-      finishLoading(true);
-    },2500);
-  });
+  // The iframe load event may occur before the forecast is ready,
+  // so it must not dismiss the overlay.
   const previous=frameHost.querySelector('iframe');
   if(previous)previous.replaceWith(next);
   else frameHost.appendChild(next);
@@ -62,7 +47,6 @@ function show(view){
 }
 function finishLoading(usedFallback, ok=true){
   clearTimeout(loadingTimer);
-  clearTimeout(loadFallbackTimer);
   overlay.hidden=true;
   overlay.style.display='none';
   status.textContent=ok?'Showing '+labels[currentView]+'.':'Forecast unavailable. Select Refresh to retry.';
