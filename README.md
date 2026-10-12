@@ -1,40 +1,19 @@
-# Jamaica Marine Outlook — frontend pilot
+# Marine Weather — GitHub Pages pilot (navigation fix)
 
-A static GitHub Pages/Cloudflare Pages pilot for `marine.andrewcheeky.com`, retaining the existing Google Apps Script backend and its scheduled emails. No provider API keys are placed in the browser.
+Repository: `andrewcheeky/marine-weather`
 
-## Important: required Apps Script adjustment
+Test URL: https://andrewcheeky.github.io/marine-weather/
 
-The current v3.8.5 Apps Script returns `HtmlService` pages **without** `setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)`. Google may therefore block embedding. In the Apps Script editor, add this helper:
+This update replaces the iframe on each navigation, appends a unique reload parameter to avoid stale iframe pages, and adds a Refresh button and loading status. It does not change Google Apps Script, the subscriber system, or forecast calculations.
 
-```javascript
-function marineEmbeddable_(output) {
-  return output.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-}
-```
+## Update GitHub
 
-Then, inside `wxWebDispatchV383_`, wrap each `HtmlService.createHtmlOutput(...).setTitle(...)` return for the public actions `current`, `tomorrow`, `weekend`, `banks`, and `bank` with `marineEmbeddable_(...)`. Example:
+1. Open the `marine-weather` repository on GitHub.
+2. Open `index.html`, click the pencil (Edit), and replace its contents with this package's `index.html`; commit to `main`. Alternatively upload and overwrite the file using GitHub's web interface.
+3. Go to Actions and wait for the Pages deployment to finish.
+4. Hard-refresh the test URL (Cmd+Shift+R on Mac or Ctrl+Shift+R on Windows).
+5. Test all four tabs and the Refresh button.
 
-```javascript
-return marineEmbeddable_(
-  HtmlService.createHtmlOutput(wxSynopsisShellV384b_(syn.html, '', banner))
-    .setTitle('Current Marine Outlook')
-);
-```
+Note: The iframe still depends on Google Apps Script permitting embedding. The reload query parameter refreshes the web page, but does **not** force a weather-provider API refresh; the Apps Script cache and its existing refresh schedules remain in effect.
 
-Google's HTML-service sandbox and redirects may still impose limitations on iframe navigation and popups. This pilot is **not** a reverse proxy or fully independent platform. Test all four views, bank popups, mobile layout, and subscription links before promoting it.
-
-**Security:** ALLOWALL removes Google's X-Frame-Options protection for these responses; only apply it to public non-sensitive pages. It allows third-party sites to embed them. Do not expose private data, admin pages, or tokens. Prefer a future JSON API and independently rendered frontend for stronger security and branding.
-
-## Publish
-
-1. Create a GitHub repository (e.g. `marine-outlook`), upload `index.html` and `README.md`.
-2. Enable GitHub Pages under Settings → Pages, deploy from main branch/root.
-3. Verify the GitHub Pages URL works before changing DNS.
-4. For `marine.andrewcheeky.com`, add the GitHub Pages custom domain in GitHub first. Then create a Cloudflare DNS CNAME `marine` → `andrewcheeky.github.io` (DNS only during certificate issuance, if needed). Set the custom domain in Pages and wait for HTTPS certificate provisioning. Avoid an existing conflicting Worker route or CNAME.
-5. Set HTTPS enforcement after GitHub reports a valid certificate.
-
-**Alternative:** deploy `index.html` to Cloudflare Pages and attach the custom domain there; do not configure GitHub Pages and Cloudflare Pages to own the same hostname.
-
-## Scope
-
-This phase changes no scheduled refreshes, subscriber data, email sender, or forecasting logic. The Google Apps Script URL remains accessible in iframe links and browser network requests. Eliminating Google-branded experiences and script URLs requires a server-side API and a real frontend migration.
+Keep the Apps Script `.gs` source and API credentials out of this public repository.
