@@ -1,5 +1,14 @@
-Marine Weather GitHub Pages frontend — loading overlay fix.
+# Marine Weather GitHub Pages frontend
 
-Upload index.html to the root of the marine-weather GitHub repository, replacing the existing file. Commit to main and wait for Pages deployment. Hard refresh the site.
+Upload `index.html` to the root of the `andrewcheeky/marine-weather` GitHub repository.
 
-Fix: navigation replaces only the iframe; the loading overlay stays in the DOM and can show its animated spinner. No Google Apps Script changes are required.
+## Loading overlay fix
+- Shows spinner immediately on first visit and each forecast selection.
+- Ensures at least 1.4 seconds of visible loading state, even if an iframe fires an early load event.
+- Defers iframe navigation by two animation frames to allow the overlay to paint.
+- Retains the overlay until iframe load (or a 30-second timeout).
+- Removes the Google Apps Script direct-forecast link and fallback paragraph.
+
+No changes to the Google Apps Script backend or Cloudflare DNS are required.
+
+Note: iframe `load` indicates that the embedded document has loaded, not necessarily that all internal forecast calculations have completed.
