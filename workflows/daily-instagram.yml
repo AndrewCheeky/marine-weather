@@ -1,7 +1,7 @@
-name: Daily Instagram Marine Forecast PNG
+name: Daily Today and Tomorrow Marine Forecast PNGs
 on:
   schedule:
-    # Jamaica stays UTC-5 year-round: 11:30 UTC = 06:30 Jamaica.
+    # Jamaica is UTC-5 all year: 11:30 UTC = 06:30 Jamaica.
     - cron: '30 11 * * *'
   workflow_dispatch:
 permissions:
@@ -12,27 +12,26 @@ concurrency:
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install browser automation
+      - name: Install Playwright and Chromium
         run: |
           npm install --no-save playwright@1.56.1
           npx playwright install --with-deps chromium
-      - name: Generate tomorrow's forecast image
+      - name: Generate today and tomorrow images
         env:
           POSTER_URL: https://marine-weather.andrewcheeky.com/instagram/
-          FORECAST_DAY: tomorrow
         run: node scripts/generate-instagram.mjs
-      - name: Publish image to GitHub Pages
+      - name: Commit PNGs to GitHub Pages branch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add instagram/generated/
           if ! git diff --cached --quiet; then
-            git commit -m 'Update daily Instagram marine forecast image'
+            git commit -m 'Update today and tomorrow marine forecast PNGs'
             git push
           fi
