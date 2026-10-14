@@ -1,10 +1,9 @@
-# Marine Weather Instagram v7 — peak wind and peak wave
+# Marine Weather Jamaica — Instagram v10 (public GitHub files)
 
-Adds cached maximum hourly sustained wind and wave height, with earliest matching local hour, beneath the main WIND / GUSTS and SEAS figures. Forecast window 07:00–17:00 Jamaica time. No new weather API requests.
+Upload only `instagram/index.html`, `scripts/generate-instagram.mjs`, and `.github/workflows/daily-instagram.yml` to the existing public repository, preserving paths. The existing `instagram/sunset-background.jpg` is included unchanged for completeness.
 
-## Install
-1. Replace the main Google Apps Script code with `apps-script/MarineWeather_v3_8_5d_Instagram_Integrated.gs` (make a backup first). Redeploy existing web app as **New version**. Do not upload Apps Script code to public GitHub; it contains private configuration.
-2. Replace `instagram/index.html` in GitHub. The existing background, generator and workflow are included for convenience and can be retained unchanged if already working.
-3. Run the GitHub Actions workflow and verify both peak fields in the JSONP endpoint and poster.
+The poster suppresses unavailable/blank peak wind, peak wave, tides, solar values, and metric placeholders rather than printing “Unavailable”. Forecast data are still retrieved from the existing Apps Script `action=instagramData` endpoint. The GitHub workflow generates **today only** and does not generate tomorrow.
 
-Peak values are read from cached `peakWindKn` and `peakWaveM` columns for each local hourly slot. Tied peaks use the earliest hour. If missing, display Unavailable. The displayed time is the cached hourly forecast slot, not a sub-hour precise instant.
+**Do not upload the separate private `.gs` file or the private ZIP to GitHub.** That file includes the existing weather service credentials. Paste it into the existing Google Apps Script project and update the **existing deployment** via Deploy → Manage deployments → Edit → New version → Deploy.
+
+Verification: open the deployed `.../exec?action=instagramData&day=today&callback=mwInstagramCallback_123_456` URL and confirm `poster.peakWind` and `poster.peakWave` exist (blank only if no usable cached hourly data). Run GitHub Actions → Daily Marine Forecast PNG → Run workflow. This package does not change cache tables or add API requests.
