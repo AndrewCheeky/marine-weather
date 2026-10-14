@@ -21,11 +21,25 @@ jobs:
         run: |
           npm install --no-save playwright@1.56.1
           npx playwright install --with-deps chromium
+      - name: Start local poster server
+        run: |
+          test -f instagram/index.html
+          test -f instagram/sunset-background.jpg
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/marine-poster-http.log 2>&1 &
+          echo $! > /tmp/marine-poster-http.pid
+          for i in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:8765/instagram/ -o /dev/null; then
+              echo 'Local poster page is available.'
+              break
+            fi
+            sleep 1
+          done
+          curl --fail --show-error --silent http://127.0.0.1:8765/instagram/ -o /dev/null
       - name: Generate independently
         id: generate
         continue-on-error: true
         env:
-          POSTER_URL: https://marine-weather.andrewcheeky.com/instagram/
+          POSTER_URL: http://127.0.0.1:8765/instagram/
         run: node scripts/generate-instagram.mjs
       - name: Commit any successfully generated PNGs
         run: |
