@@ -9,6 +9,49 @@ rr(30,344,1020,338,22,'rgba(2,26,44,.86)',colors[d.status]||colors.AMBER,3);txt(
 txt('FISHING BANKS · QUICK COMPARE',39,710,29,'#fff',850);function bank(x,name,status,detail,rain){let color=colors[status]||colors.AMBER;rr(x,760,498,160,18,'rgba(2,20,35,.9)',color,3);txt(name,x+17,776,23,'#fff',800,340);rr(x+373,775,108,35,10,color);txt(status,x+386,782,17,'#082536',850,90);txt(detail,x+17,830,23,'#d4edfb',650,465);txt(rain,x+17,867,19,'#d4edfb',550,465)}bank(30,d.bank1,d.bank1status,d.bank1detail,d.bank1rain);bank(552,d.bank2,d.bank2status,d.bank2detail,d.bank2rain);
 rr(30,930,1020,83,15,'rgba(2,26,44,.88)','#54788b',2);txt('☾  MOON',45,939,17,'#9cdaff',750);txt(d.moonPhase+' · '+d.moonIllum,45,962,21,'#fff',750,330);txt('HIGH TIDE',410,939,17,'#9cdaff',750);txt(d.highTides,410,962,20,'#fff',700,305);txt('LOW TIDE',748,939,17,'#9cdaff',750);txt(d.lowTides,748,962,20,'#fff',700,275);ctx.strokeStyle='#3d6576';ctx.beginPath();ctx.moveTo(42,1010);ctx.lineTo(1038,1010);ctx.stroke();txt('marine-weather.andrewcheeky.com',44,1027,18,'#6dd5ff',750);txt('NOT FOR NAVIGATION  ·  '+d.source,424,1027,14,'#c3d8e4',550,610)}fields.forEach(k=>document.getElementById(k).addEventListener('input',()=>{document.getElementById('export').disabled=true;document.getElementById('message').textContent='Forecast edited. Reload cached forecast before export.';render()}));document.getElementById('export').onclick=()=>{render();canvas.toBlob(blob=>{if(!blob){document.getElementById('message').textContent='PNG export failed';return}const a=document.createElement('a');const u=URL.createObjectURL(blob);a.href=u;a.download='marine-weather-jamaica-'+new Date().toISOString().slice(0,10)+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);document.getElementById('message').textContent='PNG exported successfully.'},'image/png')};render();
 const FORECAST_ENDPOINT = 'https://script.google.com/macros/s/AKfycbztZnfDMWf24GzQD8dSxQg6HomHdjxCJzdymnmUEs8i4orfSlWkBF4taxenqpLCtCI/exec';
+
+// Local NOAA Solar Calculator-style fallback for deployments that omit solar fields.
+// Forecast date, Kingston/Maiden Cay coordinates, standard 90.833-degree zenith.
+function marineSolarTimes(dayIso, lat=17.9085229, lon=-76.8103697) {
+  const midnight=Date.parse(dayIso+'T00:00:00Z');
+  if(!Number.isFinite(midnight)) return {sunrise:'Unavailable',sunset:'Unavailable'};
+  const DEG=Math.PI/180, jd=midnight/86400000+2440587.5;
+  const norm=x=>((x%360)+360)%360;
+  function position(t){
+    const L=norm(280.46646+t*(36000.76983+0.0003032*t));
+    const M=norm(357.52911+t*(35999.05029-0.0001537*t));
+    const e=0.016708634-t*(0.000042037+0.0000001267*t);
+    const C=(1.914602-t*(0.004817+0.000014*t))*Math.sin(M*DEG)
+      +(0.019993-0.000101*t)*Math.sin(2*M*DEG)+0.000289*Math.sin(3*M*DEG);
+    const omega=125.04-1934.136*t;
+    const lambda=L+C-0.00569-0.00478*Math.sin(omega*DEG);
+    const epsilon0=23+(26+(21.448-t*(46.815+t*(0.00059-t*0.001813)))/60)/60;
+    const epsilon=epsilon0+0.00256*Math.cos(omega*DEG);
+    const decl=Math.asin(Math.sin(epsilon*DEG)*Math.sin(lambda*DEG));
+    const y=Math.tan(epsilon*DEG/2)**2;
+    const eq=4/DEG*(y*Math.sin(2*L*DEG)-2*e*Math.sin(M*DEG)
+      +4*e*y*Math.sin(M*DEG)*Math.cos(2*L*DEG)
+      -0.5*y*y*Math.sin(4*L*DEG)-1.25*e*e*Math.sin(2*M*DEG));
+    return {decl,eq};
+  }
+  function event(rise){
+    let minutes=rise?660:1320;
+    for(let i=0;i<8;i++){
+      const {decl,eq}=position((jd+minutes/1440-2451545)/36525);
+      const cosH=(Math.cos(90.833*DEG)-Math.sin(lat*DEG)*Math.sin(decl))
+        /(Math.cos(lat*DEG)*Math.cos(decl));
+      if(cosH < -1 || cosH > 1) return 'Unavailable';
+      const H=Math.acos(Math.max(-1,Math.min(1,cosH)))/DEG;
+      const next=720-4*(lon+(rise?H:-H))-eq;
+      if(Math.abs(next-minutes)<0.0001){minutes=next;break;}
+      minutes=next;
+    }
+    return new Intl.DateTimeFormat('en-US',{timeZone:'America/Jamaica',hour:'numeric',minute:'2-digit',hour12:true})
+      .format(new Date(midnight+Math.round(minutes)*60000));
+  }
+  return {sunrise:event(true),sunset:event(false)};
+}
+
 let loadSerial = 0;
 function loadCachedForecast(){
   const serial=++loadSerial;
@@ -27,6 +70,13 @@ function loadCachedForecast(){
     if(!payload||!payload.ok){message.textContent=payload?.message||'Forecast data unavailable';freshness.textContent='PNG export disabled.';return;}
     const d=payload.poster||{};
     for(const k of fields){if(Object.prototype.hasOwnProperty.call(d,k)){const el=document.getElementById(k);el.value=String(d[k]??'');}}
+    // The forecast endpoint may still be running an older deployed Apps Script.
+    // Calculate missing solar fields locally so both PNGs always show times.
+    const solar=marineSolarTimes(payload.day);
+    for(const key of ['sunrise','sunset']){
+      const raw=String(d[key]??'').trim();
+      if(!raw || raw==='—' || raw==='Unavailable') document.getElementById(key).value=solar[key];
+    }
     const missing=Array.isArray(payload.missing)?payload.missing:[];
     const stale=payload.stale===true;
     const safe=missing.length===0&&!stale&&payload.ready===true;window.__marinePosterReady=safe;window.__marinePosterDay=payload.day;
