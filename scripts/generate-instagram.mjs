@@ -16,7 +16,7 @@ await mkdir(outputDir,{recursive:true});
 const browser = await chromium.launch({headless:true});
 let count=0;
 try {
-  for (const [day,offset] of [['today',0],['tomorrow',1]]) {
+  for (const [day,offset] of [['today',0]]) {
     let created=false;
     for (let attempt=1; attempt<=maxAttempts && !created; attempt++) {
       const page=await browser.newPage({viewport:{width:1500,height:1200},deviceScaleFactor:1});
@@ -51,5 +51,5 @@ try {
     if(!created)console.error(`SKIPPED ${day}.png: forecast unavailable. Any existing PNG remains unchanged.`);
   }
 } finally {await browser.close();}
-console.log(`Generated ${count}/2 images.`);
+console.log(`Generated ${count}/1 image.`);
 if(count===0)process.exitCode=1;
