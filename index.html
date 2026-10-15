@@ -1,96 +1,113 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Marine Weather Jamaica · Instagram Studio</title><style>
-:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#081b2b;color:#e9f5fb;font:15px system-ui,Segoe UI,sans-serif}.layout{display:grid;grid-template-columns:minmax(290px,370px) minmax(320px,1fr);gap:24px;max-width:1500px;margin:auto;padding:24px}.panel{background:#102c40;border:1px solid #31516a;border-radius:16px;padding:20px}h1{font-size:23px;margin:0 0 8px}h2{font-size:17px;margin:22px 0 10px}.hint{color:#b0cad8;line-height:1.45}label{display:block;margin:10px 0 5px;font-weight:600;font-size:13px}input,select,textarea{width:100%;padding:10px;background:#071d2c;color:white;border:1px solid #47657a;border-radius:8px;font:inherit}textarea{min-height:90px;resize:vertical}button{cursor:pointer;border:0;border-radius:9px;padding:12px 14px;background:#19b6eb;color:#042338;font-weight:750}button:disabled{opacity:.35;cursor:not-allowed}button.secondary{background:#244c66;color:#e7f6fc}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.preview{position:sticky;top:24px;align-self:start;text-align:center}canvas{display:block;width:100%;max-width:800px;aspect-ratio:1;background:#112c40;border-radius:8px;box-shadow:0 20px 50px #0008;margin:0 auto}.small{font-size:12px;color:#b0cad8;margin-top:12px}.status{min-height:22px;color:#8de2be;margin-top:8px}@media(max-width:850px){.layout{grid-template-columns:1fr}.preview{position:static;order:-1}.panel{padding:16px}}</style></head><body><div class="layout"><section class="panel"><h1>🌊 Marine Weather Jamaica</h1><div class="hint">Daily Instagram Forecast Studio · 1080 × 1080 PNG. Load values from your existing spreadsheet. Values are loaded from the existing MarineCache spreadsheet. Export is locked unless required forecast values are verified.</div>
-<h2>Load spreadsheet forecast</h2><label for="forecastDay">Forecast window</label><select id="forecastDay"><option value="tomorrow">Tomorrow · 07:00–17:00</option><option value="today">Today · 07:00–17:00</option></select><div class="actions"><button id="loadForecast">↻ Load cached forecast</button></div><p id="dataFreshness" class="hint">Awaiting forecast data.</p><h2>Forecast details</h2><label for="date">Forecast date</label><input id="date" value=""><label for="location">Primary location</label><input id="location" value=""><label for="status">Marine comfort status</label><select id="status"><option>GREEN</option><option>AMBER</option><option>RED</option></select><div class="grid"><div><label for="comfort">Comfort rating</label><input id="comfort" value=""></div><div><label for="condition">Conditions</label><input id="condition" value=""></div><div><label for="wind">Wind</label><input id="wind" value=""></div><div><label for="gust">Wind gusts</label><input id="gust" value=""></div><div><label for="peakWind">Peak wind · time (JA)</label><input id="peakWind" value=""></div><div><label for="peakWave">Peak wave · time (JA)</label><input id="peakWave" value=""></div><div><label for="seas">Seas</label><input id="seas" value=""></div><div><label for="period">Wave period</label><input id="period" value=""></div><div><label for="current">Surface current</label><input id="current" value=""></div><div><label for="currentDir">Current set</label><input id="currentDir" value=""></div><div><label for="rain">Rainfall</label><input id="rain" value=""></div><div><label for="uv">UV index</label><input id="uv" value=""></div><div><label for="sst">Sea temperature</label><input id="sst" value=""></div><div><label for="swell">Dominant swell</label><input id="swell" value=""></div></div>
-<h2>Fishing banks</h2><div class="grid"><div><label for="bank1">Bank 1</label><input id="bank1" value=""></div><div><label for="bank1status">Status</label><select id="bank1status"><option>GREEN</option><option>AMBER</option><option>RED</option></select></div><div><label for="bank1detail">Bank 1 summary</label><input id="bank1detail" value=""></div><div><label for="bank1rain">Bank 1 rain</label><input id="bank1rain" value=""></div><div><label for="bank2">Bank 2</label><input id="bank2" value=""></div><div><label for="bank2status">Status</label><select id="bank2status"><option>GREEN</option><option>AMBER</option><option>RED</option></select></div><div><label for="bank2detail">Bank 2 summary</label><input id="bank2detail" value=""></div><div><label for="bank2rain">Bank 2 rain</label><input id="bank2rain" value=""></div></div>
-<h2>Sun & Moon · Kingston / Maiden Cay</h2><div class="grid"><div><label for="sunrise">Sunrise (JA)</label><input id="sunrise" value=""></div><div><label for="sunset">Sunset (JA)</label><input id="sunset" value=""></div></div><div class="grid"><div><label for="moonPhase">Moon phase</label><input id="moonPhase" value=""></div><div><label for="moonIllum">Moon illumination</label><input id="moonIllum" value=""></div><div><label for="highTides">High tides (JA)</label><input id="highTides" value=""></div><div><label for="lowTides">Low tides (JA)</label><input id="lowTides" value=""></div></div><h2>Notes and data</h2><label for="note">Safety / outlook note</label><textarea id="note">Check official marine warnings before departure.</textarea><label for="source">Source / update label</label><input id="source" value=""><div class="actions"><button id="export" disabled title="Load verified forecast first">⬇ Download Instagram PNG</button></div><div id="message" class="status" role="status"></div></section><section class="preview"><canvas id="art" width="1080" height="1080" aria-label="Instagram marine forecast preview"></canvas><p class="small">Preview updates automatically. PNG is exported at full 1080 × 1080 resolution. Export requires complete cached forecast data; confirm the forecast window and official advisories before publishing.</p></section></div><script>
-'use strict';const canvas=document.getElementById('art'),ctx=canvas.getContext('2d');const fields=['date','location','status','comfort','condition','wind','gust','peakWind','peakWave','seas','period','current','currentDir','rain','uv','sst','swell','bank1','bank1status','bank1detail','bank1rain','bank2','bank2status','bank2detail','bank2rain','sunrise','sunset','moonPhase','moonIllum','highTides','lowTides','note','source'];const values=()=>Object.fromEntries(fields.map(k=>[k,document.getElementById(k).value]));const bg=new Image();bg.onload=render;bg.onerror=()=>{document.getElementById('message').textContent='Background image missing: keep sunset-background.jpg beside index.html';render()};bg.src='sunset-background.jpg';const colors={GREEN:'#2cdb96',AMBER:'#ffc34e',YELLOW:'#ffc34e',RED:'#ff5b61'};function rr(x,y,w,h,r,fill,stroke,lw=2){ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke()}}function txt(s,x,y,size=22,color='#fff',weight=500,maxWidth){ctx.fillStyle=color;ctx.font=`${weight} ${size}px system-ui,Segoe UI,sans-serif`;ctx.textBaseline='top';ctx.fillText(String(s),x,y,maxWidth)}function lines(s,x,y,maxW,size=19,lh=27,color='#fff',weight=500,maxLines=3){ctx.font=`${weight} ${size}px system-ui,sans-serif`;let words=String(s).split(/\s+/),line='',rows=[];for(let word of words){let test=line?line+' '+word:word;if(ctx.measureText(test).width>maxW&&line){rows.push(line);line=word}else line=test}if(line)rows.push(line);rows.slice(0,maxLines).forEach((v,i)=>txt(v,x,y+i*lh,size,color,weight,maxW))}function chip(label,x,y,w,c){rr(x,y,w,55,14,c);txt(label,x+18,y+10,27,'#092434',800,w-36)}function present(v){const s=String(v??'').trim();return s&&!/^(unavailable|n\/a|undefined|null|—|-)$/i.test(s)}function metric(label,value,x,y,w){if(!present(value))return;txt(label,x,y,17,'#b2d9ed',600,w);txt(value,x,y+27,29,'#fff',800,w)}function render(){let d=values();ctx.clearRect(0,0,1080,1080);if(bg.complete&&bg.naturalWidth){let scale=Math.max(1080/bg.width,1080/bg.height),w=bg.width*scale,h=bg.height*scale;ctx.drawImage(bg,(1080-w)/2,(1080-h)/2,w,h)}else{ctx.fillStyle='#123950';ctx.fillRect(0,0,1080,1080)}let shade=ctx.createLinearGradient(0,0,0,1080);shade.addColorStop(0,'rgba(3,20,33,.45)');shade.addColorStop(.30,'rgba(3,20,33,.35)');shade.addColorStop(.43,'rgba(3,20,33,.72)');shade.addColorStop(1,'rgba(2,15,30,.95)');ctx.fillStyle=shade;ctx.fillRect(0,0,1080,1080);
-txt('≋',43,21,68,'#29bdf1',900);txt('MARINE WEATHER',124,47,42,'#fff',850);txt('J A M A I C A   •   PLAN  |  FISH  |  EXPLORE',126,102,18,'#5ed2fa',750);txt('DAILY MARINE OUTLOOK',45,210,54,'#fff',900);txt(d.date,48,277,27,'#f4e8cb',650,900);const sun=[present(d.sunrise)?'☀ SUNRISE  '+d.sunrise:'',present(d.sunset)?'☼ SUNSET  '+d.sunset:''].filter(Boolean).join('    ');if(sun)txt(sun,48,316,20,'#fff0c5',750,950);
-rr(30,344,1020,338,22,'rgba(2,26,44,.86)',colors[d.status]||colors.AMBER,3);txt(d.location,58,364,37,'#fff',800,680);chip(d.status+'  '+d.comfort,790,363,228,colors[d.status]||colors.AMBER);txt(d.condition,60,418,22,'#d1eafa',600);ctx.strokeStyle='#33586b';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(58,463);ctx.lineTo(1020,463);ctx.stroke();let mx=[62,319,578,831];metric('WIND / GUSTS',[d.wind,d.gust].filter(present).join(' / '),mx[0],483,235);if(present(d.peakWind))txt('Peak wind: '+d.peakWind,mx[0],543,14,'#a6d8ee',650,235);metric('SEAS',d.seas,mx[1],483,225);if(present(d.peakWave))txt('Peak wave: '+d.peakWave,mx[1],543,14,'#a6d8ee',650,230);metric('WAVE PERIOD',d.period,mx[2],483,230);metric('CURRENT',[d.current,d.currentDir].filter(present).join(' '),mx[3],483,195);ctx.beginPath();ctx.moveTo(58,566);ctx.lineTo(1020,566);ctx.stroke();metric('RAINFALL',d.rain,62,587,225);metric('UV INDEX',d.uv,319,587,230);metric('SEA TEMPERATURE',d.sst,578,587,235);metric('DOMINANT SWELL',d.swell,831,587,195);
-txt('FISHING BANKS · QUICK COMPARE',39,710,29,'#fff',850);function bank(x,name,status,detail,rain){let color=colors[status]||colors.AMBER;rr(x,760,498,160,18,'rgba(2,20,35,.9)',color,3);txt(name,x+17,776,23,'#fff',800,340);rr(x+373,775,108,35,10,color);txt(status,x+386,782,17,'#082536',850,90);txt(detail,x+17,830,23,'#d4edfb',650,465);txt(rain,x+17,867,19,'#d4edfb',550,465)}bank(30,d.bank1,d.bank1status,d.bank1detail,d.bank1rain);bank(552,d.bank2,d.bank2status,d.bank2detail,d.bank2rain);
-rr(30,930,1020,83,15,'rgba(2,26,44,.88)','#54788b',2);if(present(d.moonPhase)||present(d.moonIllum)){txt('☾  MOON',45,939,17,'#9cdaff',750);txt([d.moonPhase,d.moonIllum].filter(present).join(' · '),45,962,21,'#fff',750,330)}if(present(d.highTides)){txt('HIGH TIDE',410,939,17,'#9cdaff',750);txt(d.highTides,410,962,20,'#fff',700,305)}if(present(d.lowTides)){txt('LOW TIDE',748,939,17,'#9cdaff',750);txt(d.lowTides,748,962,20,'#fff',700,275)}ctx.strokeStyle='#3d6576';ctx.beginPath();ctx.moveTo(42,1010);ctx.lineTo(1038,1010);ctx.stroke();txt('marine-weather.andrewcheeky.com',44,1027,18,'#6dd5ff',750);txt('NOT FOR NAVIGATION  ·  '+d.source,424,1027,14,'#c3d8e4',550,610)}fields.forEach(k=>document.getElementById(k).addEventListener('input',()=>{document.getElementById('export').disabled=true;document.getElementById('message').textContent='Forecast edited. Reload cached forecast before export.';render()}));document.getElementById('export').onclick=()=>{render();canvas.toBlob(blob=>{if(!blob){document.getElementById('message').textContent='PNG export failed';return}const a=document.createElement('a');const u=URL.createObjectURL(blob);a.href=u;a.download='marine-weather-jamaica-'+new Date().toISOString().slice(0,10)+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);document.getElementById('message').textContent='PNG exported successfully.'},'image/png')};render();
-const FORECAST_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzwP_tF1SeJIBgB7HxTRBi374NiF0tQXGcSBFUk7EPPu1rSAepDsALW-iHeny6yo1Y/exec';
-
-// Local NOAA Solar Calculator-style fallback for deployments that omit solar fields.
-// Forecast date, Kingston/Maiden Cay coordinates, standard 90.833-degree zenith.
-function marineSolarTimes(dayIso, lat=17.9085229, lon=-76.8103697) {
-  const midnight=Date.parse(dayIso+'T00:00:00Z');
-  if(!Number.isFinite(midnight)) return {sunrise:'Unavailable',sunset:'Unavailable'};
-  const DEG=Math.PI/180, jd=midnight/86400000+2440587.5;
-  const norm=x=>((x%360)+360)%360;
-  function position(t){
-    const L=norm(280.46646+t*(36000.76983+0.0003032*t));
-    const M=norm(357.52911+t*(35999.05029-0.0001537*t));
-    const e=0.016708634-t*(0.000042037+0.0000001267*t);
-    const C=(1.914602-t*(0.004817+0.000014*t))*Math.sin(M*DEG)
-      +(0.019993-0.000101*t)*Math.sin(2*M*DEG)+0.000289*Math.sin(3*M*DEG);
-    const omega=125.04-1934.136*t;
-    const lambda=L+C-0.00569-0.00478*Math.sin(omega*DEG);
-    const epsilon0=23+(26+(21.448-t*(46.815+t*(0.00059-t*0.001813)))/60)/60;
-    const epsilon=epsilon0+0.00256*Math.cos(omega*DEG);
-    const decl=Math.asin(Math.sin(epsilon*DEG)*Math.sin(lambda*DEG));
-    const y=Math.tan(epsilon*DEG/2)**2;
-    const eq=4/DEG*(y*Math.sin(2*L*DEG)-2*e*Math.sin(M*DEG)
-      +4*e*y*Math.sin(M*DEG)*Math.cos(2*L*DEG)
-      -0.5*y*y*Math.sin(4*L*DEG)-1.25*e*e*Math.sin(2*M*DEG));
-    return {decl,eq};
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#082c43"><title>Jamaica Marine Outlook</title><style>body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#eef5f8;color:#102c40}header{background:#082c43;color:white;padding:22px max(18px,calc((100vw - 1100px)/2))}header h1{margin:0;font-size:clamp(22px,3vw,34px)}header p{margin:6px 0 0;color:#c9e6ee}.wrap{max-width:1100px;margin:auto;padding:20px 14px}nav{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:14px}.status{margin:0 0 12px;color:#31596c;font-size:14px;min-height:20px}button{border:1px solid #b5cbd4;background:white;color:#173d51;border-radius:9px;padding:12px 18px;cursor:pointer;font-weight:650}button:focus-visible{outline:3px solid #f4b942;outline-offset:2px}button[aria-selected=true]{background:#076b87;color:white;border-color:#076b87}.frame{background:white;border:1px solid #c6d9e1;border-radius:12px;overflow:hidden;min-height:800px}.frame{position:relative}iframe{display:block;width:100%;height:1100px;border:0}.loading-overlay{position:absolute;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.96);transition:opacity .2s ease}.loading-overlay[hidden]{display:none}.loading-panel{text-align:center;padding:28px;color:#173d51}.spinner{width:54px;height:54px;margin:0 auto 18px;border:5px solid #d8eaf0;border-top-color:#076b87;border-radius:50%;animation:spin .85s linear infinite}.loading-title{font-size:18px;font-weight:700}.loading-detail{font-size:14px;color:#547081;margin-top:8px}@keyframes spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.spinner{animation-duration:2.5s}}.notice{font-size:13px;color:#546d7a;margin:12px 2px 20px}.fallback{padding:12px 4px;font-size:14px}a{color:#075f7e}footer{padding:18px;text-align:center;color:#526b79;font-size:13px}
+.fishing-intelligence{background:#d7f0eb;border-color:#1b806e;color:#075447;font-weight:750}.fishing-intelligence:hover{background:#bce5db}
+/* Alert modal is independent of the forecast iframe and its loading overlay. */
+.alert-backdrop{position:fixed;inset:0;z-index:30000;background:rgba(6,22,35,.75);display:flex;align-items:center;justify-content:center;padding:16px}
+.alert-backdrop[hidden]{display:none}.alert-card{background:#fff;max-width:650px;width:100%;border-radius:14px;border:4px solid #d99a24;box-shadow:0 20px 70px #0005;padding:24px;max-height:85vh;overflow:auto}.alert-card.red{border-color:#b91c1c}.alert-card h2{margin:0 0 14px;color:#8a5200}.alert-card.red h2{color:#b91c1c}.alert-card p{font-size:17px;line-height:1.55}.alert-meta{font-size:13px;color:#526b79}.alert-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.alert-actions button{background:#082c43;color:white}.alert-actions a{padding:12px 8px}
+</style>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "de57052902c8416f82d5c0eedabf779b"}'></script><!-- End Cloudflare Web Analytics -->
+</head><body><header><h1>Jamaica Marine Outlook</h1><p>Marine weather and fishing conditions · Jamaica</p></header><main class="wrap"><nav aria-label="Forecast views"><button type="button" data-view="current" aria-selected="true">Current 6 Hours</button><button type="button" data-view="tomorrow" aria-selected="false">Tomorrow</button><button type="button" data-view="weekend" aria-selected="false">Weekend</button><button type="button" data-view="banks" aria-selected="false">Fishing Banks</button><button type="button" id="fishing-intelligence" class="fishing-intelligence" aria-label="Open Fishing Intelligence in a new window">🎣 Fishing Intelligence ↗</button><button type="button" id="catch-log" aria-label="Open Fishing Catch Log in a new window">🐟 Log a Catch ↗</button><button type="button" id="refresh" aria-label="Refresh selected forecast">↻ Refresh</button></nav><p class="status" id="status" role="status" aria-live="polite"></p><div class="frame"><div class="loading-overlay" id="loading-overlay" role="status" aria-live="polite"><div class="loading-panel"><div class="spinner" aria-hidden="true"></div><div class="loading-title" id="loading-title">Loading marine forecast…</div><div class="loading-detail" id="loading-detail">Please wait while the forecast opens</div></div></div><iframe id="forecast" title="Marine weather forecast" loading="eager" referrerpolicy="no-referrer"></iframe></div><p class="notice">Forecasts are guidance only and are not intended for navigation. Always check official marine warnings before departure.</p></main><footer>Jamaica Marine Outlook · Local time: Jamaica (UTC−5)</footer><div id="marine-alert-modal" class="alert-backdrop" hidden role="presentation"><section id="marine-alert-card" class="alert-card" role="alertdialog" aria-modal="true" aria-labelledby="marine-alert-title" aria-describedby="marine-alert-message"><h2 id="marine-alert-title">⚠ Marine Alert in Effect</h2><p id="marine-alert-message"></p><p class="alert-meta" id="marine-alert-issued"></p><div class="alert-actions"><button type="button" id="marine-alert-ack">I Acknowledge</button><a href="https://jamaica.weatherproof.fi/web/website_2014/website_elements/news2.php?type=6" target="_blank" rel="noopener noreferrer">Read full official forecast ↗</a></div></section></div><script>
+const BASE='https://script.google.com/macros/s/AKfycbztZnfDMWf24GzQD8dSxQg6HomHdjxCJzdymnmUEs8i4orfSlWkBF4taxenqpLCtCI/exec';
+const allowed=['current','tomorrow','weekend','banks'];
+const frameHost=document.querySelector('.frame');
+const status=document.getElementById('status');
+const overlay=document.getElementById('loading-overlay');
+const loadingTitle=document.getElementById('loading-title');
+const loadingDetail=document.getElementById('loading-detail');
+let currentView='';
+let requestId=0;
+let loadingTimer=null;
+let minimumDisplayTimer=null;
+const MINIMUM_SPINNER_MS=15000;
+function show(view){
+  if(!allowed.includes(view))view='current';
+  currentView=view;
+  const id=++requestId;
+  // Unique URL for each navigation prevents browser iframe caching.
+  const url=BASE+'?action='+encodeURIComponent(view)+'&hideFooter=1&_reload='+Date.now()+'_'+id;
+  const labels={current:'Current 6 Hours',tomorrow:'Tomorrow',weekend:'Weekend',banks:'Fishing Banks'};
+  status.textContent='Loading '+labels[view]+'…';
+  overlay.hidden=false;
+  overlay.style.display='flex';
+  overlay.style.opacity='1';
+  const startedAt=performance.now();
+  loadingTitle.textContent='Loading '+labels[view]+'…';
+  loadingDetail.textContent='Please wait while the forecast opens';
+  clearTimeout(loadingTimer);
+  clearTimeout(minimumDisplayTimer);
+  function finishLoading(message){
+    if(id!==requestId)return;
+    const remaining=Math.max(0,MINIMUM_SPINNER_MS-(performance.now()-startedAt));
+    clearTimeout(minimumDisplayTimer);
+    minimumDisplayTimer=setTimeout(()=>{
+      if(id!==requestId)return;
+      overlay.hidden=true;
+      overlay.style.display='none';
+      status.textContent=message;
+    },remaining);
   }
-  function event(rise){
-    let minutes=rise?660:1320;
-    for(let i=0;i<8;i++){
-      const {decl,eq}=position((jd+minutes/1440-2451545)/36525);
-      const cosH=(Math.cos(90.833*DEG)-Math.sin(lat*DEG)*Math.sin(decl))
-        /(Math.cos(lat*DEG)*Math.cos(decl));
-      if(cosH < -1 || cosH > 1) return 'Unavailable';
-      const H=Math.acos(Math.max(-1,Math.min(1,cosH)))/DEG;
-      const next=720-4*(lon+(rise?H:-H))-eq;
-      if(Math.abs(next-minutes)<0.0001){minutes=next;break;}
-      minutes=next;
-    }
-    return new Intl.DateTimeFormat('en-US',{timeZone:'America/Jamaica',hour:'numeric',minute:'2-digit',hour12:true})
-      .format(new Date(midnight+Math.round(minutes)*60000));
-  }
-  return {sunrise:event(true),sunset:event(false)};
+  loadingTimer=setTimeout(()=>{
+    finishLoading('The forecast is taking longer than expected. Select Refresh to try again.');
+  },30000);
+  // Replacing the iframe ensures a fresh navigation even if Google redirects internally.
+  const next=document.createElement('iframe');
+  next.id='forecast';next.title=labels[view]+' marine weather forecast';
+  next.loading='eager';next.referrerPolicy='no-referrer';
+  next.addEventListener('load',()=>{
+    if(id!==requestId)return;
+    clearTimeout(loadingTimer);
+    finishLoading('Showing '+labels[view]+'.');
+  });
+  const previous=frameHost.querySelector('iframe');
+  if(previous) previous.replaceWith(next);
+  else frameHost.appendChild(next);
+  document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.view===view)));
+  if(location.hash.slice(1)!==view)history.replaceState(null,'','#'+view);
+  // Two paint opportunities ensure the overlay renders before iframe navigation begins.
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(id===requestId)next.src=url;}));
 }
-
-let loadSerial = 0;
-function loadCachedForecast(){
-  const serial=++loadSerial;
-  const btn=document.getElementById('loadForecast');
-  const exportBtn=document.getElementById('export');
-  const message=document.getElementById('message');
-  const freshness=document.getElementById('dataFreshness');
-  btn.disabled=true;exportBtn.disabled=true;window.__marinePosterReady=false;message.textContent='Loading cached spreadsheet forecast…';
-  const callback='mwInstagramCallback_'+Date.now()+'_'+serial;
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.view)));
+document.getElementById('refresh').addEventListener('click',()=>show(currentView));
+ document.getElementById('fishing-intelligence').addEventListener('click',()=>{
+   const url='https://fishing.andrewcheeky.com';
+   const popup=window.open(url,'FishingIntelligence','popup=yes,width=1180,height=820,resizable=yes,scrollbars=yes');
+   if(!popup)window.open(url,'_blank','noopener,noreferrer');
+   else popup.focus();
+ });
+document.getElementById('catch-log').addEventListener('click',()=>{
+  const url='https://fishing-logs.andrewcheeky.com';
+  const popup=window.open(url,'FishingCatchLog','popup=yes,width=1180,height=820,resizable=yes,scrollbars=yes');
+  if(!popup)window.open(url,'_blank','noopener,noreferrer');
+  else popup.focus();
+});
+window.addEventListener('hashchange',()=>show(location.hash.slice(1)));
+show(location.hash.slice(1));
+// JSONP is used because Google Apps Script's ContentService does not supply
+// cross-origin fetch headers for a GitHub Pages site.
+function checkMarineAlert(){
+  const cb='wxMarineAlertCallback';
   const script=document.createElement('script');
-  let done=false;
-  const timeout=setTimeout(()=>finish('Timed out contacting forecast service.'),18000);
-  function finish(err,payload){
-    if(done)return;done=true;clearTimeout(timeout);delete window[callback];script.remove();btn.disabled=false;
-    if(err){message.textContent=err;freshness.textContent='Forecast unavailable — PNG export disabled.';return;}
-    if(!payload||!payload.ok){message.textContent=payload?.message||'Forecast data unavailable';freshness.textContent='PNG export disabled.';return;}
-    const d=payload.poster||{};
-    for(const k of fields){const el=document.getElementById(k);if(!el)continue;if(Object.prototype.hasOwnProperty.call(d,k))el.value=present(d[k])?String(d[k]):'';else if(el.tagName!=='SELECT')el.value='';}
-    // The forecast endpoint may still be running an older deployed Apps Script.
-    // Calculate missing solar fields locally so both PNGs always show times.
-    const solar=marineSolarTimes(payload.day);
-    for(const key of ['sunrise','sunset']){
-      const raw=String(d[key]??'').trim();
-      if(!raw || raw==='—' || raw==='Unavailable') document.getElementById(key).value=solar[key];
-    }
-    const missing=Array.isArray(payload.missing)?payload.missing:[];
-    const stale=payload.stale===true;
-    const safe=missing.length===0&&!stale&&payload.ready===true;window.__marinePosterReady=safe;window.__marinePosterDay=payload.day;
-    freshness.textContent=`Forecast: ${payload.day} · 07:00–17:00 Jamaica time · Latest spreadsheet update: ${payload.lastUpdated||'unknown'} · ${payload.rowCounts||''}`;
-    exportBtn.disabled=!safe;
-    message.textContent=safe?'Cached forecast loaded. Review the graphic, then download PNG.':(stale?'Forecast data is delayed. ':'')+(missing.length?'Missing: '+missing.join(', '):'Forecast incomplete')+' — PNG export disabled.';
-    render();
-  }
-  window[callback]=(data)=>{if(serial===loadSerial)finish(null,data)};
-  script.onerror=()=>finish('Unable to load forecast endpoint. Confirm Apps Script is deployed for public access.');
-  script.src=FORECAST_ENDPOINT+'?action=instagramData&day='+encodeURIComponent(document.getElementById('forecastDay').value)+'&callback='+encodeURIComponent(callback);
+  let finished=false;
+  const cleanup=()=>{if(finished)return;finished=true;clearTimeout(timeout);script.remove();try{delete window[cb];}catch(_){window[cb]=undefined;}};
+  window[cb]=(data)=>{
+    cleanup();
+    if(!data||!data.ok||!data.active||!data.message)return;
+    if(!['AMBER','RED'].includes(data.level))return;
+    const signature=[data.level,data.issued||'',data.message].join('|');
+    try{if(sessionStorage.getItem('marineAlertAcknowledged')===signature)return;}catch(_){}
+    const modal=document.getElementById('marine-alert-modal');
+    const card=document.getElementById('marine-alert-card');
+    const ack=document.getElementById('marine-alert-ack');
+    card.classList.toggle('red',data.level==='RED');
+    document.getElementById('marine-alert-title').textContent='⚠ '+data.level+' MARINE ALERT IN EFFECT';
+    document.getElementById('marine-alert-message').textContent=data.message;
+    document.getElementById('marine-alert-issued').textContent=(data.issued?'Issued: '+data.issued+' · ':'')+'Source: Jamaica Meteorological Service';
+    modal.hidden=false;ack.focus();
+    ack.onclick=()=>{try{sessionStorage.setItem('marineAlertAcknowledged',signature);}catch(_){}modal.hidden=true;};
+  };
+  const timeout=setTimeout(cleanup,12000);
+  script.onerror=cleanup;
+  script.src=BASE+'?action=marineAlert&callback='+cb+'&_t='+Date.now();
   document.head.appendChild(script);
 }
-document.getElementById('loadForecast').addEventListener('click',loadCachedForecast);
-document.getElementById('forecastDay').addEventListener('change',()=>{document.getElementById('export').disabled=true;loadCachedForecast()});
-window.addEventListener('load',loadCachedForecast);
+checkMarineAlert();
 </script></body></html>
