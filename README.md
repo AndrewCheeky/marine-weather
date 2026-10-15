@@ -1,9 +1,35 @@
-# Marine Weather Jamaica — Instagram v10 (public GitHub files)
+# Marine Weather Jamaica — Instagram Forecast Studio
 
-Upload only `instagram/index.html`, `scripts/generate-instagram.mjs`, and `.github/workflows/daily-instagram.yml` to the existing public repository, preserving paths. The existing `instagram/sunset-background.jpg` is included unchanged for completeness.
+## What this does
+A self-contained HTML editing tool that overlays a daily marine forecast on the supplied original sunset photograph. Exports a **1080 × 1080 PNG** for Instagram feeds. No installation, accounts, external libraries, or API keys required.
 
-The poster suppresses unavailable/blank peak wind, peak wave, tides, solar values, and metric placeholders rather than printing “Unavailable”. Forecast data are still retrieved from the existing Apps Script `action=instagramData` endpoint. The GitHub workflow generates **today only** and does not generate tomorrow.
+## How to use
+1. Unzip the folder, keeping `index.html` and `sunset-background.jpg` in the same directory.
+2. Open `index.html` in a modern browser (Chrome or Edge recommended).
+3. Replace all **illustrative** sample figures with your verified forecast data. Update date, location, status, fishing bank details, and safety notice.
+4. Click **Download Instagram PNG** and post the exported image.
 
-**Do not upload the separate private `.gs` file or the private ZIP to GitHub.** That file includes the existing weather service credentials. Paste it into the existing Google Apps Script project and update the **existing deployment** via Deploy → Manage deployments → Edit → New version → Deploy.
+## JSON input
+Paste a JSON object in the JSON box, then click **Apply JSON**. Field names match the form inputs. Example:
 
-Verification: open the deployed `.../exec?action=instagramData&day=today&callback=mwInstagramCallback_123_456` URL and confirm `poster.peakWind` and `poster.peakWave` exist (blank only if no usable cached hourly data). Run GitHub Actions → Daily Marine Forecast PNG → Run workflow. This package does not change cache tables or add API requests.
+```json
+{
+  "date": "Wednesday, 14 October 2026",
+  "location": "KINGSTON · MAIDEN CAY",
+  "status": "GREEN",
+  "comfort": "4/5",
+  "wind": "8 kt",
+  "gust": "14 kt",
+  "seas": "2.2 ft",
+  "bank1status": "AMBER"
+}
+```
+
+## Connecting live forecasts later
+The current version intentionally does **not** call your Apps Script service, since the exact API response format and endpoint for a social-media export are not yet specified. A future integration can map a dedicated JSON forecast response to the input keys and generate the image on demand. Do not publish the sample values as an actual forecast.
+
+## Notes
+- Original user-provided photograph is included unchanged as `sunset-background.jpg`.
+- No Google Apps Script or GitHub repository changes are required for the local editor.
+- The PNG is rendered in the browser using HTML Canvas, not a screenshot.
+- Not for navigation. Check official marine warnings before departure.
