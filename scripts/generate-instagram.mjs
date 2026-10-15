@@ -25,12 +25,13 @@ try {
         page.on('pageerror',e=>console.error(`[${day} pageerror] ${e.message}`));
         const response=await page.goto(posterUrl,{waitUntil:'domcontentloaded',timeout:60000});
         if (!response?.ok()) throw new Error(`Poster page HTTP ${response?.status()??'no response'}`);
-        // Set the requested day explicitly, including tomorrow, rather than trusting defaults.
+        // The page automatically starts ONE forecast request on load.
+        // Do not click Load again: that invalidates the first JSONP callback
+        // and can cause a late-response 'callback is not defined' error.
         const selector=page.locator('#forecastDay');
         await selector.waitFor({timeout:15000});
         if (await selector.inputValue() !== day) await selector.selectOption(day);
-        else await page.locator('#loadForecast').click();
-        await page.waitForFunction(()=>window.__marinePosterReady===true && document.querySelector('#export')?.disabled===false,null,{timeout:90000});
+        await page.waitForFunction(()=>window.__marinePosterReady===true && document.querySelector('#export')?.disabled===false,null,{timeout:75000});
         const actual=await page.evaluate(()=>window.__marinePosterDay);
         const expected=dateInJamaica(offset);
         if(actual!==expected) throw new Error(`Date mismatch: ${actual} != ${expected}`);
