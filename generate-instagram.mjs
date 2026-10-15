@@ -34,6 +34,17 @@ try {
         const actual=await page.evaluate(()=>window.__marinePosterDay);
         const expected=dateInJamaica(offset);
         if(actual!==expected) throw new Error(`Date mismatch: ${actual} != ${expected}`);
+        const diagnostics=await page.evaluate(()=>({
+          peakWind:document.querySelector('#peakWind')?.value||'',
+          peakWave:document.querySelector('#peakWave')?.value||'',
+          lowTides:document.querySelector('#lowTides')?.value||'',
+          source:document.querySelector('#source')?.value||''
+        }));
+        console.log(`POSTER DATA ${day}: ${JSON.stringify(diagnostics)}`);
+        for(const key of ['peakWind','peakWave','lowTides']){
+          if(/unavailable|undefined|null/i.test(diagnostics[key]))
+            throw new Error(`Placeholder detected in ${key}: ${diagnostics[key]}`);
+        }
         await page.evaluate(()=>document.fonts.ready);
         const data=await page.locator('canvas#art').evaluate(c=>{if(c.width!==1080||c.height!==1080)throw Error('Unexpected canvas size');return c.toDataURL('image/png').split(',')[1]});
         const png=Buffer.from(data,'base64');
