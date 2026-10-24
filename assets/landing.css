@@ -69,3 +69,6 @@
 /* Keep internal card padding for readability; align section-level headings and grids. */
 @media(max-width:850px){.hero-content{padding-left:var(--page-gutter);padding-right:var(--page-gutter)}}
 @media(max-width:520px){.section{padding-left:var(--page-gutter);padding-right:var(--page-gutter)}}
+
+/* v5.4: brand-only header, no removed navigation or CTA */
+.site-header{justify-content:flex-start}

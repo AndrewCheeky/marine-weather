@@ -1,9 +1,6 @@
 document.getElementById('fishing-intelligence').addEventListener('click',()=>{
-   const url='https://fishing.andrewcheeky.com';
-   const popup=window.open(url,'FishingIntelligence','popup=yes,width=1180,height=820,resizable=yes,scrollbars=yes');
-   if(!popup)window.open(url,'_blank','noopener,noreferrer');
-   else popup.focus();
- });
+  window.location.assign('https://fishing.andrewcheeky.com/');
+});
 document.getElementById('catch-log').addEventListener('click',()=>{
   const url='https://fishing-logs.andrewcheeky.com';
   const popup=window.open(url,'FishingCatchLog','popup=yes,width=1180,height=820,resizable=yes,scrollbars=yes');
