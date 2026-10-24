@@ -1,4 +1,5 @@
 import { chromium } from 'playwright';
+import sharp from 'sharp';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 
 const banks = JSON.parse(await readFile('banks/banks.json', 'utf8'));
@@ -51,7 +52,8 @@ for (const b of banks) {
       const height = await selected.evaluate(()=>Math.min(6500,Math.max(700,document.documentElement.scrollHeight))).catch(()=>900);
       await page.setViewportSize({width:1050,height:Math.min(height,900)});
       const bodyLocator=selected.locator('body');
-      const image=await bodyLocator.screenshot({type:'webp',quality:85,animations:'disabled',timeout:45000});
+      const png=await bodyLocator.screenshot({type:'png',animations:'disabled',timeout:45000});
+      const image=await sharp(png).webp({quality:85}).toBuffer();
       if (image.length<8000) throw Error(`Rendered image too small (${image.length} bytes)`);
       const path=`banks/generated/${label}.webp`;
       await writeFile(path,image);
