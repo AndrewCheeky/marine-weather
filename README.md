@@ -1,1 +1,16 @@
-Marine Bank Forecast Generator v4.3 diagnostic update. Copy scripts/generate-bank-forecasts.mjs and .github/workflows/bank-forecast-images.yml into the same paths in the existing GitHub repository; banks/banks.json is included unchanged. The workflow writes valid WebP images to banks/generated/ and uploads a bank-forecast-diagnostics artifact with failure reasons. This does not modify Apps Script, the website, or subscriber emails. If all forecasts fail, check whether the existing GAS action=bank endpoint supports the listed keys and query parameters.
+# Marine Weather Jamaica v4.6 — simplified landing page
+
+This package removes the **four-card service highlight strip** and the entire **Know before you go / Current 6 Hours / Tomorrow / Weekend / Fishing Banks iframe panel** shown in the screenshot. The main hero, today’s image, 13-bank dropdown gallery, Fishing Intelligence/Logs, and automatic advisory popup remain.
+
+## Install
+Upload these files and folders to the root of `AndrewCheeky/marine-weather`, preserving `.github/workflows/`, and commit to `main`. Do not delete any existing generated images, Instagram output, `CNAME`, or unrelated files.
+
+If you have newer changes in your live repository, merge `index.html` and `assets/landing.js` rather than overwriting those changes. The bundle uses v4.2 as its base, the v4.4 bank generator, and the v4.5 alert popup.
+
+## Changed
+- `index.html`: removes the two screenshot sections, redirects navigation/hero links to `#bank-snapshots`, retains bank dropdown and alert dialog.
+- `assets/landing.js`: removes iframe startup and view navigation handlers that would error after the panel was removed; keeps Fishing Intelligence/Logs popup buttons and today’s image.
+- Everything else remains as in the packaged baseline.
+
+## Safety
+The alert popup depends on the deployed GAS `action=marineAlert` endpoint; no GAS or subscriber email changes are included. Bank images depend on the existing workflow and valid bank pages. No live deployment test was performed.
