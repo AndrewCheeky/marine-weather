@@ -72,3 +72,9 @@
 
 /* v5.4: brand-only header, no removed navigation or CTA */
 .site-header{justify-content:flex-start}
+
+/* v5.6 — restore right-aligned header CTA without changing navigation */
+.site-header .check-conditions-cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-left:auto;background:var(--yellow);color:#102d3d;box-shadow:0 5px 18px #0002;font-weight:850;white-space:nowrap}
+.site-header .check-conditions-cta:hover{background:#ffe475}
+@media(max-width:520px){.site-header{gap:10px;padding:14px 20px}.site-header .check-conditions-cta{font-size:12px;padding:11px 13px}.site-header .brand{gap:7px}.site-header .brand small{letter-spacing:.16em}}
+@media(max-width:370px){.site-header .check-conditions-cta{font-size:11px;padding:9px 10px}.site-header .brand strong{font-size:13px}}

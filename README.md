@@ -1,8 +1,1 @@
-# Marine Weather Jamaica v5.5 — streamlined header and same-tab Fishing Intelligence
-
-- Removes top navigation links (Bank Forecasts, Explore, Fishing, About) and the Check conditions header button.
-- Removes hero buttons “Explore bank forecasts” and “Today's outlook”.
-- Fishing Intelligence photo card and yellow Open Fishing Intelligence button now navigate in the **same tab**.
-- Other links, bank dropdown, images, forecast workflows, marine alert popup and existing scripts remain unchanged.
-
-Upload the contents of this ZIP to the root of the existing `marine-weather` repository and commit to `main`; do not delete other existing repository files or generated images.
+Marine Weather Jamaica v5.6 — Restored yellow Check Conditions button on the right of the header. The button links to the existing bank forecast section (#bank-snapshots) in the same page. All other v5.5 behavior and assets remain unchanged. Upload files preserving paths; no backend changes.
