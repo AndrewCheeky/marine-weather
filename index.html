@@ -1,113 +1,13 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#082c43"><title>Jamaica Marine Outlook</title><style>body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#eef5f8;color:#102c40}header{background:#082c43;color:white;padding:22px max(18px,calc((100vw - 1100px)/2))}header h1{margin:0;font-size:clamp(22px,3vw,34px)}header p{margin:6px 0 0;color:#c9e6ee}.wrap{max-width:1100px;margin:auto;padding:20px 14px}nav{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:14px}.status{margin:0 0 12px;color:#31596c;font-size:14px;min-height:20px}button{border:1px solid #b5cbd4;background:white;color:#173d51;border-radius:9px;padding:12px 18px;cursor:pointer;font-weight:650}button:focus-visible{outline:3px solid #f4b942;outline-offset:2px}button[aria-selected=true]{background:#076b87;color:white;border-color:#076b87}.frame{background:white;border:1px solid #c6d9e1;border-radius:12px;overflow:hidden;min-height:800px}.frame{position:relative}iframe{display:block;width:100%;height:1100px;border:0}.loading-overlay{position:absolute;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.96);transition:opacity .2s ease}.loading-overlay[hidden]{display:none}.loading-panel{text-align:center;padding:28px;color:#173d51}.spinner{width:54px;height:54px;margin:0 auto 18px;border:5px solid #d8eaf0;border-top-color:#076b87;border-radius:50%;animation:spin .85s linear infinite}.loading-title{font-size:18px;font-weight:700}.loading-detail{font-size:14px;color:#547081;margin-top:8px}@keyframes spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.spinner{animation-duration:2.5s}}.notice{font-size:13px;color:#546d7a;margin:12px 2px 20px}.fallback{padding:12px 4px;font-size:14px}a{color:#075f7e}footer{padding:18px;text-align:center;color:#526b79;font-size:13px}
-.fishing-intelligence{background:#d7f0eb;border-color:#1b806e;color:#075447;font-weight:750}.fishing-intelligence:hover{background:#bce5db}
-/* Alert modal is independent of the forecast iframe and its loading overlay. */
-.alert-backdrop{position:fixed;inset:0;z-index:30000;background:rgba(6,22,35,.75);display:flex;align-items:center;justify-content:center;padding:16px}
-.alert-backdrop[hidden]{display:none}.alert-card{background:#fff;max-width:650px;width:100%;border-radius:14px;border:4px solid #d99a24;box-shadow:0 20px 70px #0005;padding:24px;max-height:85vh;overflow:auto}.alert-card.red{border-color:#b91c1c}.alert-card h2{margin:0 0 14px;color:#8a5200}.alert-card.red h2{color:#b91c1c}.alert-card p{font-size:17px;line-height:1.55}.alert-meta{font-size:13px;color:#526b79}.alert-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.alert-actions button{background:#082c43;color:white}.alert-actions a{padding:12px 8px}
-</style>
-<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "de57052902c8416f82d5c0eedabf779b"}'></script><!-- End Cloudflare Web Analytics -->
-</head><body><header><h1>Jamaica Marine Outlook</h1><p>Marine weather and fishing conditions · Jamaica</p></header><main class="wrap"><nav aria-label="Forecast views"><button type="button" data-view="current" aria-selected="true">Current 6 Hours</button><button type="button" data-view="tomorrow" aria-selected="false">Tomorrow</button><button type="button" data-view="weekend" aria-selected="false">Weekend</button><button type="button" data-view="banks" aria-selected="false">Fishing Banks</button><button type="button" id="fishing-intelligence" class="fishing-intelligence" aria-label="Open Fishing Intelligence in a new window">🎣 Fishing Intelligence ↗</button><button type="button" id="catch-log" aria-label="Open Fishing Catch Log in a new window">🐟 Log a Catch ↗</button><button type="button" id="refresh" aria-label="Refresh selected forecast">↻ Refresh</button></nav><p class="status" id="status" role="status" aria-live="polite"></p><div class="frame"><div class="loading-overlay" id="loading-overlay" role="status" aria-live="polite"><div class="loading-panel"><div class="spinner" aria-hidden="true"></div><div class="loading-title" id="loading-title">Loading marine forecast…</div><div class="loading-detail" id="loading-detail">Please wait while the forecast opens</div></div></div><iframe id="forecast" title="Marine weather forecast" loading="eager" referrerpolicy="no-referrer"></iframe></div><p class="notice">Forecasts are guidance only and are not intended for navigation. Always check official marine warnings before departure.</p></main><footer>Jamaica Marine Outlook · Local time: Jamaica (UTC−5)</footer><div id="marine-alert-modal" class="alert-backdrop" hidden role="presentation"><section id="marine-alert-card" class="alert-card" role="alertdialog" aria-modal="true" aria-labelledby="marine-alert-title" aria-describedby="marine-alert-message"><h2 id="marine-alert-title">⚠ Marine Alert in Effect</h2><p id="marine-alert-message"></p><p class="alert-meta" id="marine-alert-issued"></p><div class="alert-actions"><button type="button" id="marine-alert-ack">I Acknowledge</button><a href="https://jamaica.weatherproof.fi/web/website_2014/website_elements/news2.php?type=6" target="_blank" rel="noopener noreferrer">Read full official forecast ↗</a></div></section></div><script>
-const BASE='https://script.google.com/macros/s/AKfycbztZnfDMWf24GzQD8dSxQg6HomHdjxCJzdymnmUEs8i4orfSlWkBF4taxenqpLCtCI/exec';
-const allowed=['current','tomorrow','weekend','banks'];
-const frameHost=document.querySelector('.frame');
-const status=document.getElementById('status');
-const overlay=document.getElementById('loading-overlay');
-const loadingTitle=document.getElementById('loading-title');
-const loadingDetail=document.getElementById('loading-detail');
-let currentView='';
-let requestId=0;
-let loadingTimer=null;
-let minimumDisplayTimer=null;
-const MINIMUM_SPINNER_MS=15000;
-function show(view){
-  if(!allowed.includes(view))view='current';
-  currentView=view;
-  const id=++requestId;
-  // Unique URL for each navigation prevents browser iframe caching.
-  const url=BASE+'?action='+encodeURIComponent(view)+'&hideFooter=1&_reload='+Date.now()+'_'+id;
-  const labels={current:'Current 6 Hours',tomorrow:'Tomorrow',weekend:'Weekend',banks:'Fishing Banks'};
-  status.textContent='Loading '+labels[view]+'…';
-  overlay.hidden=false;
-  overlay.style.display='flex';
-  overlay.style.opacity='1';
-  const startedAt=performance.now();
-  loadingTitle.textContent='Loading '+labels[view]+'…';
-  loadingDetail.textContent='Please wait while the forecast opens';
-  clearTimeout(loadingTimer);
-  clearTimeout(minimumDisplayTimer);
-  function finishLoading(message){
-    if(id!==requestId)return;
-    const remaining=Math.max(0,MINIMUM_SPINNER_MS-(performance.now()-startedAt));
-    clearTimeout(minimumDisplayTimer);
-    minimumDisplayTimer=setTimeout(()=>{
-      if(id!==requestId)return;
-      overlay.hidden=true;
-      overlay.style.display='none';
-      status.textContent=message;
-    },remaining);
-  }
-  loadingTimer=setTimeout(()=>{
-    finishLoading('The forecast is taking longer than expected. Select Refresh to try again.');
-  },30000);
-  // Replacing the iframe ensures a fresh navigation even if Google redirects internally.
-  const next=document.createElement('iframe');
-  next.id='forecast';next.title=labels[view]+' marine weather forecast';
-  next.loading='eager';next.referrerPolicy='no-referrer';
-  next.addEventListener('load',()=>{
-    if(id!==requestId)return;
-    clearTimeout(loadingTimer);
-    finishLoading('Showing '+labels[view]+'.');
-  });
-  const previous=frameHost.querySelector('iframe');
-  if(previous) previous.replaceWith(next);
-  else frameHost.appendChild(next);
-  document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.view===view)));
-  if(location.hash.slice(1)!==view)history.replaceState(null,'','#'+view);
-  // Two paint opportunities ensure the overlay renders before iframe navigation begins.
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(id===requestId)next.src=url;}));
-}
-document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.view)));
-document.getElementById('refresh').addEventListener('click',()=>show(currentView));
- document.getElementById('fishing-intelligence').addEventListener('click',()=>{
-   const url='https://fishing.andrewcheeky.com';
-   const popup=window.open(url,'FishingIntelligence','popup=yes,width=1180,height=820,resizable=yes,scrollbars=yes');
-   if(!popup)window.open(url,'_blank','noopener,noreferrer');
-   else popup.focus();
- });
-document.getElementById('catch-log').addEventListener('click',()=>{
-  const url='https://fishing-logs.andrewcheeky.com';
-  const popup=window.open(url,'FishingCatchLog','popup=yes,width=1180,height=820,resizable=yes,scrollbars=yes');
-  if(!popup)window.open(url,'_blank','noopener,noreferrer');
-  else popup.focus();
-});
-window.addEventListener('hashchange',()=>show(location.hash.slice(1)));
-show(location.hash.slice(1));
-// JSONP is used because Google Apps Script's ContentService does not supply
-// cross-origin fetch headers for a GitHub Pages site.
-function checkMarineAlert(){
-  const cb='wxMarineAlertCallback';
-  const script=document.createElement('script');
-  let finished=false;
-  const cleanup=()=>{if(finished)return;finished=true;clearTimeout(timeout);script.remove();try{delete window[cb];}catch(_){window[cb]=undefined;}};
-  window[cb]=(data)=>{
-    cleanup();
-    if(!data||!data.ok||!data.active||!data.message)return;
-    if(!['AMBER','RED'].includes(data.level))return;
-    const signature=[data.level,data.issued||'',data.message].join('|');
-    try{if(sessionStorage.getItem('marineAlertAcknowledged')===signature)return;}catch(_){}
-    const modal=document.getElementById('marine-alert-modal');
-    const card=document.getElementById('marine-alert-card');
-    const ack=document.getElementById('marine-alert-ack');
-    card.classList.toggle('red',data.level==='RED');
-    document.getElementById('marine-alert-title').textContent='⚠ '+data.level+' MARINE ALERT IN EFFECT';
-    document.getElementById('marine-alert-message').textContent=data.message;
-    document.getElementById('marine-alert-issued').textContent=(data.issued?'Issued: '+data.issued+' · ':'')+'Source: Jamaica Meteorological Service';
-    modal.hidden=false;ack.focus();
-    ack.onclick=()=>{try{sessionStorage.setItem('marineAlertAcknowledged',signature);}catch(_){}modal.hidden=true;};
-  };
-  const timeout=setTimeout(cleanup,12000);
-  script.onerror=cleanup;
-  script.src=BASE+'?action=marineAlert&callback='+cb+'&_t='+Date.now();
-  document.head.appendChild(script);
-}
-checkMarineAlert();
-</script></body></html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#052638"><meta name="description" content="Jamaica marine weather, fishing banks, currents and coastal forecasts — plan safer days on the water."><title>Marine Weather Jamaica | Plan · Fish · Explore</title><link rel="stylesheet" href="assets/landing.css"></head>
+<body>
+<header class="site-header"><a href="#home" class="brand" aria-label="Marine Weather Jamaica home"><span class="brand-wave" aria-hidden="true">≋</span><span><strong>MARINE WEATHER</strong><small>J A M A I C A</small></span></a><nav class="top-nav" aria-label="Main navigation"><a href="#forecast-section">Forecast</a><a href="#explore">Explore</a><a href="https://fishing.andrewcheeky.com" target="_blank" rel="noopener noreferrer">Fishing</a><a href="#about">About</a></nav><a class="nav-cta" href="#forecast-section">Check conditions <span aria-hidden="true">↗</span></a></header>
+<main id="home">
+<section class="hero" aria-labelledby="hero-title"><div class="hero-overlay"></div><div class="hero-content"><div class="hero-copy"><p class="eyebrow">MADE FOR JAMAICA'S WATERS</p><h1 id="hero-title">A brighter day <em>on the water.</em></h1><p class="lead">Marine forecasts, fishing bank conditions and coastal insights — all in one place, built for the way Jamaica gets out on the sea.</p><div class="hero-actions"><a class="btn btn-yellow" href="#forecast-section">Explore marine forecasts <span aria-hidden="true">→</span></a><a class="btn btn-ghost" href="#today-outlook">Today's outlook ↓</a></div><p class="hero-caption">KINGSTON · PORT ROYAL · OFFSHORE BANKS · BEYOND</p></div><div class="poster-panel" id="today-outlook"><div class="poster-heading"><span class="live-dot" aria-hidden="true"></span><span>TODAY'S MARINE OUTLOOK</span><span class="poster-tag">DAILY IMAGE</span></div><img id="daily-poster" src="instagram/generated/today.png" alt="Latest published daily Marine Weather Jamaica forecast for Kingston and Maiden Cay, including fishing banks" loading="eager" fetchpriority="high"><div id="poster-fallback" hidden class="poster-fallback">Today's forecast image is not available yet. Use the forecast tools below for current guidance.</div><p class="poster-caption">Latest published forecast image · <a href="instagram/generated/today.png" target="_blank" rel="noopener">View full size ↗</a></p></div></div><div class="hero-bottom"><span>JAMAICA <b>•</b> PLAN <b>•</b> FISH <b>•</b> EXPLORE</span><a href="#explore">DISCOVER MORE ↓</a></div></section>
+<section class="feature-strip" aria-label="Service highlights"><div class="feature"><span class="feature-icon">≋</span><div><h2>Marine forecasts</h2><p>Wind, seas, currents and more</p></div></div><div class="feature"><span class="feature-icon">◈</span><div><h2>Fishing banks</h2><p>Conditions where you fish</p></div></div><div class="feature"><span class="feature-icon">☀</span><div><h2>Sun, moon & tides</h2><p>Plan around the daylight</p></div></div><div class="feature"><span class="feature-icon">✧</span><div><h2>Safety first</h2><p>Check advisories before leaving</p></div></div></section>
+<section class="forecast-section section" id="forecast-section"><div class="section-intro"><p class="eyebrow teal">YOUR FORECAST, YOUR WAY</p><h2>Know before you go.</h2><p>Choose a forecast window below; the familiar marine forecast opens right here, using the existing service.</p></div><div class="forecast-shell"><nav class="forecast-nav" aria-label="Forecast views"><button type="button" data-view="current" aria-selected="true">Current 6 Hours</button><button type="button" data-view="tomorrow" aria-selected="false">Tomorrow</button><button type="button" data-view="weekend" aria-selected="false">Weekend</button><button type="button" data-view="banks" aria-selected="false">Fishing Banks</button><button type="button" id="refresh" class="refresh" aria-label="Refresh forecast">↻ Refresh</button></nav><p class="status" id="status" role="status" aria-live="polite"></p><div class="frame"><div class="loading-overlay" id="loading-overlay" role="status" aria-live="polite"><div class="loading-panel"><div class="spinner" aria-hidden="true"></div><div class="loading-title" id="loading-title">Loading marine forecast…</div><div class="loading-detail" id="loading-detail">Please wait while the forecast opens</div></div></div><iframe id="forecast" title="Marine weather forecast" loading="eager" referrerpolicy="no-referrer"></iframe></div></div><p class="notice">Forecast guidance only — not for navigation. Verify official marine advisories before departure.</p></section>
+<section class="explore-section section" id="explore"><div class="section-intro light"><p class="eyebrow">MORE THAN A FORECAST</p><h2>Explore Jamaica's waters.</h2><p>From the harbour to the banks, the tools you need for a better day offshore.</p></div><div class="explore-grid"><a href="#forecast-section" class="explore-card"><span class="card-art art-waves">≋</span><span class="card-text"><strong>Marine conditions</strong><small>Wind, seas, wave periods & currents</small><b>↗</b></span></a><a href="https://fishing.andrewcheeky.com" target="_blank" rel="noopener noreferrer" class="explore-card"><span class="card-art art-fish">◈</span><span class="card-text"><strong>Fishing intelligence</strong><small>Explore offshore fishing insights</small><b>↗</b></span></a><a href="https://fishing-logs.andrewcheeky.com" target="_blank" rel="noopener noreferrer" class="explore-card"><span class="card-art art-log">⌁</span><span class="card-text"><strong>Fishing catch logs</strong><small>Record and review your catches</small><b>↗</b></span></a></div><div class="explore-actions"><button type="button" id="fishing-intelligence" class="btn btn-yellow">Open Fishing Intelligence ↗</button><button type="button" id="catch-log" class="btn btn-outline">Open Fishing Logs ↗</button></div></section>
+<section class="closing" id="about"><div><p class="eyebrow">BORN OF THE ISLAND. BUILT FOR THE SEA.</p><h2>Same sea. <em>Brighter days.</em></h2><p>Local marine guidance to help Jamaica's boating, fishing and coastal communities plan with confidence.</p></div></section>
+</main><footer class="site-footer"><div class="footer-brand"><span class="brand-wave">≋</span><span><strong>MARINE WEATHER</strong><small>JAMAICA</small></span></div><p>Plan · Fish · Explore</p><p>Forecast guidance only. Not for navigation.</p><p>© Marine Weather Jamaica</p></footer>
+<div id="marine-alert-modal" class="alert-backdrop" hidden role="presentation"><section id="marine-alert-card" class="alert-card" role="alertdialog" aria-modal="true" aria-labelledby="marine-alert-title" aria-describedby="marine-alert-message"><h2 id="marine-alert-title">⚠ Marine Alert in Effect</h2><p id="marine-alert-message"></p><p class="alert-meta" id="marine-alert-issued"></p><div class="alert-actions"><button type="button" id="marine-alert-ack">I Acknowledge</button><a href="https://metservice.gov.jm/" target="_blank" rel="noopener noreferrer">Check official advisories ↗</a></div></section></div>
+<script src="assets/landing.js" defer></script></body></html>
