@@ -1,0 +1,38 @@
+name: Cached Bank Forecast Images
+on:
+  schedule:
+    # Jamaica is UTC-5 year-round: midnight, 03, 06, 09, 12, 15, 18, 21 local
+    - cron: '0 2,5,8,11,14,17,20,23 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: bank-forecast-images
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Render available bank forecasts
+        run: node scripts/generate-bank-forecasts.mjs
+      - name: Commit verified images only
+        if: success()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add banks/generated/*.webp
+          if ! git diff --cached --quiet; then
+            git commit -m 'Refresh cached fishing bank forecast images'
+            git pull --rebase origin main
+            git push origin HEAD:main
+          else
+            echo 'No changed bank images.'
+          fi
