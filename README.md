@@ -1,24 +1,20 @@
-# Marine Weather Jamaica — landing page v4.0
+# Marine Weather Jamaica — Bank Forecast Gallery v4.2
 
-Deploy the files to the **repository root** of `AndrewCheeky/marine-weather`:
+Upload the contents of this ZIP to the **root** of your existing `marine-weather` repository. Replace root `index.html`, `assets/landing.css`, `assets/landing.js` only if those are the matching v4 landing files; this package preserves the v4 design and existing dynamic forecast views. Add `assets/banks.js`, `banks/banks.json`, `scripts/generate-bank-forecasts.mjs`, and `.github/workflows/bank-forecast-images.yml`. **Do not delete existing `instagram/`, `.github/workflows/daily-instagram.yml`, or `CNAME`.** No Apps Script credentials are included.
 
-- `index.html` — replace the **root** landing page (not `instagram/index.html`)
-- `assets/landing.css` — new
-- `assets/landing.js` — new
-- `assets/jamaica-sea-sunset.jpg` — new, reused from the repository's existing sunset image
+## What this does
 
-Leave `.github/workflows/`, `scripts/`, `instagram/`, `CNAME` and all Google Apps Script code untouched.
+Adds a Jamaica-themed **Fishing Bank Forecasts** dropdown covering 13 named locations, with **Tomorrow** and **Current** views. The cached image is a screenshot of the **existing live Google Apps Script bank forecast** (not a fabricated data infographic). Each bank has a direct live forecast fallback. Missing or invalid images are not shown. A separate GitHub Action refreshes bank snapshots every three hours, without changing the subscriber email, forecast calculations, Instagram image generator, or MarineCache.
 
-## Features
-- Jamaica coastal landing page with responsive layout and no Instagram social icons
-- Automatically displays `/instagram/generated/today.png`, with a fresh URL on page load
-- Preserves Current, Tomorrow, Weekend and Fishing Banks forecast views with iframe popup-style loading overlay
-- Fishing Intelligence and Catch Logs links
-- Marine alert modal using existing JSONP service
-- No new API calls for the poster; it loads the generated static PNG
+## First use
 
-## Notes
-- Forecast endpoint uses the latest user-provided deployment URL.
-- The provided hero image is the existing sunset photo from the Instagram folder; replace `assets/jamaica-sea-sunset.jpg` with a licensed Jamaica-specific photograph if desired.
-- The image is the latest **published** PNG, not a guarantee that today's automated run succeeded; the graphic itself displays its forecast date.
-- Browser/network/live deployment not tested in this offline package.
+1. Verify `banks/banks.json` **keys** match the `key` column in your live Apps Script `banks` sheet. The first two (`bowditch`, `california`) are confirmed from the source; other keys are proposed and must be checked. If a key differs, change it in the JSON and rerun the workflow.
+2. Commit files to `main`, then run **Actions → Cached Bank Forecast Images → Run workflow**.
+3. Read the log for `PUBLISHED` and `SKIPPED`; the latter means no image was overwritten. The dropdown offers a live link even if the image is absent.
+4. GitHub Pages will serve `banks/generated/<key>-tomorrow.webp` and `<key>-current.webp` after the image commit and Pages publish. Check Pages and Cloudflare caching if new files don't appear.
+
+## Important limitations
+
+The supplied Apps Script exposes bank-specific **HTML**, not the full structured hourly forecast, weather synopsis, sunrise/sunset, and moon/tide JSON needed to faithfully recreate the illustrated *full infographic*. This implementation deliberately screenshots the **real bank HTML** to avoid inventing figures or silently substituting data. To create the full matching graphic per bank, a read-only structured `bankForecastData` endpoint is needed in GAS; it should reuse the existing forecast summary calculations and return available hourly/astronomy fields. That endpoint is **not** included here and the existing GAS is unchanged.
+
+The screenshot workflow visits up to 26 bank pages per run and can be expensive if those pages trigger forecast-provider calls; review API quotas and consider switching to a single batch data endpoint before enabling the schedule at full scale. GitHub cron may run late. Image content may be stale if a previous snapshot is retained; always use the forecast's actual timestamp and live link. This is not for navigation.

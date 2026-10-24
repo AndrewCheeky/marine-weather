@@ -1,0 +1,9 @@
+(()=>{'use strict';
+const ENDPOINT='https://script.google.com/macros/s/AKfycbzwP_tF1SeJIBgB7HxTRBi374NiF0tQXGcSBFUk7EPPu1rSAepDsALW-iHeny6yo1Y/exec';
+const bank=document.getElementById('bank-select'),period=document.getElementById('bank-period'),img=document.getElementById('bank-image'),link=document.getElementById('bank-image-link'),live=document.getElementById('bank-live'),state=document.getElementById('bank-image-state'),title=document.getElementById('bank-title');
+if(!bank)return;
+let banks=[];
+const safeKey=s=>/^[a-z0-9_-]+$/.test(s);
+function update(){const item=banks.find(b=>b.key===bank.value);if(!item)return;title.textContent=item.name;const when=period.value;const src=`banks/generated/${item.key}-${when}.webp`;const liveUrl=ENDPOINT+'?action=bank&key='+encodeURIComponent(item.key)+'&when='+encodeURIComponent(when)+'&popup=1&hideFooter=1';live.href=liveUrl;img.alt=item.name+' '+when+' marine forecast';img.hidden=true;link.hidden=true;state.hidden=false;state.textContent='Checking published forecast image…';const probe=new Image();probe.onload=()=>{img.src=src;link.href=src;link.hidden=false;img.hidden=false;state.hidden=true};probe.onerror=()=>{link.hidden=true;img.hidden=true;state.hidden=false;state.textContent='A cached image has not been published for this location yet. Open the live forecast instead.'};probe.src=src;}
+fetch('banks/banks.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('locations');return r.json()}).then(data=>{banks=data.filter(x=>safeKey(x.key)&&x.name);for(const item of banks){const o=document.createElement('option');o.value=item.key;o.textContent=item.name;bank.appendChild(o)}bank.value=banks[0]?.key||'';update()}).catch(()=>{state.textContent='Fishing locations could not be loaded. Use the Fishing Banks tab above.'});bank.addEventListener('change',update);period.addEventListener('change',update);
+})();
