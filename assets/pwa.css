@@ -1,0 +1,3 @@
+/* PWA status; scoped to avoid changing the existing design */
+.pwa-offline-notice{position:sticky;top:0;z-index:1000;background:#ffe6a3;color:#352800;padding:12px max(20px,calc((100vw - 1400px)/2));font:600 14px/1.5 system-ui,sans-serif;text-align:center}
+.pwa-offline-notice[hidden]{display:none!important}
