@@ -10,6 +10,29 @@ const failurePattern = /exception:|script function not found|service unavailable
 // Require forecast-related information; never publish loading pages or arbitrary HTML.
 const forecastPattern = /(?:wind|gust|wave|seas|swell|forecast|marine|knots|\bkt\b|\bft\b)/i;
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+// Narrower capture width and enlarged type improve legibility when scaled on phones.
+// Overrides affect only the temporary browser render, never the live Apps Script page.
+const captureWidth = 760;
+const mobileTypeCSS = `
+  html,body{background:#f2f9fc!important;color:#07283b!important;}
+  html{font-size:20px!important;}
+  body{box-sizing:border-box!important;width:100%!important;max-width:100%!important;
+    margin:0 auto!important;padding:20px!important;font-family:Arial,sans-serif!important;
+    font-size:20px!important;line-height:1.45!important;}
+  body p,body li,body td,body th,body label,body span,body div{
+    font-size:inherit;line-height:inherit;}
+  h1{font-size:34px!important;line-height:1.2!important;}
+  h2{font-size:26px!important;line-height:1.25!important;}
+  h3,h4{font-size:23px!important;line-height:1.3!important;}
+  table{width:100%!important;max-width:100%!important;table-layout:auto!important;
+    border-collapse:collapse!important;}
+  th,td{font-size:19px!important;line-height:1.4!important;padding:9px 7px!important;
+    overflow-wrap:anywhere!important;}
+  strong,b{font-weight:700!important;}
+  img,svg,canvas{max-width:100%!important;height:auto;}
+  *{box-sizing:border-box;overflow-wrap:break-word;}
+  @media(max-width:760px){body{padding:16px!important;}th,td{padding:7px 5px!important;}}
+`;
 await mkdir('banks/generated', {recursive:true});
 await mkdir('banks/diagnostics', {recursive:true});
 const browser = await chromium.launch({headless:true});
@@ -18,7 +41,7 @@ const report=[];
 for (const b of banks) {
   if (!/^[a-z0-9_-]+$/.test(b.key)) continue;
   for (const when of periods) {
-    const page = await browser.newPage({viewport:{width:1050,height:900},deviceScaleFactor:1});
+    const page = await browser.newPage({viewport:{width:captureWidth,height:900},deviceScaleFactor:1});
     const label = `${b.key}-${when}`;
     const entry = {bank:b.key,period:when,frames:0,status:null,reason:'',textLength:0};
     try {
@@ -47,10 +70,10 @@ for (const b of banks) {
       }
       if (!selected) throw Error(`No recognizable forecast after ${waitMs/1000}s; ${entry.frames} frame(s), maximum body text ${entry.textLength} chars. Check action=bank, bank key, access and page rendering.`);
       // Screenshot the frame containing forecast, not an empty Apps Script wrapper.
-      await selected.addStyleTag({content:'html,body{background:#f2f9fc!important;color:#07283b!important}body{max-width:980px!important;margin:0 auto!important;padding:24px!important;font-family:Arial,sans-serif!important}table{max-width:100%!important}*{overflow-wrap:break-word}'}).catch(()=>{});
+      await selected.addStyleTag({content:mobileTypeCSS}).catch(()=>{});
       await sleep(700);
       const height = await selected.evaluate(()=>Math.min(6500,Math.max(700,document.documentElement.scrollHeight))).catch(()=>900);
-      await page.setViewportSize({width:1050,height:Math.min(height,900)});
+      await page.setViewportSize({width:captureWidth,height:Math.min(height,900)});
       const bodyLocator=selected.locator('body');
       const png=await bodyLocator.screenshot({type:'png',animations:'disabled',timeout:45000});
       const image=await sharp(png).webp({quality:85}).toBuffer();
