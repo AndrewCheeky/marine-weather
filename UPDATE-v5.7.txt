@@ -1,0 +1,1 @@
+Changed only bank forecast window default to Current 6 hours. Replace index.html; no script changes required.
