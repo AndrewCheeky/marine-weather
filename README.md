@@ -14,3 +14,6 @@ If you have newer changes in your live repository, merge `index.html` and `asset
 
 ## Safety
 The alert popup depends on the deployed GAS `action=marineAlert` endpoint; no GAS or subscriber email changes are included. Bank images depend on the existing workflow and valid bank pages. No live deployment test was performed.
+
+## v4.7 — IrieFINS official application card
+Added a fourth Explore Jamaica’s Waters card linking to https://iriefins.nfa.gov.jm/application-types with a teal file-check icon and the caption “Official fisheries applications and approvals”. The card uses the existing explore-card layout and responsive grid. No other website behavior or workflows changed.
