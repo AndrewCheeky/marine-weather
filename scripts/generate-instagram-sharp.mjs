@@ -76,7 +76,7 @@ async function getForecast(){
 function makeSvg(p){
  const d={...p.poster};
  // GS is authoritative for solar times; no client-side fallback.
- const W=1080,H=1370;
+ const W=1080,H=1570;
  const navy='#03263e',deep='#041c30',cyan='#25c8f1',yellow='#ffdf28',white='#fff';
  const [statusColor,,statusWord]=theme(val(d,'status','AMBER'));
  const overall=String(val(d,'status','AMBER')).toUpperCase();
@@ -153,6 +153,14 @@ function makeSvg(p){
  ${icon('warn',772,1498,51,yellow)}${t(840,1512,'SAFETY FIRST',27,cyan,950)}
  ${t(840,1543,'Check official marine',17,white,700)}${t(840,1567,'warnings before departure.',17,white,700)}${t(840,1591,'Not for navigation.',17,white,750)}
  </g>
+ ${panel(28,1380,1024,166)}${top(30,1382,1020,'SUGGESTED TRAVEL WINDOWS · JAMAICA TIME')}
+ ${[0,1,2].map((i)=>{
+   const w=Array.isArray(d.travelWindows)?d.travelWindows[i]:null;
+   const names=['MAIDEN CAY','MACKEREL BANK','CALIFORNIA BANK'];
+   const y=1463+i*26;
+   return `${t(48,y,names[i],20,white,850)}${t(384,y,'OUT  '+(w?.departure||'Not assessed'),18,'#bcefff',750)}${t(720,y,'BACK  '+(w?.return||'Not assessed'),18,'#bcefff',750)}`;
+ }).join('')}
+ ${t(40,1563,'Forecast guidance only · Not a guarantee of safe passage · Route and vessel not assessed',17,white,700)}
  ${p.preview?`${t(50,360,'DESIGN PREVIEW • NOT LIVE',18,'#ffdc4c',850)}`:''}
  </svg>`;
 }
