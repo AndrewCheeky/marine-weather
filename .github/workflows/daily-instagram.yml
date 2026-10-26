@@ -1,7 +1,8 @@
 name: Daily Marine Forecast PNG
 on:
   schedule:
-    - cron: '30 11 * * *' # 06:30 Jamaica time, year-round
+    - cron: '30 10 * * *' # 05:30 Jamaica (UTC-5), primary
+    - cron: '30 11 * * *' # 06:30 Jamaica (UTC-5), retry if missing
   workflow_dispatch:
 permissions:
   contents: write
@@ -14,46 +15,43 @@ jobs:
     timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install Playwright and Chromium
+      - name: Check if today's image already exists
+        id: freshness
+        shell: bash
         run: |
-          npm install --no-save playwright@1.56.1
-          npx playwright install --with-deps chromium
-      - name: Start local poster server
-        run: |
-          test -f instagram/index.html
-          test -f instagram/sunset-background.jpg
-          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/marine-poster-http.log 2>&1 &
-          echo $! > /tmp/marine-poster-http.pid
-          for i in $(seq 1 20); do
-            if curl --fail --silent http://127.0.0.1:8765/instagram/ -o /dev/null; then
-              echo 'Local poster page is available.'
-              break
-            fi
-            sleep 1
-          done
-          curl --fail --show-error --silent http://127.0.0.1:8765/instagram/ -o /dev/null
-      - name: Generate today only
-        id: generate
-        continue-on-error: true
-        env:
-          POSTER_URL: http://127.0.0.1:8765/instagram/
-        run: node scripts/generate-instagram.mjs
-      - name: Commit any successfully generated PNGs
+          TODAY=$(TZ=America/Jamaica date +%F)
+          echo "today=$TODAY" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual dispatch: force regenerating today's graphic."
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          elif [ -s "instagram/generated/marine-weather-jamaica-${TODAY}.png" ]; then
+            echo "Today's dated PNG already exists; skipping generation."
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Today's PNG is missing; generating it."
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install Sharp renderer
+        if: steps.freshness.outputs.needed == 'true'
+        run: npm install --no-save --no-audit --no-fund sharp@0.34.4
+      - name: Generate today's PNG directly (no browser)
+        if: steps.freshness.outputs.needed == 'true'
+        run: node scripts/generate-instagram-sharp.mjs
+      - name: Commit generated PNGs
+        if: steps.freshness.outputs.needed == 'true'
+        shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add instagram/generated/*.png
           if ! git diff --cached --quiet; then
-            git commit -m 'Update marine forecast Instagram PNGs'
+            git commit -m "Update marine forecast Instagram PNGs for ${{ steps.freshness.outputs.today }}"
             git push
           else
-            echo 'No new images to commit; check generator logs.'
+            echo 'Generator succeeded but no image changes were staged.'
           fi
-      - name: Report complete failure
-        if: steps.generate.outcome == 'failure'
-        run: |
-          echo 'Today image was not generated. Check generator logs above.'
-          exit 1
