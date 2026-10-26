@@ -30,13 +30,59 @@ async function getForecast(){
   } finally {clearTimeout(timer)}
 }
 function makeSvg(p){
- const d=p.poster||{};const [sc,sl,word]=theme(val(d,'status','AMBER'));
- const bank=(x,n)=>{const s=val(d,`bank${n}status`,'AMBER'),[c,b,w]=theme(s);return `<g>${rect(x,690,500,288,'#ffffff',19)}${rect(x,690,500,59,'#07477a',19)}${label(x+19,728,truncate(val(d,`bank${n}`),24),26,'#fff',800)}${rect(x+18,765,464,54,b,11)}${label(x+32,801,w,27,c,900)}${label(x+20,849,'BANK OUTLOOK',17,'#56728b',800)}${label(x+20,882,truncate(val(d,`bank${n}detail`),35),22,'#0c2944',700)}${label(x+20,919,'RAIN / CONDITIONS',17,'#56728b',800)}${label(x+20,952,truncate(val(d,`bank${n}rain`),39),21,'#0c2944',650)}</g>`};
- const cell=(x,y,top,bottom)=>`${label(x,y,top,18,'#55718a',800)}${label(x,y+41,truncate(bottom,18),30,'#0a3455',850)}`;
- const bg=rect(0,0,1080,1350,'#eaf3f8',0);
- return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350"><defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#067eb6"/><stop offset="1" stop-color="#033956"/></linearGradient></defs>${bg}${rect(0,0,1080,327,'url(#sky)',0)}${rect(0,235,1080,92,'#032c49',0,'opacity=".65"')}${label(34,68,'MARINE WEATHER',57,'#fff',900)}${label(34,147,'JAMAICA',91,'#ffce34',900)}${label(38,197,'FISHING  •  BOATING  •  EXPLORING',25,'#e4f7ff',700)}${label(38,285,`FORECAST  ${p.day}  |  07:00–17:00 JAMAICA`,26,'#fff',750)}${rect(20,346,1040,305,'#ffffff',20)}${label(46,393,'OVERALL MARINE CONDITIONS',28,'#113958',900)}${rect(45,413,315,80,sl,14)}${label(68,469,word,46,sc,900)}${label(390,445,truncate(val(d,'condition'),37),24,'#174b70',700)}${label(390,483,`Comfort: ${val(d,'comfort')}`,23,'#174b70',700)}<line x1="45" y1="518" x2="1030" y2="518" stroke="#d2e0e9" stroke-width="2"/>${cell(52,550,'WIND / GUSTS',[val(d,'wind'),val(d,'gust')].filter(v=>v!=='—').join(' / ')||'—')}${cell(380,550,'SEAS',val(d,'seas'))}${cell(700,550,'RAIN',val(d,'rain'))}${label(47,680,'FISHING BANKS  ·  QUICK COMPARE',29,'#0a3557',900)}${bank(20,1)}${bank(560,2)}${rect(20,997,1040,187,'#ffffff',20)}${label(45,1042,'MORE CONDITIONS',27,'#0a3557',900)}${cell(46,1073,'CURRENT',`${val(d,'current')} ${val(d,'currentDir','')}`)}${cell(382,1073,'SEA TEMPERATURE',val(d,'sst'))}${cell(748,1073,'UV INDEX',val(d,'uv'))}${rect(20,1200,1040,130,'#052d4b',18)}${label(45,1244,'FORECAST GUIDANCE ONLY',29,'#ffce34',900)}${label(45,1283,'Check official marine advisories before departure.',21,'#ffffff',650)}${label(45,1312,'Not for navigation.  •  marine-weather.andrewcheeky.com',19,'#c7e7f4',600)}</svg>`;
+ const d=p.poster||{};
+ const [sc,sl,word]=theme(val(d,'status','AMBER'));
+ const W=1080,H=1600;
+ const white='#ffffff',ink='#082d4b',navy='#062d4c',blue='#075c91',yellow='#ffd22f';
+ const t=(x,y,value,size=26,color=ink,weight=700,extra='')=>label(x,y,value,size,color,weight,extra);
+ const rr=(x,y,w,h,c,r=18)=>rect(x,y,w,h,c,r);
+ const field=(x,y,k,v)=>`${t(x,y,k,20,'#55758a',750)}${t(x,y+43,truncate(v,24),29,ink,850)}`;
+ const section=(x,y,w,h,title)=>`${rr(x,y,w,h,white,19)}${rr(x,y,w,55,navy,15)}${t(x+22,y+37,title,25,white,850)}`;
+ const bank=(x,n)=>{
+   const [c,b,w]=theme(val(d,`bank${n}status`,'AMBER'));
+   return `${section(x,680,510,365,truncate(val(d,`bank${n}`,'BANK'),26))}
+   ${rr(x+16,751,478,74,b,12)}${t(x+31,803,w,43,c,900)}
+   ${t(x+20,859,'BANK OUTLOOK',19,'#4f6f85',800)}
+   ${t(x+20,896,truncate(val(d,`bank${n}detail`),35),23,ink,700)}
+   ${t(x+20,946,'RAIN / CONDITIONS',19,'#4f6f85',800)}
+   ${t(x+20,984,truncate(val(d,`bank${n}rain`),37),22,ink,700)}`;
+ };
+ const tides=val(d,'highTides','—'),low=val(d,'lowTides','—');
+ const moon=val(d,'moonPhase','—'),illum=val(d,'moonIllum','—');
+ const validMoon=moon!=='—';
+ const photoData=globalThis.__marineHeaderPhoto||'';
+ const photo=photoData?`<image href="${photoData}" x="0" y="0" width="1080" height="392" preserveAspectRatio="xMidYMid slice"/>`:'';
+ const preview=p.preview===true;
+ return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+ <defs><linearGradient id="overlay" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#002746" stop-opacity=".88"/><stop offset="1" stop-color="#004977" stop-opacity=".38"/></linearGradient><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d5ecf5"/><stop offset="1" stop-color="#e9f3f8"/></linearGradient></defs>
+ ${rr(0,0,W,H,'url(#bg)',0)}${rr(0,0,W,392,'#08618b',0)}${photo}${rr(0,0,W,392,'url(#overlay)',0)}
+ ${t(34,81,'MARINE WEATHER',65,white,900)}${t(34,187,'JAMAICA',115,yellow,900)}
+ ${t(38,246,'FISHING  •  BOATING  •  EXPLORING',25,white,800)}
+ ${rr(680,25,365,136,'#062c4b',18)}${t(706,68,'DAILY MARINE OUTLOOK',25,white,850)}${t(706,108,p.day,30,yellow,900)}${t(706,140,'07:00–17:00  JAMAICA',19,white,750)}
+ ${rr(16,412,1048,244,white,20)}${t(40,460,'OVERALL MARINE CONDITIONS',29,ink,900)}
+ ${rr(38,482,327,78,sl,13)}${t(62,538,word,46,sc,900)}
+ ${t(389,515,truncate(val(d,'condition'),34),24,ink,800)}${t(389,551,`COMFORT  ${val(d,'comfort')}`,22,'#47728e',800)}
+ <line x1="38" y1="575" x2="1040" y2="575" stroke="#d7e6ed" stroke-width="2"/>
+ ${field(48,603,'WIND / GUSTS',[val(d,'wind'),val(d,'gust')].filter(v=>v!=='—').join(' / ')||'—')}
+ ${field(398,603,'SEAS',val(d,'seas'))}${field(735,603,'RAIN',val(d,'rain'))}
+ ${bank(16,1)}${bank(554,2)}
+ ${section(16,1063,510,227,'TIDES  ·  KINGSTON')}${t(37,1150,'HIGH',21,'#387b8f',800)}${t(158,1150,truncate(tides,23),24,ink,850)}
+ ${t(37,1222,'LOW',21,'#387b8f',800)}${t(158,1222,truncate(low,23),24,ink,850)}
+ ${section(554,1063,510,227,'MOON PHASE')}${t(580,1150,truncate(moon,27),28,ink,850)}${t(580,1218,`ILLUMINATION  ${illum}`,22,'#47728e',750)}
+ ${section(16,1308,1048,141,'OTHER CONDITIONS')}${field(41,1387,'CURRENT',`${val(d,'current')} ${val(d,'currentDir','')}`)}${field(392,1387,'SEA TEMPERATURE',val(d,'sst'))}${field(748,1387,'UV INDEX',val(d,'uv'))}
+ ${rr(16,1468,1048,116,navy,18)}${t(42,1516,'⚠  FORECAST GUIDANCE ONLY',29,yellow,900)}${t(42,1551,'Verify official marine advisories. Not for navigation.',22,white,700)}
+ ${preview?`${t(230,830,'ILLUSTRATIVE MOCK DATA',48,'#e74444',900,'transform="rotate(-24 230 830)"')}`:''}
+ </svg>`;
 }
+// Local coastal photograph is embedded in the SVG; no network request or browser is needed.
+try { const jpg=await readFile(resolve('instagram/sunset-background.jpg'));globalThis.__marineHeaderPhoto=`data:image/jpeg;base64,${jpg.toString('base64')}`; }catch{console.warn('Header photo unavailable; using ocean gradient');}
 await mkdir(out,{recursive:true});
+if(process.argv.includes('--preview')){
+ const mock={day:'PREVIEW · NOT LIVE',preview:true,poster:{status:'GREEN',condition:'Calm to moderate',comfort:'2 / 5',wind:'12–16 kt',gust:'20 kt',seas:'1.0–1.5 m',rain:'20%',bank1:'Mackerel (Bowditch)',bank1status:'GREEN',bank1detail:'Moderate chop · ESE swell',bank1rain:'Scattered showers',bank2:'California Bank',bank2status:'AMBER',bank2detail:'Moderate seas · ESE swell',bank2rain:'Isolated showers',highTides:'06:12 · 18:41',lowTides:'12:28',moonPhase:'Waning Crescent',moonIllum:'21%',current:'0.6 kt',currentDir:'NE',sst:'28.1°C',uv:'8'}};
+ await writeFile(resolve(out,'DESIGN-PREVIEW-ILLUSTRATIVE.png'),await sharp(Buffer.from(makeSvg(mock))).png().toBuffer());
+ console.log('Wrote illustrative preview; no live weather values used');process.exit(0);
+}
+
 let last;
 for(let attempt=1;attempt<=3;attempt++){
  try{
