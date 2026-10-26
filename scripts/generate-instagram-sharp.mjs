@@ -39,6 +39,7 @@ function validateForecast(data) {
   if (data.day!==expected) throw Error(`Forecast date mismatch: received ${data.day||'unknown'}, expected ${expected}`);
   if (!data.poster || typeof data.poster!=='object') throw Error('Forecast response has no poster fields');
   const d=data.poster;
+ if(data.freshness && data.freshness!=='Current')throw Error('Forecast is delayed; existing PNG preserved');
   // Match the established poster's required checks without fabricating missing values.
   for (const key of ['peakWind','peakWave','lowTides']) {
     if (/unavailable|undefined|null/i.test(String(d[key]??''))) throw Error(`Forecast contains placeholder in ${key}`);
@@ -72,49 +73,16 @@ async function getForecast(){
 }
 
 // Same local solar fallback as instagram/index.html; used only for missing solar fields.
-function marineSolarTimes(dayIso, lat=17.9085229, lon=-76.8103697) {
-  const midnight=Date.parse(dayIso+'T00:00:00Z');
-  if(!Number.isFinite(midnight))return {sunrise:'',sunset:''};
-  const DEG=Math.PI/180,jd=midnight/86400000+2440587.5;
-  const norm=x=>((x%360)+360)%360;
-  function position(t){
-    const L=norm(280.46646+t*(36000.76983+0.0003032*t));
-    const M=norm(357.52911+t*(35999.05029-0.0001537*t));
-    const e=0.016708634-t*(0.000042037+0.0000001267*t);
-    const C=(1.915122-t*(0.004817+0.000014*t))*Math.sin(M*DEG)+(0.019993-0.000101*t)*Math.sin(2*M*DEG)+0.000289*Math.sin(3*M*DEG);
-    const omega=125.04-1934.136*t,lambda=L+C-0.00569-0.00478*Math.sin(omega*DEG);
-    const epsilon0=23+(26+(21.448-t*(46.815+t*(0.00059-t*0.001813)))/60)/60;
-    const epsilon=epsilon0+0.00256*Math.cos(omega*DEG);
-    const decl=Math.asin(Math.sin(epsilon*DEG)*Math.sin(lambda*DEG));
-    const y=Math.tan(epsilon*DEG/2)**2;
-    const eq=4/DEG*(y*Math.sin(2*L*DEG)-2*e*Math.sin(M*DEG)+4*e*y*Math.sin(M*DEG)*Math.cos(2*L*DEG)-0.5*y*y*Math.sin(4*L*DEG)-1.25*e*e*Math.sin(2*M*DEG));
-    return {decl,eq};
-  }
-  function event(rise){
-    let minutes=rise?660:1320;
-    for(let i=0;i<8;i++){
-      const {decl,eq}=position((jd+minutes/1440-2451545)/36525);
-      const cosH=(Math.cos(90.833*DEG)-Math.sin(lat*DEG)*Math.sin(decl))/(Math.cos(lat*DEG)*Math.cos(decl));
-      if(cosH < -1 || cosH > 1)return '';
-      const H=Math.acos(Math.max(-1,Math.min(1,cosH)))/DEG;
-      const next=720-4*(lon+(rise?H:-H))-eq;
-      if(Math.abs(next-minutes)<0.0001){minutes=next;break;}
-      minutes=next;
-    }
-    return new Intl.DateTimeFormat('en-US',{timeZone:'America/Jamaica',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(midnight+Math.round(minutes)*60000));
-  }
-  return {sunrise:event(true),sunset:event(false)};
-}
 function makeSvg(p){
  const d={...p.poster};
- const solar=marineSolarTimes(p.day);
- for(const key of ['sunrise','sunset'])if(!valid(d[key]))d[key]=solar[key];
+ // GS is authoritative for solar times; no client-side fallback.
  const W=1080,H=1370;
  const navy='#03263e',deep='#041c30',cyan='#25c8f1',yellow='#ffdf28',white='#fff';
  const [statusColor,,statusWord]=theme(val(d,'status','AMBER'));
  const overall=String(val(d,'status','AMBER')).toUpperCase();
  const backgroundKey=overall==='GREEN'?'good':overall==='RED'?'poor':'fair';
- const photo=globalThis.__marineConditionPhotos?.[backgroundKey]||globalThis.__marineHeaderPhoto||'';
+ const photo=globalThis.__marineConditionPhotos?.[backgroundKey];
+ if(!photo)throw Error(`Required condition background unavailable: ${backgroundKey}`);
  const t=(x,y,value,size=24,color=white,weight=700,extra='')=>label(x,y,value,size,color,weight,extra);
  const rr=(x,y,w,h,c,r=18,extra='')=>rect(x,y,w,h,c,r,extra);
  const image=(src,x,y,w,h,opacity=1)=>src?`<image href="${src}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice" opacity="${opacity}"/>`:'';
@@ -122,7 +90,7 @@ function makeSvg(p){
   const paths={wind:'M3 8h15a4 4 0 0 0-4-4 M2 13h20a3 3 0 1 1-3 3 M4 18h10a3 3 0 1 1-3 3',wave:'M2 15c4-7 8-7 12 0s8 7 12 0 M2 22c4-7 8-7 12 0s8 7 12 0',rain:'M7 17a6 6 0 0 1 1-12 8 8 0 0 1 15 4 5 5 0 0 1-1 10H7 M9 23l-2 5 M17 23l-2 5 M25 23l-2 5',sun:'M16 4v5 M16 23v5 M4 16h5 M23 16h5 M7.5 7.5l3.5 3.5 M21 21l3.5 3.5 M24.5 7.5L21 11 M11 21l-3.5 3.5 M16 11a5 5 0 1 0 0 10 5 5 0 0 0 0-10',tide:'M2 12q7-8 14 0t14 0 M2 21q7-8 14 0t14 0',current:'M6 16h20 M19 9l7 7-7 7 M16 3a13 13 0 1 0 0 26',thermo:'M12 5a4 4 0 0 1 8 0v15a7 7 0 1 1-8 0z M16 10v15',compass:'M16 2l5 13-5 15-5-15z',warn:'M16 3L2 29h28z M16 12v8 M16 25v1',target:'M16 2v6 M16 24v6 M2 16h6 M24 16h6 M16 9a7 7 0 1 0 0 14 7 7 0 0 0 0-14'};
   return `<g transform="translate(${x} ${y}) scale(${size/32})" fill="none" stroke="${color}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[name]||paths.wave}"/></g>`;
  };
- const panel=(x,y,w,h)=>rr(x,y,w,h,'#042a43',18,'stroke="#b6f5ff" stroke-width="2"');
+ const panel=(x,y,w,h)=>rr(x,y,w,h,'#042a43',18,'fill-opacity="0.82" stroke="#b6f5ff" stroke-width="2"');
  const top=(x,y,w,title)=>`${rr(x,y,w,48,'#04243c',13)}${t(x+18,y+33,title,24,white,900)}`;
  const line=(x,y,w)=>`<path d="M${x} ${y}h${w}" stroke="#4db8d1" stroke-width="2"/>`;
  const info=(x,y,ic,title,value,sub='',w=160)=>`${icon(ic,x,y-35,39)}${t(x+48,y-15,title,17,'#bdefff',800)}${t(x+48,y+17,truncate(value,18),25,white,850)}${sub?t(x+48,y+41,truncate(sub,22),16,'#ccecf6',600):''}`;
@@ -153,7 +121,7 @@ function makeSvg(p){
  const moon=val(d,'moonPhase'),illum=val(d,'moonIllum');
  const moonPhase=moon.toLowerCase();
  // Draw a phase-aware moon: bright disc + masked dark portion; labels remain data-driven.
- const moonMask=moonPhase.includes('new')?0.03:moonPhase.includes('full')?1:Math.max(0.05,Math.min(0.95,(parseFloat(illum)||50)/100));
+ const moonMask=moonPhase.includes('new')?0.03:moonPhase.includes('full')&&Number.isFinite(parseFloat(illum))?Math.min(1,parseFloat(illum)/100):Math.max(0.05,Math.min(0.95,(Number.isFinite(parseFloat(illum))?parseFloat(illum):0)/100));
  const waxing=moonPhase.includes('waxing')||moonPhase.includes('first');
  const darkW=120*(1-moonMask);
  const moonArt=`<circle cx="916" cy="1216" r="66" fill="#e4e5d5"/><circle cx="900" cy="1194" r="12" fill="#b5b8b3" opacity=".35"/><circle cx="935" cy="1240" r="16" fill="#a3aba8" opacity=".25"/><path d="M${waxing?850:982} 1150 A66 66 0 0 ${waxing?1:0} ${waxing?850:982} 1282 A${Math.max(1,darkW)} 66 0 0 ${waxing?0:1} ${waxing?850:982} 1150" fill="#081d2c" opacity=".96"/>`;
@@ -162,7 +130,7 @@ function makeSvg(p){
  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
  <defs><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#03182b" stop-opacity=".18"/><stop offset=".65" stop-color="#01243a" stop-opacity=".40"/><stop offset="1" stop-color="#00344b" stop-opacity=".75"/></linearGradient><linearGradient id="bankShade" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#03253c" stop-opacity=".03"/><stop offset=".42" stop-color="#031b30" stop-opacity=".30"/><stop offset=".75" stop-color="#031a2c" stop-opacity=".87"/><stop offset="1" stop-color="#031827" stop-opacity=".96"/></linearGradient></defs>
  ${rr(0,0,W,H,'#087a9b',0)}${image(photo,0,0,1080,H)}${rr(0,0,W,H,'url(#shade)',0)}
- ${rr(28,18,1024,81,'#03233e',15)}${t(52,63,dateText,35,white,900)}${t(52,88,'07:00–17:00 JAMAICA TIME  ·  KINGSTON / MAIDEN CAY',17,'#ccefff',750)}
+ ${rr(28,18,1024,81,'#03233e',15)}${t(52,63,dateText,35,white,900)}${t(52,88,'07:00–17:00 JAMAICA TIME  ·  KINGSTON / MAIDEN CAY',17,'#ccefff',750)}${t(923,62,val(d,'freshness','N/A').toUpperCase(),17,'#b8ffda',850)}
  <g transform="translate(0,-276)">${panel(28,390,1024,301)}${t(48,434,'OVERALL MARINE CONDITIONS',34,white,950)}
  ${rr(48,455,355,108,statusColor,16)}${icon('wave',67,481,57,white)}${t(149,519,statusWord,54,white,950)}${t(151,547,`COMFORT  ${val(d,'comfort')}`,23,white,850)}
  ${t(429,485,truncate(val(d,'condition'),40),25,white,750)}${t(429,521,'KINGSTON  ·  MAIDEN CAY',20,'#a5ecff',850)}
@@ -194,7 +162,7 @@ for(const condition of ['good','fair','poor']){
  try {
   const jpg=await readFile(resolve(`instagram/background-${condition}.jpg`));
   globalThis.__marineConditionPhotos[condition]=`data:image/jpeg;base64,${jpg.toString('base64')}`;
- }catch{console.warn(`Condition background unavailable: ${condition}; using fallback`);}
+ }catch(e){throw Error(`Required condition background missing: ${condition}: ${e.message}`);}
 }
 // Locally bundled illustrative marine imagery extracted from the approved visual reference.
 globalThis.__marineArt={};
