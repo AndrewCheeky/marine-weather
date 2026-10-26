@@ -81,7 +81,7 @@ function marineSolarTimes(dayIso, lat=17.9085229, lon=-76.8103697) {
     const L=norm(280.46646+t*(36000.76983+0.0003032*t));
     const M=norm(357.52911+t*(35999.05029-0.0001537*t));
     const e=0.016708634-t*(0.000042037+0.0000001267*t);
-    const C=(1.914602-t*(0.004817+0.000014*t))*Math.sin(M*DEG)+(0.019993-0.000101*t)*Math.sin(2*M*DEG)+0.000289*Math.sin(3*M*DEG);
+    const C=(1.915122-t*(0.004817+0.000014*t))*Math.sin(M*DEG)+(0.019993-0.000101*t)*Math.sin(2*M*DEG)+0.000289*Math.sin(3*M*DEG);
     const omega=125.04-1934.136*t,lambda=L+C-0.00569-0.00478*Math.sin(omega*DEG);
     const epsilon0=23+(26+(21.448-t*(46.815+t*(0.00059-t*0.001813)))/60)/60;
     const epsilon=epsilon0+0.00256*Math.cos(omega*DEG);
@@ -109,7 +109,7 @@ function makeSvg(p){
  const d={...p.poster};
  const solar=marineSolarTimes(p.day);
  for(const key of ['sunrise','sunset'])if(!valid(d[key]))d[key]=solar[key];
- const W=1080,H=1600;
+ const W=1080,H=1370;
  const navy='#03263e',deep='#041c30',cyan='#25c8f1',yellow='#ffdf28',white='#fff';
  const [statusColor,,statusWord]=theme(val(d,'status','AMBER'));
  const overall=String(val(d,'status','AMBER')).toUpperCase();
@@ -132,10 +132,11 @@ function makeSvg(p){
   const picture=globalThis.__marineArt?.[focus]||'';
   const detail=val(d,`bank${n}detail`);
   const rain=val(d,`bank${n}rain`);
+  const comfort=val(d,`bank${n}comfort`,'');
   return `${panel(x,710,506,413)}${image(picture,x+3,763,500,355)}
    <rect x="${x+3}" y="762" width="500" height="356" fill="url(#bankShade)"/>
    ${top(x+3,713,500,name)}
-   ${rr(x+331,774,156,52,c,13)}${t(x+409,810,word,29,white,900,'text-anchor="middle"')}
+   ${rr(x+331,774,156,52,c,13)}${t(x+409,806,word,27,white,900,'text-anchor="middle"')}${comfort?t(x+409,822,`COMFORT ${comfort}`,13,white,750,'text-anchor="middle"'):''}
    ${icon('target',x+22,938,36,white)}${t(x+71,953,focus==='pelagic'?'PELAGIC FOCUS':'BOTTOM / REEF FOCUS',19,'#d8f7ff',850)}
    ${t(x+71,979,focus==='pelagic'?'Tuna · Wahoo · Dolphin':'Snapper · Grouper · Reef fish',18,white,650)}
    ${icon('wave',x+22,995,36,'#a7efff')}${t(x+71,1014,'CONDITIONS',18,'#b6ecff',850)}
@@ -144,6 +145,11 @@ function makeSvg(p){
    ${t(x+71,1097,truncate(rain,32),19,white,650)}`;
  };
  const high=val(d,'highTides'),low=val(d,'lowTides');
+ const tideEntries=(raw)=>valid(raw)?String(raw).split(/\s*[·;,|]\s*/).map(x=>x.trim()).filter(Boolean).slice(0,2):[];
+ const highEntries=tideEntries(high),lowEntries=tideEntries(low);
+ const tideLine=(entries,x,y)=>entries.length?entries.map((entry,i)=>t(x,y+i*26,truncate(entry,20),22,white,850)).join(''):t(x,y,'Not available',19,'#b7d2de',650);
+ const moonrise=val(d,'moonrise',val(d,'moonRise',''));
+ const moonset=val(d,'moonset',val(d,'moonSet',''));
  const moon=val(d,'moonPhase'),illum=val(d,'moonIllum');
  const moonPhase=moon.toLowerCase();
  // Draw a phase-aware moon: bright disc + masked dark portion; labels remain data-driven.
@@ -155,31 +161,30 @@ function makeSvg(p){
  const dateText=Number.isNaN(dateLabel.getTime())?p.day:new Intl.DateTimeFormat('en-GB',{timeZone:'UTC',weekday:'short',day:'2-digit',month:'short',year:'numeric'}).format(dateLabel).toUpperCase();
  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
  <defs><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#03182b" stop-opacity=".18"/><stop offset=".65" stop-color="#01243a" stop-opacity=".40"/><stop offset="1" stop-color="#00344b" stop-opacity=".75"/></linearGradient><linearGradient id="bankShade" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#03253c" stop-opacity=".03"/><stop offset=".42" stop-color="#031b30" stop-opacity=".30"/><stop offset=".75" stop-color="#031a2c" stop-opacity=".87"/><stop offset="1" stop-color="#031827" stop-opacity=".96"/></linearGradient></defs>
- ${rr(0,0,W,H,'#087a9b',0)}${image(photo,0,0,1080,1600)}${rr(0,0,W,H,'url(#shade)',0)}
- ${t(38,79,'MARINE WEATHER',65,white,950)}${t(36,199,'JAMAICA',133,yellow,950)}
- ${t(42,247,'FISHING  •  BOATING  •  EXPLORING',25,white,850)}
- ${rr(34,272,646,94,'#03233e',15)}${t(54,323,dateText,43,white,900)}${t(55,350,'FORECAST WINDOW  07:00–17:00  JAMAICA TIME',18,'#d9f5ff',800)}
- ${panel(28,390,1024,301)}${t(48,434,'OVERALL MARINE CONDITIONS',34,white,950)}
+ ${rr(0,0,W,H,'#087a9b',0)}${image(photo,0,0,1080,H)}${rr(0,0,W,H,'url(#shade)',0)}
+ ${rr(28,18,1024,81,'#03233e',15)}${t(52,63,dateText,35,white,900)}${t(52,88,'07:00–17:00 JAMAICA TIME  ·  KINGSTON / MAIDEN CAY',17,'#ccefff',750)}
+ <g transform="translate(0,-276)">${panel(28,390,1024,301)}${t(48,434,'OVERALL MARINE CONDITIONS',34,white,950)}
  ${rr(48,455,355,108,statusColor,16)}${icon('wave',67,481,57,white)}${t(149,519,statusWord,54,white,950)}${t(151,547,`COMFORT  ${val(d,'comfort')}`,23,white,850)}
  ${t(429,485,truncate(val(d,'condition'),40),25,white,750)}${t(429,521,'KINGSTON  ·  MAIDEN CAY',20,'#a5ecff',850)}
  ${line(48,581,976)}${info(52,630,'wind','WIND / GUSTS',val(d,'wind'),`Gusts ${val(d,'gust')}`)}
  ${info(269,630,'wave','SEAS',val(d,'seas'))}${info(479,630,'tide','WAVE PERIOD',val(d,'period'))}
  ${info(710,630,'rain','RAIN',val(d,'rain'))}${info(873,630,'sun','UV INDEX',val(d,'uv'))}
  ${bank(28,1,'pelagic')}${bank(546,2,'reef')}
- ${panel(28,1141,482,203)}${top(30,1143,478,'TIDES  ·  KINGSTON')}
- ${icon('tide',49,1210,49,'#5ee0ff')}${t(121,1220,'HIGH',20,'#bcefff',850)}${t(121,1253,truncate(high,21),26,white,850)}
- ${icon('tide',49,1271,49,'#5ee0ff')}${t(121,1280,'LOW',20,'#bcefff',850)}${t(121,1314,truncate(low,21),26,white,850)}
- ${panel(526,1141,526,203)}${top(528,1143,522,'SUN & MOON')}
+ ${panel(28,1141,482,255)}${top(30,1143,478,'TIDES  ·  KINGSTON')}
+ ${icon('tide',49,1210,49,'#5ee0ff')}${t(121,1214,'HIGH',20,'#bcefff',850)}${tideLine(highEntries,121,1241)}
+ ${icon('tide',49,1312,49,'#5ee0ff')}${t(121,1312,'LOW',20,'#bcefff',850)}${tideLine(lowEntries,121,1339)}
+ ${panel(526,1141,526,255)}${top(528,1143,522,'SUN & MOON')}
  ${icon('sun',547,1204,44,yellow)}${t(604,1215,'SUNRISE',18,'#c1efff',800)}${t(604,1248,val(d,'sunrise'),26,white,850)}
  ${icon('sun',547,1271,44,'#ffab41')}${t(604,1282,'SUNSET',18,'#c1efff',800)}${t(604,1315,val(d,'sunset'),26,white,850)}
- ${moonArt}${t(839,1312,truncate(moon,16).toUpperCase(),18,white,850)}${t(839,1333,`ILLUMINATION  ${illum}`,16,yellow,800)}
- ${panel(28,1361,1024,209)}${top(30,1363,1020,'OTHER CONDITIONS')}
- ${rr(40,1420,713,132,'#f1faff',15)}
- ${icon('current',56,1450,40,'#0877b1')}${t(105,1454,'SURFACE CURRENT',16,'#075a8b',850)}${t(105,1491,truncate(`${val(d,'current')} ${val(d,'currentDir','')}`,18),24,'#052c4d',850)}
- ${icon('thermo',304,1450,40,'#0877b1')}${t(352,1454,'SEA TEMPERATURE',16,'#075a8b',850)}${t(352,1491,val(d,'sst'),24,'#052c4d',850)}
- ${icon('compass',548,1450,40,'#0877b1')}${t(596,1454,'SWELL',16,'#075a8b',850)}${t(596,1491,truncate(val(d,'swell'),10),24,'#052c4d',850)}
- ${icon('warn',772,1446,51,yellow)}${t(840,1460,'SAFETY FIRST',27,cyan,950)}
- ${t(840,1491,'Check official marine',17,white,700)}${t(840,1515,'warnings before departure.',17,white,700)}${t(840,1539,'Not for navigation.',17,white,750)}
+ ${moonArt}${t(835,1307,truncate(moon,16).toUpperCase(),17,white,850)}${t(835,1330,`ILLUMINATION  ${illum}`,15,yellow,800)}${t(550,1364,`MOONRISE  ${moonrise||'—'}`,16,'#c1efff',800)}${t(793,1364,`MOONSET  ${moonset||'—'}`,16,'#c1efff',800)}
+ ${panel(28,1413,1024,209)}${top(30,1415,1020,'OTHER CONDITIONS')}
+ ${rr(40,1472,713,132,'#f1faff',15)}
+ ${icon('current',56,1502,40,'#0877b1')}${t(105,1506,'SURFACE CURRENT',16,'#075a8b',850)}${t(105,1543,truncate(`${val(d,'current')} ${val(d,'currentDir','')}`,18),24,'#052c4d',850)}
+ ${icon('thermo',304,1502,40,'#0877b1')}${t(352,1506,'SEA TEMPERATURE',16,'#075a8b',850)}${t(352,1543,val(d,'sst'),24,'#052c4d',850)}
+ ${icon('compass',548,1502,40,'#0877b1')}${t(596,1506,'SWELL',16,'#075a8b',850)}${t(596,1543,truncate(val(d,'swell'),10),24,'#052c4d',850)}
+ ${icon('warn',772,1498,51,yellow)}${t(840,1512,'SAFETY FIRST',27,cyan,950)}
+ ${t(840,1543,'Check official marine',17,white,700)}${t(840,1567,'warnings before departure.',17,white,700)}${t(840,1591,'Not for navigation.',17,white,750)}
+ </g>
  ${p.preview?`${t(50,360,'DESIGN PREVIEW • NOT LIVE',18,'#ffdc4c',850)}`:''}
  </svg>`;
 }
@@ -213,7 +218,7 @@ for(let attempt=1;attempt<=3;attempt++){
   if(png.length<20000)throw Error('Rendered PNG unexpectedly small');
   await writeFile(resolve(out,`marine-weather-jamaica-${payload.day}.png`),png);
   await writeFile(resolve(out,'today.png'),png);
-  console.log(`SUCCESS: ${payload.day}, ${png.length} bytes, Sharp 1080x1600, verified cached forecast`);process.exit(0);
+  console.log(`SUCCESS: ${payload.day}, ${png.length} bytes, Sharp 1080x1370, verified cached forecast`);process.exit(0);
  }catch(e){last=e;console.error(`Attempt ${attempt}/3: ${e.message}`);if(attempt<3)await new Promise(r=>setTimeout(r,2500));}
 }
 console.error('Forecast graphic not regenerated; existing PNG preserved.',last?.message);process.exit(1);
