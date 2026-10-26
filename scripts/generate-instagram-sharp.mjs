@@ -135,7 +135,7 @@ function makeSvg(p){
  ${rr(48,455,355,108,statusColor,16)}${icon('wave',67,481,57,white)}${t(149,519,statusWord,54,white,950)}${t(151,547,`COMFORT  ${val(d,'comfort')}`,23,white,850)}
  ${t(429,485,truncate(val(d,'condition'),40),25,white,750)}${t(429,521,'KINGSTON  ·  MAIDEN CAY',20,'#a5ecff',850)}
  ${line(48,581,976)}${info(52,630,'wind','WIND / GUSTS',val(d,'wind'),`Gusts ${val(d,'gust')}`)}
- ${info(269,630,'wave','SEAS',val(d,'seas'))}${info(479,630,'tide','WAVE PERIOD',val(d,'period'))}
+ ${info(269,630,'wave','SEAS',val(d,'seas'))}${info(479,630,'tide','CHOP / PERIOD',val(d,'chop',val(d,'period')))}
  ${info(710,630,'rain','RAIN',val(d,'rain'))}${info(873,630,'sun','UV INDEX',val(d,'uv'))}
  ${bank(28,1,'pelagic')}${bank(546,2,'reef')}
  ${panel(28,1141,482,255)}${top(30,1143,478,'TIDES  ·  KINGSTON')}
