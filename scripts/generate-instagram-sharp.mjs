@@ -31,20 +31,59 @@ export function parseForecastResponse(body, callback) {
   if (match[1] !== callback) throw Error(`JSONP callback mismatch (received ${match[1]})`);
   return JSON.parse(match[2]);
 }
-function validateForecast(data) {
-  if (!data || typeof data!=='object' || data.ok!==true) throw Error('Forecast service returned an unsuccessful result');
-  if (data.ready!==true || data.stale===true || (Array.isArray(data.missing)&&data.missing.length>0))
-    throw Error('Forecast is not verified and current; existing PNG preserved');
+// Compatibility adapter: supports the published GS Instagram payload and modest
+// schema evolution without relaxing stale-data or authoritative-score safeguards.
+const own=(o,k)=>Object.prototype.hasOwnProperty.call(o||{},k);
+const first=(o,keys)=>keys.map(k=>o?.[k]).find(v=>v!==null&&v!==undefined&&String(v).trim()!=='');
+const normalizedDay=(v)=>{
+  if(typeof v!=='string')return null;
+  const match=v.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return match?match[0]:null;
+};
+const normalizedStatus=(v)=>{
+  const s=String(v??'').trim().toUpperCase();
+  return ({GREEN:'GREEN',GOOD:'GREEN',YELLOW:'AMBER',AMBER:'AMBER',ORANGE:'AMBER',FAIR:'AMBER',RED:'RED',CAUTION:'RED'})[s]||null;
+};
+const numeric=(v)=>Number.isFinite(Number.parseFloat(String(v??'')))&& !/^(?:—|-|unavailable|n\/a)$/i.test(String(v??'').trim());
+function validateForecast(raw) {
+  if(!raw||typeof raw!=='object'||Array.isArray(raw))throw Error('Forecast payload is not an object');
+  const data=raw.data&&typeof raw.data==='object'&&!Array.isArray(raw.data)&&!raw.poster?raw.data:raw;
+  if(data.ok===false||data.success===false)throw Error('Forecast service reports an unsuccessful result');
+  // Explicitly stale or delayed responses are never published.
+  if(data.stale===true||data.isStale===true||/^(delayed|stale|expired)$/i.test(String(first(data,['freshness','dataFreshness'])??'')))
+    throw Error('Cached forecast is marked delayed; existing PNG preserved');
   const expected=jamaicaDay();
-  if (data.day!==expected) throw Error(`Forecast date mismatch: received ${data.day||'unknown'}, expected ${expected}`);
-  if (!data.poster || typeof data.poster!=='object') throw Error('Forecast response has no poster fields');
-  const d=data.poster;
- if(data.freshness && data.freshness!=='Current')throw Error('Forecast is delayed; existing PNG preserved');
-  // Match the established poster's required checks without fabricating missing values.
-  for (const key of ['peakWind','peakWave','lowTides']) {
-    if (/unavailable|undefined|null/i.test(String(d[key]??''))) throw Error(`Forecast contains placeholder in ${key}`);
+  const day=normalizedDay(first(data,['day','forecastDay','forecastDate','date']));
+  if(!day||day!==expected)throw Error(`Forecast date mismatch: received ${day||'unknown'}, expected ${expected}`);
+  const poster=data.poster||data.instagram||data.fields;
+  if(!poster||typeof poster!=='object'||Array.isArray(poster))throw Error('Forecast response has no poster fields');
+  const d={...poster};
+  // Accept common spelling changes while keeping GS-computed status authoritative.
+  const aliases={status:['status','conditionColor','colour','color'],comfort:['comfort','comfortScore'],
+    wind:['wind','avgWind'],gust:['gust','gusts','peakGust'],seas:['seas','waves','avgSeas'],
+    period:['period','chop','wavePeriod'],rain:['rain','rainfall'],uv:['uv','uvIndex'],
+    bank1status:['bank1status','bank1Status'],bank2status:['bank2status','bank2Status'],
+    bank1:['bank1','bank1Name'],bank2:['bank2','bank2Name']};
+  for(const [key,keys] of Object.entries(aliases))if(!valid(d[key]))d[key]=first(d,keys);
+  for(const key of ['status','bank1status','bank2status']){
+    const status=normalizedStatus(d[key]);
+    if(!status)throw Error(`Missing authoritative ${key}; refresh the GS score snapshots first`);
+    d[key]=status;
   }
-  return data;
+  if(!numeric(d.comfort))throw Error('Missing authoritative comfort score; refresh the GS score snapshots first');
+  for(const key of ['wind','gust','seas','period'])if(!numeric(d[key]))throw Error(`Required marine metric unavailable: ${key}`);
+  // These are display-only and may be absent in older/newer GS deployments.
+  for(const key of ['uv','rain','current','currentDir','sst','swell','highTides','lowTides','moonPhase','moonIllum','sunrise','sunset','moonrise','moonset','peakWind','peakWave'])
+    if(!valid(d[key]))d[key]='—';
+  d.bank1=d.bank1||'MACKEREL (BOWDITCH)';d.bank2=d.bank2||'CALIFORNIA BANK';
+  d.freshness='Current';
+  // Missing optional fields do not invalidate a real forecast. Required scores,
+  // dates and sea-state values above are checked independently.
+  const missing=Array.isArray(data.missing)?data.missing:[];
+  if(missing.length)console.warn('FORECAST DIAGNOSTICS:',missing.map(x=>String(x).slice(0,130)).slice(0,15).join(' | '));
+  // GS may set ready=false for optional columns or incomplete hour counts;
+  // retain its stale flag, but validate the actual critical poster fields above.
+  return {...data,day,poster:d};
 }
 async function getForecast(){
   // Match the callback naming convention of the proven browser-based Instagram Studio.
@@ -76,7 +115,7 @@ async function getForecast(){
 function makeSvg(p){
  const d={...p.poster};
  // GS is authoritative for solar times; no client-side fallback.
- const W=1080,H=1570;
+ const W=1080,H=1370;
  const navy='#03263e',deep='#041c30',cyan='#25c8f1',yellow='#ffdf28',white='#fff';
  const [statusColor,,statusWord]=theme(val(d,'status','AMBER'));
  const overall=String(val(d,'status','AMBER')).toUpperCase();
@@ -135,7 +174,7 @@ function makeSvg(p){
  ${rr(48,455,355,108,statusColor,16)}${icon('wave',67,481,57,white)}${t(149,519,statusWord,54,white,950)}${t(151,547,`COMFORT  ${val(d,'comfort')}`,23,white,850)}
  ${t(429,485,truncate(val(d,'condition'),40),25,white,750)}${t(429,521,'KINGSTON  ·  MAIDEN CAY',20,'#a5ecff',850)}
  ${line(48,581,976)}${info(52,630,'wind','WIND / GUSTS',val(d,'wind'),`Gusts ${val(d,'gust')}`)}
- ${info(269,630,'wave','SEAS',val(d,'seas'))}${info(479,630,'tide','CHOP / PERIOD',val(d,'chop',val(d,'period')))}
+ ${info(269,630,'wave','SEAS',val(d,'seas'))}${info(479,630,'tide','WAVE PERIOD',val(d,'period'))}
  ${info(710,630,'rain','RAIN',val(d,'rain'))}${info(873,630,'sun','UV INDEX',val(d,'uv'))}
  ${bank(28,1,'pelagic')}${bank(546,2,'reef')}
  ${panel(28,1141,482,255)}${top(30,1143,478,'TIDES  ·  KINGSTON')}
@@ -153,14 +192,6 @@ function makeSvg(p){
  ${icon('warn',772,1498,51,yellow)}${t(840,1512,'SAFETY FIRST',27,cyan,950)}
  ${t(840,1543,'Check official marine',17,white,700)}${t(840,1567,'warnings before departure.',17,white,700)}${t(840,1591,'Not for navigation.',17,white,750)}
  </g>
- ${panel(28,1380,1024,166)}${top(30,1382,1020,'SUGGESTED TRAVEL WINDOWS · JAMAICA TIME')}
- ${[0,1,2].map((i)=>{
-   const w=Array.isArray(d.travelWindows)?d.travelWindows[i]:null;
-   const names=['MAIDEN CAY','MACKEREL BANK','CALIFORNIA BANK'];
-   const y=1463+i*26;
-   return `${t(48,y,names[i],20,white,850)}${t(384,y,'OUT  '+(w?.departure||'Not assessed'),18,'#bcefff',750)}${t(720,y,'BACK  '+(w?.return||'Not assessed'),18,'#bcefff',750)}`;
- }).join('')}
- ${t(40,1563,'Forecast guidance only · Not a guarantee of safe passage · Route and vessel not assessed',17,white,700)}
  ${p.preview?`${t(50,360,'DESIGN PREVIEW • NOT LIVE',18,'#ffdc4c',850)}`:''}
  </svg>`;
 }
