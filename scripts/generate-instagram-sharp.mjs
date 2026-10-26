@@ -46,15 +46,23 @@ function validateForecast(data) {
   return data;
 }
 async function getForecast(){
-  const cb='marineSharpCallback';
+  // Match the callback naming convention of the proven browser-based Instagram Studio.
+  const cb=`mwInstagramCallback_${Date.now()}_1`;
   const url=new URL(endpoint);url.searchParams.set('action','instagramData');url.searchParams.set('day','today');url.searchParams.set('callback',cb);
   const ac=new AbortController();const timer=setTimeout(()=>ac.abort(),65000);
   try {
-    const response=await fetch(url,{signal:ac.signal,headers:{Accept:'text/javascript, application/json;q=0.9'}});
+    const response=await fetch(url,{signal:ac.signal,headers:{Accept:'*/*'}});
     const body=await response.text();
     const details=describeResponse(body,response.headers.get('content-type'),response.status,response.url);
     // Private GitHub Actions logs only: no response contents, URLs or subscriber data.
     console.log('FORECAST RESPONSE ENVELOPE:',JSON.stringify(details));
+    if(details.bytes<=64 && details.format==='other text'){
+      // Only log a restricted class of known error messages; never log arbitrary response text.
+      const message=body.trim();
+      if(/^(invalid callback|unauthorized|forbidden|not found|bad request|access denied|error)$/i.test(message))
+        console.error('FORECAST SHORT RESPONSE:',message);
+      else console.error('FORECAST SHORT RESPONSE: unrecognized short text (redacted)');
+    }
     if(!response.ok)throw Error(`Forecast service request failed (status ${response.status})`);
     let data;
     try { data=parseForecastResponse(body,cb); }
@@ -63,8 +71,44 @@ async function getForecast(){
   } finally {clearTimeout(timer)}
 }
 
+// Same local solar fallback as instagram/index.html; used only for missing solar fields.
+function marineSolarTimes(dayIso, lat=17.9085229, lon=-76.8103697) {
+  const midnight=Date.parse(dayIso+'T00:00:00Z');
+  if(!Number.isFinite(midnight))return {sunrise:'',sunset:''};
+  const DEG=Math.PI/180,jd=midnight/86400000+2440587.5;
+  const norm=x=>((x%360)+360)%360;
+  function position(t){
+    const L=norm(280.46646+t*(36000.76983+0.0003032*t));
+    const M=norm(357.52911+t*(35999.05029-0.0001537*t));
+    const e=0.016708634-t*(0.000042037+0.0000001267*t);
+    const C=(1.914602-t*(0.004817+0.000014*t))*Math.sin(M*DEG)+(0.019993-0.000101*t)*Math.sin(2*M*DEG)+0.000289*Math.sin(3*M*DEG);
+    const omega=125.04-1934.136*t,lambda=L+C-0.00569-0.00478*Math.sin(omega*DEG);
+    const epsilon0=23+(26+(21.448-t*(46.815+t*(0.00059-t*0.001813)))/60)/60;
+    const epsilon=epsilon0+0.00256*Math.cos(omega*DEG);
+    const decl=Math.asin(Math.sin(epsilon*DEG)*Math.sin(lambda*DEG));
+    const y=Math.tan(epsilon*DEG/2)**2;
+    const eq=4/DEG*(y*Math.sin(2*L*DEG)-2*e*Math.sin(M*DEG)+4*e*y*Math.sin(M*DEG)*Math.cos(2*L*DEG)-0.5*y*y*Math.sin(4*L*DEG)-1.25*e*e*Math.sin(2*M*DEG));
+    return {decl,eq};
+  }
+  function event(rise){
+    let minutes=rise?660:1320;
+    for(let i=0;i<8;i++){
+      const {decl,eq}=position((jd+minutes/1440-2451545)/36525);
+      const cosH=(Math.cos(90.833*DEG)-Math.sin(lat*DEG)*Math.sin(decl))/(Math.cos(lat*DEG)*Math.cos(decl));
+      if(cosH < -1 || cosH > 1)return '';
+      const H=Math.acos(Math.max(-1,Math.min(1,cosH)))/DEG;
+      const next=720-4*(lon+(rise?H:-H))-eq;
+      if(Math.abs(next-minutes)<0.0001){minutes=next;break;}
+      minutes=next;
+    }
+    return new Intl.DateTimeFormat('en-US',{timeZone:'America/Jamaica',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(midnight+Math.round(minutes)*60000));
+  }
+  return {sunrise:event(true),sunset:event(false)};
+}
 function makeSvg(p){
- const d=p.poster||{};
+ const d={...p.poster};
+ const solar=marineSolarTimes(p.day);
+ for(const key of ['sunrise','sunset'])if(!valid(d[key]))d[key]=solar[key];
  const [sc,sl,word]=theme(val(d,'status','AMBER'));
  const W=1080,H=1600;
  const white='#ffffff',ink='#082d4b',navy='#062d4c',blue='#075c91',yellow='#ffd22f';
