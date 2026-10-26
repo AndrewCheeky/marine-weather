@@ -13,22 +13,56 @@ const truncate=(v,n=28)=>String(v).length>n?String(v).slice(0,n-1)+'…':String(
 const label=(x,y,t,size=22,color='#102c49',weight=700,extra='')=>`<text x="${x}" y="${y}" fill="${color}" font-size="${size}" font-weight="${weight}" ${extra}>${esc(t)}</text>`;
 const rect=(x,y,w,h,fill,r=14,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" ${extra}/>`;
 const theme=s=>s==='GREEN'?['#0c984b','#e5f7e8','GOOD']:s==='RED'?['#bf3434','#fff0ef','CAUTION']:['#c68a08','#fff6d6','FAIR'];
+// Inspect only the response envelope, never log response bodies, query strings or data.
+function describeResponse(body, contentType, status, finalUrl) {
+  const s=String(body).replace(/^\uFEFF/, '').trim();
+  const callbackMatch=s.match(/^(?:\/\*[\s\S]*?\*\/\s*)?([A-Za-z_$][\w$]*)\s*\(/);
+  const type=s.startsWith('{')?'JSON object':s.startsWith('[')?'JSON array':callbackMatch?'JSONP callback':/^<!doctype html|^<html|^</i.test(s)?'HTML':s.length?'other text':'empty';
+  let finalHost='unknown';
+  try { finalHost=new URL(finalUrl).hostname; } catch {}
+  return {status,contentType:(contentType||'unknown').split(';')[0],bytes:Buffer.byteLength(s),format:type,callbackName:callbackMatch?.[1]||'(none)',finalHost};
+}
+export function parseForecastResponse(body, callback) {
+  const source=String(body).replace(/^\uFEFF/, '').trim();
+  if (source.startsWith('{')) return JSON.parse(source);
+  // Accept only a single JSONP function call; never execute JavaScript.
+  const match=source.match(/^(?:\/\*[\s\S]*?\*\/\s*)?([A-Za-z_$][\w$]*)\s*\(\s*([\s\S]*?)\s*\)\s*;?\s*$/);
+  if (!match) throw Error('Response is neither a JSON object nor a single JSONP callback');
+  if (match[1] !== callback) throw Error(`JSONP callback mismatch (received ${match[1]})`);
+  return JSON.parse(match[2]);
+}
+function validateForecast(data) {
+  if (!data || typeof data!=='object' || data.ok!==true) throw Error('Forecast service returned an unsuccessful result');
+  if (data.ready!==true || data.stale===true || (Array.isArray(data.missing)&&data.missing.length>0))
+    throw Error('Forecast is not verified and current; existing PNG preserved');
+  const expected=jamaicaDay();
+  if (data.day!==expected) throw Error(`Forecast date mismatch: received ${data.day||'unknown'}, expected ${expected}`);
+  if (!data.poster || typeof data.poster!=='object') throw Error('Forecast response has no poster fields');
+  const d=data.poster;
+  // Match the established poster's required checks without fabricating missing values.
+  for (const key of ['peakWind','peakWave','lowTides']) {
+    if (/unavailable|undefined|null/i.test(String(d[key]??''))) throw Error(`Forecast contains placeholder in ${key}`);
+  }
+  return data;
+}
 async function getForecast(){
   const cb='marineSharpCallback';
   const url=new URL(endpoint);url.searchParams.set('action','instagramData');url.searchParams.set('day','today');url.searchParams.set('callback',cb);
-  const ac=new AbortController();const timer=setTimeout(()=>ac.abort(),45000);
+  const ac=new AbortController();const timer=setTimeout(()=>ac.abort(),65000);
   try {
-    const response=await fetch(url,{signal:ac.signal,headers:{'Accept':'text/javascript'}});
-    if(!response.ok)throw Error('Forecast service did not respond successfully');
-    const body=(await response.text()).trim();
-    const match=body.match(/^marineSharpCallback\s*\(\s*([\s\S]*)\s*\)\s*;?\s*$/);
-    if(!match)throw Error('Unexpected forecast response format');
-    const data=JSON.parse(match[1]);
-    if(!data?.ok||data.ready!==true||data.stale===true||(data.missing?.length??0)>0)throw Error('Forecast is not verified and current; preserving existing PNG');
-    if(data.day!==jamaicaDay())throw Error(`Forecast day ${data.day} does not match Jamaica date ${jamaicaDay()}`);
-    return data;
+    const response=await fetch(url,{signal:ac.signal,headers:{Accept:'text/javascript, application/json;q=0.9'}});
+    const body=await response.text();
+    const details=describeResponse(body,response.headers.get('content-type'),response.status,response.url);
+    // Private GitHub Actions logs only: no response contents, URLs or subscriber data.
+    console.log('FORECAST RESPONSE ENVELOPE:',JSON.stringify(details));
+    if(!response.ok)throw Error(`Forecast service request failed (status ${response.status})`);
+    let data;
+    try { data=parseForecastResponse(body,cb); }
+    catch(e) { throw Error(`Forecast response parse failed: ${e.message}; format=${details.format}, type=${details.contentType}`); }
+    return validateForecast(data);
   } finally {clearTimeout(timer)}
 }
+
 function makeSvg(p){
  const d=p.poster||{};
  const [sc,sl,word]=theme(val(d,'status','AMBER'));
@@ -58,7 +92,7 @@ function makeSvg(p){
  ${rr(0,0,W,H,'url(#bg)',0)}${rr(0,0,W,392,'#08618b',0)}${photo}${rr(0,0,W,392,'url(#overlay)',0)}
  ${t(34,81,'MARINE WEATHER',65,white,900)}${t(34,187,'JAMAICA',115,yellow,900)}
  ${t(38,246,'FISHING  •  BOATING  •  EXPLORING',25,white,800)}
- ${rr(680,25,365,136,'#062c4b',18)}${t(706,68,'DAILY MARINE OUTLOOK',25,white,850)}${t(706,108,p.day,30,yellow,900)}${t(706,140,'07:00–17:00  JAMAICA',19,white,750)}
+ ${rr(620,272,426,106,'#062c4b',18)}${t(643,306,'DAILY MARINE OUTLOOK',23,white,850)}${t(643,338,p.day,27,yellow,900)}${t(643,365,'07:00–17:00 JAMAICA',17,white,750)}
  ${rr(16,412,1048,244,white,20)}${t(40,460,'OVERALL MARINE CONDITIONS',29,ink,900)}
  ${rr(38,482,327,78,sl,13)}${t(62,538,word,46,sc,900)}
  ${t(389,515,truncate(val(d,'condition'),34),24,ink,800)}${t(389,551,`COMFORT  ${val(d,'comfort')}`,22,'#47728e',800)}
@@ -90,7 +124,7 @@ for(let attempt=1;attempt<=3;attempt++){
   if(png.length<20000)throw Error('Rendered PNG unexpectedly small');
   await writeFile(resolve(out,`marine-weather-jamaica-${payload.day}.png`),png);
   await writeFile(resolve(out,'today.png'),png);
-  console.log(`SUCCESS: ${payload.day}, ${png.length} bytes, Sharp 1080x1350, verified cached forecast`);process.exit(0);
+  console.log(`SUCCESS: ${payload.day}, ${png.length} bytes, Sharp 1080x1600, verified cached forecast`);process.exit(0);
  }catch(e){last=e;console.error(`Attempt ${attempt}/3: ${e.message}`);if(attempt<3)await new Promise(r=>setTimeout(r,2500));}
 }
 console.error('Forecast graphic not regenerated; existing PNG preserved.',last?.message);process.exit(1);
