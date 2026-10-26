@@ -78,3 +78,17 @@
 .site-header .check-conditions-cta:hover{background:#ffe475}
 @media(max-width:520px){.site-header{gap:10px;padding:14px 20px}.site-header .check-conditions-cta{font-size:12px;padding:11px 13px}.site-header .brand{gap:7px}.site-header .brand small{letter-spacing:.16em}}
 @media(max-width:370px){.site-header .check-conditions-cta{font-size:11px;padding:9px 10px}.site-header .brand strong{font-size:13px}}
+
+/* v7.2: display the complete portrait forecast; never crop its lower panels. */
+.hero-content{align-items:center}
+.poster-panel{align-self:center}
+.poster-panel #daily-poster{display:block;width:100%;height:auto;aspect-ratio:auto;object-fit:contain;object-position:center;border-radius:12px}
+@media(min-width:851px){.hero{min-height:0}.hero-content{padding-top:135px;padding-bottom:105px}}
+@media(max-width:850px){.hero-content{padding-bottom:90px}}
+
+/* v7.3 — full natural-height website forecast, desktop and mobile. */
+.hero-content{align-items:center}
+.poster-panel{min-width:0;overflow:visible}
+.poster-panel #daily-poster{display:block!important;width:100%!important;max-width:100%!important;height:auto!important;max-height:none!important;aspect-ratio:auto!important;object-fit:contain!important;object-position:center!important;clip-path:none!important}
+@media(min-width:851px){.hero{height:auto;min-height:0}.hero-content{padding-top:135px;padding-bottom:110px;grid-template-columns:minmax(0,1fr) minmax(310px,455px)}}
+@media(max-width:850px){.hero{height:auto}.poster-panel{width:100%;max-width:490px}.hero-content{padding-bottom:100px}}
