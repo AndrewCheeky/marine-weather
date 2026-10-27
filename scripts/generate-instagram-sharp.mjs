@@ -1,6 +1,7 @@
 import sharp from 'sharp';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {resolve} from 'node:path';
+import {createHash} from 'node:crypto';
 
 // Direct SVG → Sharp renderer. Uses the SAME verified spreadsheet-backed instagramData payload.
 const endpoint=process.env.INSTAGRAM_DATA_URL || 'https://script.google.com/macros/s/AKfycbzwP_tF1SeJIBgB7HxTRBi374NiF0tQXGcSBFUk7EPPu1rSAepDsALW-iHeny6yo1Y/exec';
@@ -247,6 +248,8 @@ for(let attempt=1;attempt<=3;attempt++){
   if(png.length<20000)throw Error('Rendered PNG unexpectedly small');
   await writeFile(resolve(out,`marine-weather-jamaica-${payload.day}.png`),png);
   await writeFile(resolve(out,'today.png'),png);
+  const metadata={forecastDate:payload.day,generatedAt:new Date().toISOString(),timezone:'America/Jamaica',sha256:createHash('sha256').update(png).digest('hex'),bytes:png.length};
+  await writeFile(resolve(out,'daily-forecast-freshness.json'),JSON.stringify(metadata,null,2)+'\n');
   console.log(`SUCCESS: ${payload.day}, ${png.length} bytes, Sharp 1080x1560, verified cached forecast`);process.exit(0);
  }catch(e){last=e;console.error(`Attempt ${attempt}/3: ${e.message}`);if(attempt<3)await new Promise(r=>setTimeout(r,2500));}
 }
