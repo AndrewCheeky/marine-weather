@@ -1,5 +1,5 @@
 /* Marine Weather Jamaica: offline app shell, no background forecast requests. */
-const VERSION='mwja-pwa-v7.3';
+const VERSION='mwja-pwa-v7.4-hourly';
 const SHELL=VERSION+'-shell',FORECAST=VERSION+'-forecasts';
 const ASSETS=['/','/index.html','/assets/landing.css?v=7.3','/assets/pwa.css?v=6.1','/assets/landing.js','/assets/pwa.js','/assets/shared-footer.js','/assets/shared-footer.css','/assets/banks.js','/assets/marine-alert.js','/banks/banks.json','/assets/jamaica-sea-sunset.jpg','/icons/icon-192.png','/icons/icon-512.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(SHELL).then(async cache=>{await Promise.allSettled(ASSETS.map(u=>cache.add(u)));}));self.skipWaiting();});
