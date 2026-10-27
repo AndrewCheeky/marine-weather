@@ -1,5 +1,5 @@
 /* Marine Weather Jamaica: versioned offline app shell; no background forecast requests. */
-const VERSION = 'mwja-pwa-v7.9';
+const VERSION = 'mwja-pwa-v7.9.1';
 const SHELL = VERSION + '-shell';
 const FORECAST = VERSION + '-forecasts';
 const CACHE_PREFIX = 'mwja-pwa-';
@@ -14,7 +14,12 @@ const ASSETS = [
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(SHELL);
-    await Promise.allSettled(ASSETS.map(url => cache.add(url)));
+    await Promise.allSettled(ASSETS.map(async url => {
+      // Bypass the Android/browser HTTP cache while preloading the new shell.
+      const request = new Request(url, { cache: 'no-store' });
+      const response = await fetch(request, { cache: 'no-store' });
+      if (response.ok) await cache.put(url, response);
+    }));
     await self.skipWaiting();
   })());
 });
@@ -68,13 +73,18 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Stable images and icons can be cached until the next service worker version.
-  event.respondWith((async () => {
-    const cache = await caches.open(SHELL);
-    const cached = await cache.match(req);
-    if (cached) return cached;
-    const response = await fetch(req);
-    if (response.ok) await cache.put(req, response.clone());
-    return response;
-  })());
+  // Only immutable app icons use cache-first; all other images and assets
+  // check the network without consulting the Android/browser HTTP cache.
+  if (path.startsWith('/icons/')) {
+    event.respondWith((async () => {
+      const cache = await caches.open(SHELL);
+      const cached = await cache.match(req);
+      if (cached) return cached;
+      const response = await fetch(req, { cache: 'no-store' });
+      if (response.ok) await cache.put(req, response.clone());
+      return response;
+    })());
+    return;
+  }
+  event.respondWith(networkFirst(req, SHELL));
 });
