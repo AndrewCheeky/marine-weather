@@ -20,26 +20,26 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check if today's image already exists
+      - name: Check if tomorrow's image already exists
         id: freshness
         shell: bash
         run: |
-          TODAY=$(TZ=America/Jamaica date +%F)
+          TODAY=$(TZ=America/Jamaica date -d "tomorrow" +%F)
           echo "today=$TODAY" >> "$GITHUB_OUTPUT"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "Manual dispatch: force regenerating today's graphic."
+            echo "Manual dispatch: force regenerating tomorrow's graphic."
             echo "needed=true" >> "$GITHUB_OUTPUT"
           elif [ -s "instagram/generated/marine-weather-jamaica-${TODAY}.png" ]; then
-            echo "Today's dated PNG already exists; skipping generation."
+            echo "Tomorrow's dated PNG already exists; skipping generation."
             echo "needed=false" >> "$GITHUB_OUTPUT"
           else
-            echo "Today's PNG is missing; generating it."
+            echo "Tomorrow's PNG is missing; generating it."
             echo "needed=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Install Sharp renderer
         if: steps.freshness.outputs.needed == 'true'
         run: npm install --no-save --no-audit --no-fund sharp@0.34.4
-      - name: Generate today's PNG directly (no browser)
+      - name: Generate tomorrow's PNG directly (no browser)
         if: steps.freshness.outputs.needed == 'true'
         run: node scripts/generate-instagram-sharp.mjs
       - name: Commit generated PNGs
