@@ -1,21 +1,80 @@
-/* Marine Weather Jamaica: offline app shell, no background forecast requests. */
-const VERSION='mwja-pwa-v7.4-hourly';
-const SHELL=VERSION+'-shell',FORECAST=VERSION+'-forecasts';
-const ASSETS=['/','/index.html','/assets/landing.css?v=7.3','/assets/pwa.css?v=6.1','/assets/landing.js','/assets/pwa.js','/assets/shared-footer.js','/assets/shared-footer.css','/assets/banks.js','/assets/marine-alert.js','/banks/banks.json','/assets/jamaica-sea-sunset.jpg','/icons/icon-192.png','/icons/icon-512.png'];
-self.addEventListener('install',event=>{event.waitUntil(caches.open(SHELL).then(async cache=>{await Promise.allSettled(ASSETS.map(u=>cache.add(u)));}));self.skipWaiting();});
-self.addEventListener('activate',event=>{event.waitUntil((async()=>{for(const k of await caches.keys())if(k.startsWith('mwja-pwa-')&&k!==SHELL&&k!==FORECAST)await caches.delete(k);await self.clients.claim();})());});
-self.addEventListener('fetch',event=>{
- const req=event.request,url=new URL(req.url);
- if(req.method!=='GET'||url.origin!==self.location.origin)return; // Never intercept external forecast/advisory endpoints.
- const path=url.pathname;
- if(req.mode==='navigate'){
-   event.respondWith((async()=>{try{const response=await fetch(req);if(response.ok){const cache=await caches.open(SHELL);await cache.put('/index.html',response.clone());}return response;}catch{return (await caches.match('/index.html'))||Response.error();}})());return;
- }
- if(path.startsWith('/banks/generated/')||path.startsWith('/instagram/generated/')){
-   event.respondWith((async()=>{try{const response=await fetch(req);if(response.ok){const cache=await caches.open(FORECAST);await cache.put(req,response.clone());}return response;}catch{return (await caches.match(req))||Response.error();}})());return;
- }
- if(path==='/banks/banks.json'){
-   event.respondWith((async()=>{try{const response=await fetch(req);if(response.ok){const cache=await caches.open(SHELL);await cache.put(req,response.clone());}return response;}catch{return (await caches.match(req,{ignoreSearch:true}))||Response.error();}})());return;
- }
- event.respondWith((async()=>{const cached=await caches.match(req,{ignoreSearch:true});if(cached)return cached;const response=await fetch(req);if(response.ok){const cache=await caches.open(SHELL);await cache.put(req,response.clone());}return response;})());
+/* Marine Weather Jamaica: versioned offline app shell; no background forecast requests. */
+const VERSION = 'mwja-pwa-v7.9';
+const SHELL = VERSION + '-shell';
+const FORECAST = VERSION + '-forecasts';
+const CACHE_PREFIX = 'mwja-pwa-';
+const ASSETS = [
+  '/', '/index.html', '/assets/landing.css?v=7.3', '/assets/pwa.css?v=6.1',
+  '/assets/landing.js', '/assets/pwa.js', '/assets/shared-footer.js',
+  '/assets/shared-footer.css', '/assets/banks.js', '/assets/marine-alert.js',
+  '/banks/banks.json', '/assets/jamaica-sea-sunset.jpg',
+  '/icons/icon-192.png', '/icons/icon-512.png'
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(SHELL);
+    await Promise.allSettled(ASSETS.map(url => cache.add(url)));
+    await self.skipWaiting();
+  })());
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    const names = await caches.keys();
+    await Promise.all(names
+      .filter(name => name.startsWith(CACHE_PREFIX) && name !== SHELL && name !== FORECAST)
+      .map(name => caches.delete(name)));
+    await self.clients.claim();
+  })());
+});
+
+async function networkFirst(request, cacheName, fallbackRequest) {
+  const cache = await caches.open(cacheName);
+  try {
+    const response = await fetch(request);
+    if (response.ok) await cache.put(request, response.clone());
+    return response;
+  } catch (_) {
+    return (await cache.match(request)) ||
+      (fallbackRequest ? await cache.match(fallbackRequest) : undefined) ||
+      Response.error();
+  }
+}
+
+self.addEventListener('fetch', event => {
+  const req = event.request;
+  const url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== self.location.origin) return;
+  const path = url.pathname;
+
+  // Pages always check the network first; keep the home page for offline fallback.
+  if (req.mode === 'navigate') {
+    event.respondWith(networkFirst(req, SHELL, '/index.html'));
+    return;
+  }
+
+  // Forecast images and JSON must not be served from a stale cache while online.
+  if (path.startsWith('/banks/generated/') || path.startsWith('/banks/hourly/') ||
+      path.startsWith('/instagram/generated/')) {
+    event.respondWith(networkFirst(req, FORECAST));
+    return;
+  }
+
+  // Updated scripts, styles and bank listing also use network-first.
+  if (path === '/banks/banks.json' || path.endsWith('.js') || path.endsWith('.css') ||
+      path.endsWith('.html') || path.endsWith('.json')) {
+    event.respondWith(networkFirst(req, SHELL));
+    return;
+  }
+
+  // Stable images and icons can be cached until the next service worker version.
+  event.respondWith((async () => {
+    const cache = await caches.open(SHELL);
+    const cached = await cache.match(req);
+    if (cached) return cached;
+    const response = await fetch(req);
+    if (response.ok) await cache.put(req, response.clone());
+    return response;
+  })());
 });
