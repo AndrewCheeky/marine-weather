@@ -34,6 +34,30 @@ const mobileTypeCSS = `
   @media(max-width:760px){body{padding:16px!important;}th,td{padding:7px 5px!important;}}
 `;
 await mkdir('banks/generated', {recursive:true});
+await mkdir('banks/hourly', {recursive:true});
+// Use the already-published authoritative hourly snapshot; never call forecast providers.
+const jamaicaDate = (offset=0) => { const d=new Date(Date.now()+offset*86400000); return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Jamaica',year:'numeric',month:'2-digit',day:'2-digit'}).format(d); };
+const jamaicaHour = () => Number(new Intl.DateTimeFormat('en-US',{timeZone:'America/Jamaica',hour:'2-digit',hourCycle:'h23'}).format(new Date()));
+async function publishHourly(key,when){
+  const day=jamaicaDate(when==='tomorrow'?1:0);
+  const url=new URL(endpoint);url.searchParams.set('action','snapshot');url.searchParams.set('key',key);url.searchParams.set('day',day);
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),20000);
+  try {
+    const response=await fetch(url,{signal:controller.signal,redirect:'follow'});
+    if(!response.ok)throw Error('Snapshot HTTP '+response.status);
+    const data=await response.json();
+    if(!data.version||!Array.isArray(data.hours)||!data.hours.length)throw Error('No versioned hourly snapshot');
+    const hours=data.hours.filter(r=>r.day===day&&/^\d{2}$/.test(String(r.hour))&&r.metrics&&typeof r.metrics==='object')
+      .filter(r=>when==='tomorrow'?(Number(r.hour)>=7&&Number(r.hour)<=17):(Number(r.hour)>=jamaicaHour()&&Number(r.hour)<jamaicaHour()+6))
+      .sort((a,b)=>String(a.hour).localeCompare(String(b.hour)));
+    if(!hours.length)throw Error('No hourly records for requested window');
+    const unique=new Set(hours.map(r=>r.hour));if(unique.size!==hours.length)throw Error('Duplicate hourly records');
+    const payload={key,period:when,day,version:data.version,published_at:data.published_at||null,freshness:data.status||'Delayed',hours:hours.map(r=>({time:String(r.hour).padStart(2,'0')+':00',...Object.fromEntries(['avgWindKn','windDirMeanDeg','peakGustKn','avgWaveM','avgWavePeriodS','avgCurrentKn','currentDirMeanDeg','precipSumMm','rainProbabilityPct','uvHourlyMax','conditionColor'].map(k=>[k,r.metrics[k]??null]))}))};
+    await writeFile(`banks/hourly/${key}-${when}.json`,JSON.stringify(payload));
+    console.log('HOURLY',key,when,hours.length,'hours',data.version);return hours.length;
+  }finally{clearTimeout(timer);}
+}
+
 await mkdir('banks/diagnostics', {recursive:true});
 const browser = await chromium.launch({headless:true});
 let success=0, fail=0;
@@ -81,6 +105,7 @@ for (const b of banks) {
       const path=`banks/generated/${label}.webp`;
       await writeFile(path,image);
       console.log('PUBLISHED',path,image.length,'bytes'); success++;
+      try { await publishHourly(b.key,when); } catch(err) { console.warn('HOURLY UNAVAILABLE',label,String(err.message)); } 
       entry.reason='Published';
     } catch(e) {
       entry.reason=String(e.message).slice(0,400);
