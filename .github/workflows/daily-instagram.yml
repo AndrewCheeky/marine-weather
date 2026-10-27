@@ -2,7 +2,7 @@ name: Daily Marine Forecast PNG
 on:
   schedule:
     - cron: '30 10 * * *' # 05:30 Jamaica (UTC-5), primary
-    - cron: '30 11 * * *' # 06:30 Jamaica (UTC-5), retry
+    - cron: '30 11 * * *' # 06:30 Jamaica (UTC-5), retry if missing/stale
   workflow_dispatch:
 permissions:
   contents: write
@@ -20,84 +20,88 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check freshness of tomorrow's forecast (Jamaica time)
+      - name: Determine which forecast images need generating
         id: freshness
         shell: bash
         run: |
-          node --input-type=module <<'NODE' >> "$GITHUB_OUTPUT"
-          import {readFileSync,existsSync} from 'node:fs';
+          set -euo pipefail
+          TODAY=$(TZ=America/Jamaica date +%F)
+          echo "TODAY_JA=$TODAY" >> "$GITHUB_ENV"
+          TOMORROW=$(TZ=America/Jamaica date -d tomorrow +%F)
+          echo "today=$TODAY" >> "$GITHUB_OUTPUT"
+          echo "tomorrow=$TOMORROW" >> "$GITHUB_OUTPUT"
+          # At 05:30 always refresh both. At 06:30 retry only missing/invalid images.
+          # Manual dispatch refreshes both to make verification straightforward.
+          RETRY=false
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "30 11 * * *" ]; then RETRY=true; fi
+          for DAY_KIND in today tomorrow; do
+            if [ "$DAY_KIND" = today ]; then EXPECTED="$TODAY"; else EXPECTED="$TOMORROW"; fi
+            NEEDED=true
+            if [ "$RETRY" = true ]; then
+              if EXPECTED="$EXPECTED" KIND="$DAY_KIND" node --input-type=module <<'NODE'
+          import {readFile,stat} from 'node:fs/promises';
           import {createHash} from 'node:crypto';
-          const now=new Date();
-          const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'America/Jamaica',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(now).filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
-          const jamaicaToday=`${parts.year}-${parts.month}-${parts.day}`;
-          const tomorrow=new Date(`${jamaicaToday}T12:00:00Z`);
-          tomorrow.setUTCDate(tomorrow.getUTCDate()+1);
-          const expected=tomorrow.toISOString().slice(0,10);
-          const png=`instagram/generated/marine-weather-jamaica-${expected}.png`;
-          let fresh=false, reason='missing or invalid freshness metadata';
+          import {resolve} from 'node:path';
+          const kind=process.env.KIND, day=process.env.EXPECTED;
           try {
-            const meta=JSON.parse(readFileSync('instagram/generated/daily-forecast-freshness.json','utf8'));
-            const produced=new Date(meta.generatedAt);
-            const producedParts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'America/Jamaica',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(produced).filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
-            const sameDay=`${producedParts.year}-${producedParts.month}-${producedParts.day}`===jamaicaToday;
-            const afterPrimary=Number(producedParts.hour)>=5;
-            const bytes=readFileSync(png);
-            const digest=createHash('sha256').update(bytes).digest('hex');
-            const alias=readFileSync('instagram/generated/today.png');
-            fresh=meta.forecastDate===expected&&sameDay&&afterPrimary&&produced<=now&&digest===meta.sha256&&alias.equals(bytes)&&bytes.length>20000;
-            reason=fresh?'validated fresh forecast for tomorrow':'date, generation time, checksum, or alias mismatch';
-          }catch(e){reason=e.message;}
-          // The primary run always refreshes; the retry skips only after today's successful generation.
-          const retry='${{ github.event_name }}'==='schedule' && '${{ github.event.schedule }}'==='30 11 * * *';
-          const needed=!retry||!fresh;
-          console.error(`Expected ${expected}; ${reason}; ${retry?'retry':'primary/manual'}; generate=${needed}`);
-          console.log(`forecast_date=${expected}`);
-          console.log(`needed=${needed}`);
+            const root=resolve('instagram/generated');
+            const metadata=JSON.parse(await readFile(resolve(root,`${kind}-freshness.json`),'utf8'));
+            const png=await readFile(resolve(root,`${kind}.png`));
+            const dated=await readFile(resolve(root,`marine-weather-jamaica-${day}.png`));
+            const hash=createHash('sha256').update(png).digest('hex');
+            const generated=new Date(metadata.generatedAt);
+            const localDay=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Jamaica',year:'numeric',month:'2-digit',day:'2-digit'}).format(generated);
+            if(metadata.selection!==kind||metadata.forecastDay!==day||localDay!==process.env.TODAY_JA||
+               !Number.isFinite(generated.getTime())||metadata.sha256!==hash||
+               !png.equals(dated)||png.length<20000)process.exit(1);
+          } catch {process.exit(1);}
           NODE
+              then NEEDED=false; fi
+            fi
+            echo "${DAY_KIND}_needed=$NEEDED" >> "$GITHUB_OUTPUT"
+            echo "$DAY_KIND ($EXPECTED): needed=$NEEDED"
+          done
       - name: Install Sharp renderer
-        if: steps.freshness.outputs.needed == 'true'
+        if: steps.freshness.outputs.today_needed == 'true' || steps.freshness.outputs.tomorrow_needed == 'true'
         run: npm install --no-save --no-audit --no-fund sharp@0.34.4
-      - name: Generate and verify tomorrow's forecast PNG
-        if: steps.freshness.outputs.needed == 'true'
-        run: |
-          node scripts/generate-instagram-sharp.mjs
-          node --input-type=module <<'NODE'
-          import {readFileSync} from 'node:fs';
-          import {createHash} from 'node:crypto';
-          const expected='${{ steps.freshness.outputs.forecast_date }}';
-          const meta=JSON.parse(readFileSync('instagram/generated/daily-forecast-freshness.json','utf8'));
-          const dated=readFileSync(`instagram/generated/marine-weather-jamaica-${expected}.png`);
-          const alias=readFileSync('instagram/generated/today.png');
-          const digest=createHash('sha256').update(dated).digest('hex');
-          if(meta.forecastDate!==expected||digest!==meta.sha256||!dated.equals(alias)||dated.length<20000)
-            throw Error('Generated forecast failed date/checksum/alias validation');
-          console.log(`Verified forecast ${expected}: ${dated.length} bytes; generated ${meta.generatedAt}`);
-          NODE
-      - name: Commit generated PNGs and freshness metadata
-        if: steps.freshness.outputs.needed == 'true'
+      - name: Generate today's forecast PNG
+        id: generate_today
+        continue-on-error: true
+        if: steps.freshness.outputs.today_needed == 'true'
+        run: node scripts/generate-instagram-sharp.mjs --day today
+      - name: Generate tomorrow's forecast PNG
+        id: generate_tomorrow
+        continue-on-error: true
+        if: steps.freshness.outputs.tomorrow_needed == 'true'
+        run: node scripts/generate-instagram-sharp.mjs --day tomorrow
+      - name: Commit generated PNGs and freshness records
+        if: always() && (steps.generate_today.outcome == 'success' || steps.generate_tomorrow.outcome == 'success')
         shell: bash
         run: |
+          set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add instagram/generated/*.png instagram/generated/daily-forecast-freshness.json
-          if ! git diff --cached --quiet; then
-            git commit -m "Update marine forecast PNG for ${{ steps.freshness.outputs.forecast_date }}"
-            for attempt in 1 2 3; do
-              git fetch origin main
-              if ! git rebase origin/main; then
-                git rebase --abort || true
-                echo 'Rebase conflict: stopped without overwriting remote changes.' >&2
-                exit 1
-              fi
-              if git push origin HEAD:main; then
-                echo 'Generated images published successfully.'
-                exit 0
-              fi
-              echo "Push attempt ${attempt} raced with another update; retrying."
-              sleep 2
-            done
-            echo 'Unable to publish after three attempts.' >&2
-            exit 1
-          else
-            echo 'No generated file changes to commit.'
+          git add instagram/generated/*.png
+          for file in instagram/generated/*-freshness.json; do [ ! -f "$file" ] || git add "$file"; done
+          if git diff --cached --quiet; then
+            echo 'No generated changes to publish.'
+            exit 0
           fi
+          git commit -m "Update today and tomorrow marine forecast PNGs"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo 'Rebase conflict; remote changes preserved.' >&2
+              exit 1
+            fi
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          echo 'Unable to publish after three attempts.' >&2
+          exit 1
+      - name: Report any forecast generation failures
+        if: always() && (steps.generate_today.outcome == 'failure' || steps.generate_tomorrow.outcome == 'failure')
+        run: |
+          echo 'One or both forecast images failed; successful outputs were preserved and published where possible.' >&2
+          exit 1
