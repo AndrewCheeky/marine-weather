@@ -21,10 +21,22 @@ if(modal&&frame&&loading&&close){
     previousFocus=document.activeElement;modalTitle.textContent=(title.textContent||'Fishing bank')+' — Live forecast';
     modal.hidden=false;loading.hidden=false;document.body.style.overflow='hidden';close.focus();
     const seq=++openSeq;
-    frame.onload=()=>{if(seq===openSeq)hideLoading();};
-    // A slow or blocked embedded page must never trap the loading screen.
-    loadTimer=setTimeout(()=>{if(seq===openSeq)hideLoading();},15000);
-    frame.src=live.href;
+    // Ignore the initial about:blank iframe load; it is not the forecast.
+    let navigationStarted=false;
+    frame.onload=()=>{if(seq===openSeq && navigationStarted)hideLoading();};
+    // Keep a visible status if the destination takes too long, rather than flashing blank.
+    loadTimer=setTimeout(()=>{if(seq===openSeq && !loading.hidden){
+      loading.querySelector('strong').textContent='Still loading live forecast…';
+      loading.querySelector('span:last-child').textContent='The forecast is taking longer than usual; please wait.';
+    }},15000);
+    loading.querySelector('strong').textContent='Loading live forecast…';
+    loading.querySelector('span:last-child').textContent='Please wait while your marine outlook opens.';
+    // Paint the loading dialog BEFORE navigating the iframe.
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(seq!==openSeq)return;
+      navigationStarted=true;
+      frame.src=live.href;
+    }));
   });
   close.addEventListener('click',closeLive);
   modal.addEventListener('click',event=>{if(event.target===modal)closeLive();});
