@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 // Direct SVG → Sharp renderer. Uses the SAME verified spreadsheet-backed instagramData payload.
 const endpoint=process.env.INSTAGRAM_DATA_URL || 'https://script.google.com/macros/s/AKfycbzwP_tF1SeJIBgB7HxTRBi374NiF0tQXGcSBFUk7EPPu1rSAepDsALW-iHeny6yo1Y/exec';
 const out=resolve(process.env.OUTPUT_DIR||'instagram/generated');
-const jamaicaDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Jamaica',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const jamaicaDay=(offset=0)=>{const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Jamaica',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());const d=new Date(today+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+offset);return d.toISOString().slice(0,10);};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
 const valid=v=>v!==null&&v!==undefined&&String(v).trim()&&!/^(unavailable|n\/a|undefined|null|—|-)$/i.test(String(v).trim());
 const val=(d,k,f='—')=>valid(d[k])?String(d[k]):f;
@@ -52,7 +52,7 @@ function validateForecast(raw) {
   // Explicitly stale or delayed responses are never published.
   if(data.stale===true||data.isStale===true||/^(delayed|stale|expired)$/i.test(String(first(data,['freshness','dataFreshness'])??'')))
     throw Error('Cached forecast is marked delayed; existing PNG preserved');
-  const expected=jamaicaDay();
+  const expected=jamaicaDay(1);
   const day=normalizedDay(first(data,['day','forecastDay','forecastDate','date']));
   if(!day||day!==expected)throw Error(`Forecast date mismatch: received ${day||'unknown'}, expected ${expected}`);
   const poster=data.poster||data.instagram||data.fields;
@@ -76,19 +76,27 @@ function validateForecast(raw) {
   for(const key of ['uv','rain','current','currentDir','sst','swell','highTides','lowTides','moonPhase','moonIllum','sunrise','sunset','moonrise','moonset','peakWind','peakWave'])
     if(!valid(d[key]))d[key]='—';
   d.bank1=d.bank1||'MACKEREL (BOWDITCH)';d.bank2=d.bank2||'CALIFORNIA BANK';
+  // The authoritative Apps Script supplies destination-specific screened windows.
+  // Never invent departure/return times when its hourly screening finds none.
+  if(!Array.isArray(d.travelWindows) || d.travelWindows.length!==3)
+    throw Error('Departure and return windows missing from forecast payload');
+  for(const w of d.travelWindows){
+    if(!w || !valid(w.destination) || !valid(w.departure) || !valid(w.return))
+      throw Error('Incomplete departure/return window; existing PNG preserved');
+  }
   d.freshness='Current';
   // Missing optional fields do not invalidate a real forecast. Required scores,
   // dates and sea-state values above are checked independently.
   const missing=Array.isArray(data.missing)?data.missing:[];
   if(missing.length)console.warn('FORECAST DIAGNOSTICS:',missing.map(x=>String(x).slice(0,130)).slice(0,15).join(' | '));
-  // GS may set ready=false for optional columns or incomplete hour counts;
-  // retain its stale flag, but validate the actual critical poster fields above.
+  // Require GS authoritative snapshot and hourly-cache readiness for every site.
+  if(data.ready!==true)throw Error('Forecast service not ready: '+(missing.length?missing.join(' | '):'verification incomplete'));
   return {...data,day,poster:d};
 }
 async function getForecast(){
   // Match the callback naming convention of the proven browser-based Instagram Studio.
   const cb=`mwInstagramCallback_${Date.now()}_1`;
-  const url=new URL(endpoint);url.searchParams.set('action','instagramData');url.searchParams.set('day','today');url.searchParams.set('callback',cb);
+  const url=new URL(endpoint);url.searchParams.set('action','instagramData');url.searchParams.set('day','tomorrow');url.searchParams.set('callback',cb);
   const ac=new AbortController();const timer=setTimeout(()=>ac.abort(),65000);
   try {
     const response=await fetch(url,{signal:ac.signal,headers:{Accept:'*/*'}});
@@ -115,7 +123,7 @@ async function getForecast(){
 function makeSvg(p){
  const d={...p.poster};
  // GS is authoritative for solar times; no client-side fallback.
- const W=1080,H=1370;
+ const W=1080,H=1560;
  const navy='#03263e',deep='#041c30',cyan='#25c8f1',yellow='#ffdf28',white='#fff';
  const [statusColor,,statusWord]=theme(val(d,'status','AMBER'));
  const overall=String(val(d,'status','AMBER')).toUpperCase();
@@ -164,6 +172,14 @@ function makeSvg(p){
  const waxing=moonPhase.includes('waxing')||moonPhase.includes('first');
  const darkW=120*(1-moonMask);
  const moonArt=`<circle cx="916" cy="1216" r="66" fill="#e4e5d5"/><circle cx="900" cy="1194" r="12" fill="#b5b8b3" opacity=".35"/><circle cx="935" cy="1240" r="16" fill="#a3aba8" opacity=".25"/><path d="M${waxing?850:982} 1150 A66 66 0 0 ${waxing?1:0} ${waxing?850:982} 1282 A${Math.max(1,darkW)} 66 0 0 ${waxing?0:1} ${waxing?850:982} 1150" fill="#081d2c" opacity=".96"/>`;
+ const travel=Array.isArray(d.travelWindows)?d.travelWindows:[];
+ const travelRows=travel.slice(0,3).map((w,i)=>{
+   const y=1429+i*38;
+   const names=['MAIDEN CAY','MACKEREL BANK','CALIFORNIA BANK'];
+   const dep=valid(w?.departure)?w.departure:'Not available';
+   const ret=valid(w?.return)?w.return:'Not available';
+   return `${t(50,y,names[i],18,white,850)}${t(415,y,'OUT '+truncate(dep,23),18,'#c5efff',800)}${t(735,y,'BACK '+truncate(ret,23),18,'#c5efff',800)}`;
+ }).join('');
  const dateLabel=new Date(`${p.day}T12:00:00Z`);
  const dateText=Number.isNaN(dateLabel.getTime())?p.day:new Intl.DateTimeFormat('en-GB',{timeZone:'UTC',weekday:'short',day:'2-digit',month:'short',year:'numeric'}).format(dateLabel).toUpperCase();
  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
@@ -192,6 +208,9 @@ function makeSvg(p){
  ${icon('warn',772,1498,51,yellow)}${t(840,1512,'SAFETY FIRST',27,cyan,950)}
  ${t(840,1543,'Check official marine',17,white,700)}${t(840,1567,'warnings before departure.',17,white,700)}${t(840,1591,'Not for navigation.',17,white,750)}
  </g>
+ ${panel(28,1343,1024,206)}${top(30,1345,1020,'SUGGESTED DEPARTURE & RETURN · JAMAICA TIME')}
+ ${travelRows}
+ ${t(49,1534,'Forecast guidance only · Route, vessel and transit time not assessed · Not for navigation',15,'#c7e9f4',650)}
  ${p.preview?`${t(50,360,'DESIGN PREVIEW • NOT LIVE',18,'#ffdc4c',850)}`:''}
  </svg>`;
 }
@@ -225,7 +244,7 @@ for(let attempt=1;attempt<=3;attempt++){
   if(png.length<20000)throw Error('Rendered PNG unexpectedly small');
   await writeFile(resolve(out,`marine-weather-jamaica-${payload.day}.png`),png);
   await writeFile(resolve(out,'today.png'),png);
-  console.log(`SUCCESS: ${payload.day}, ${png.length} bytes, Sharp 1080x1370, verified cached forecast`);process.exit(0);
+  console.log(`SUCCESS: ${payload.day}, ${png.length} bytes, Sharp 1080x1560, verified cached forecast`);process.exit(0);
  }catch(e){last=e;console.error(`Attempt ${attempt}/3: ${e.message}`);if(attempt<3)await new Promise(r=>setTimeout(r,2500));}
 }
 console.error('Forecast graphic not regenerated; existing PNG preserved.',last?.message);process.exit(1);
