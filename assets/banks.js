@@ -5,7 +5,112 @@ if(!bank)return;
 let banks=[];
 const dialog=document.getElementById('bank-hourly-dialog'),hourlyClose=document.getElementById('bank-hourly-close'),expanded=document.getElementById('bank-hourly-image'),heading=document.getElementById('bank-hourly-heading'),meta=document.getElementById('bank-hourly-meta'),rows=document.getElementById('bank-hourly-rows');
 const fmt=(v,unit='')=>v===null||v===undefined||v===''||!Number.isFinite(Number(v))?'—':Number(v).toFixed(1)+unit;
-async function openExpanded(event){event.preventDefault();const item=banks.find(b=>b.key===bank.value);if(!item||!dialog)return;const when=period.value;expanded.src=img.src;heading.textContent=item.name+' — '+(when==='tomorrow'?'Tomorrow 07:00–17:00':'Current 6 hours');meta.textContent='Loading published hourly data…';rows.replaceChildren();dialog.showModal();try{const response=await fetch(`banks/hourly/${item.key}-${when}.json`,{cache:'no-store'});if(!response.ok)throw Error('No hourly cache published');const d=await response.json();if(d.key!==item.key||d.period!==when||!d.version||!Array.isArray(d.hours)||!d.hours.length)throw Error('Invalid hourly cache');const localDay=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Jamaica',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(Date.now()+(when==='tomorrow'?86400000:0)));if(d.day!==localDay)throw Error('Hourly forecast has not yet been published for '+localDay);if(!dialog.open||bank.value!==item.key||period.value!==when)return;meta.textContent=`${d.day} · ${d.freshness||'Published'} · Snapshot ${d.version} · ${d.hours.length} hours`;for(const h of d.hours){const tr=document.createElement('tr');const values=[h.time,fmt(h.avgWindKn),fmt(h.peakGustKn),fmt(h.avgWaveM==null?null:Number(h.avgWaveM)*3.28084),fmt(h.avgWavePeriodS),fmt(h.avgCurrentKn),fmt(h.rainProbabilityPct)];for(const value of values){const td=document.createElement('td');td.textContent=value;tr.appendChild(td)}rows.appendChild(tr)}}catch(err){meta.textContent='Hourly details unavailable: '+err.message+'. The published summary image remains available.'}}
+// Fetch the existing published forecast snapshot when the visitor opens the popup.
+// This is a cache read, not a direct weather-provider request.
+const hourlyCache=new Map(),HOURLY_TTL=10*60*1000;
+const jmDay=(offset=0)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Jamaica',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(Date.now()+offset*86400000));
+const jmHour=()=>Number(new Intl.DateTimeFormat('en-US',{timeZone:'America/Jamaica',hour:'2-digit',hourCycle:'h23'}).format(new Date()));
+function requestJSONP(url){
+  return new Promise((resolve,reject)=>{
+    const callback='mwHourly_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    let done=false;
+    const finish=(error,value)=>{if(done)return;done=true;clearTimeout(timer);delete window[callback];script.remove();error?reject(error):resolve(value);};
+    const timer=setTimeout(()=>finish(new Error('Live hourly request timed out')),12000);
+    window[callback]=value=>finish(null,value);
+    script.onerror=()=>finish(new Error('Live hourly endpoint unavailable'));
+    url.searchParams.set('callback',callback);
+    url.searchParams.set('_',String(Date.now()));
+    script.src=url.toString();document.head.appendChild(script);
+  });
+}
+async function fetchSnapshot(key,day){
+  const url=new URL(ENDPOINT);
+  url.searchParams.set('action','snapshot');
+  url.searchParams.set('key',key);
+  url.searchParams.set('day',day);
+  const cacheKey=key+'|'+day,stored=hourlyCache.get(cacheKey);
+  if(stored&&Date.now()-stored.time<HOURLY_TTL)return stored.data;
+  // Google Apps Script redirects can prevent cross-origin fetch; support JSONP
+  // when the deployed Apps Script handler exposes the callback parameter.
+  let data;
+  try{
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),12000);
+    try{
+      const response=await fetch(url.toString(),{cache:'no-store',signal:controller.signal});
+      if(!response.ok)throw Error('Live snapshot unavailable');
+      data=await response.json();
+    }finally{clearTimeout(timer);}
+  }catch(_error){data=await requestJSONP(url);}
+  if(!data||!Array.isArray(data.hours)||!data.version)throw Error('Invalid live hourly snapshot');
+  hourlyCache.set(cacheKey,{time:Date.now(),data});
+  return data;
+}
+function hourlyWindow(snapshots,when){
+  const all=new Map();
+  for(const snapshot of snapshots)for(const row of snapshot.hours||[]){
+    if(!row||!row.metrics||!row.day||row.hour==null)continue;
+    const hour=Number(row.hour);
+    if(!Number.isInteger(hour)||hour<0||hour>23)continue;
+    const stamp=row.day+'T'+String(hour).padStart(2,'0');
+    all.set(stamp,{...row,stamp});
+  }
+  const today=jmDay(),tomorrow=jmDay(1);
+  const start=when==='tomorrow'?tomorrow+'T07':today+'T'+String(jmHour()).padStart(2,'0');
+  const end=when==='tomorrow'?tomorrow+'T17':null;
+  return [...all.values()].filter(r=>r.stamp>=start&&(!end||r.stamp<=end))
+    .sort((a,b)=>a.stamp.localeCompare(b.stamp)).slice(0,when==='tomorrow'?11:6);
+}
+async function liveHours(key,when){
+  const today=jmDay(),tomorrow=jmDay(1);
+  const days=when==='tomorrow'?[tomorrow]:[today,tomorrow];
+  const results=await Promise.allSettled(days.map(day=>fetchSnapshot(key,day)));
+  const snapshots=results.filter(r=>r.status==='fulfilled').map(r=>r.value);
+  if(!snapshots.length)throw Error('Live hourly data unavailable');
+  const hours=hourlyWindow(snapshots,when);
+  if(!hours.length)throw Error('No hourly records for the requested period');
+  return {hours,updated:snapshots.map(s=>s.published_at).filter(Boolean).sort().at(-1),source:'On-demand forecast'};
+}
+async function publishedHours(key,when){
+  const response=await fetch(`banks/hourly/${key}-${when}.json`,{cache:'no-store'});
+  if(!response.ok)throw Error('No published hourly snapshot');
+  const data=await response.json();
+  if(data.key!==key||data.period!==when||!Array.isArray(data.hours)||!data.hours.length)throw Error('Invalid published hourly snapshot');
+  if(data.day!==jmDay(when==='tomorrow'?1:0))throw Error('Published forecast is for another day');
+  return {hours:data.hours.map(r=>({day:data.day,time:r.time,metrics:r})),updated:data.published_at,source:'Published fallback'};
+}
+let hourlyOpenId=0;
+async function openExpanded(event){
+  event.preventDefault();
+  const item=banks.find(b=>b.key===bank.value);
+  if(!item||!dialog)return;
+  const when=period.value,id=++hourlyOpenId;
+  expanded.src=img.src;
+  heading.textContent=item.name+' — '+(when==='tomorrow'?'Tomorrow 07:00–17:00':'Current 6 hours');
+  meta.textContent='Loading available hourly forecast…';
+  rows.replaceChildren();dialog.showModal();
+  let result,notice='';
+  try{result=await liveHours(item.key,when);}
+  catch(_error){
+    notice='Live hourly forecast unavailable; using published snapshot. ';
+    try{result=await publishedHours(item.key,when);}
+    catch(error){if(id===hourlyOpenId&&dialog.open)meta.textContent='Hourly details unavailable: '+error.message+'. Check the live forecast and official advisories.';return;}
+  }
+  if(id!==hourlyOpenId||!dialog.open||bank.value!==item.key||period.value!==when)return;
+  const {hours,updated,source}=result;
+  const expected=when==='tomorrow'?11:6;
+  meta.textContent=notice+source+' · '+hours.length+' hourly records'+
+    (updated?' · Updated '+new Date(updated).toLocaleString('en-JM',{timeZone:'America/Jamaica'}):'')+
+    (hours.length<expected?' · Partial forecast — verify current conditions':'');
+  for(const h of hours){
+    const m=h.metrics||h,tr=document.createElement('tr');
+    const time=(h.day?h.day+' ':'')+(h.time||String(h.hour).padStart(2,'0')+':00');
+    const values=[time,fmt(m.avgWindKn),fmt(m.peakGustKn),fmt(m.avgWaveM==null?null:Number(m.avgWaveM)*3.28084),fmt(m.avgWavePeriodS),fmt(m.avgCurrentKn),fmt(m.rainProbabilityPct)];
+    for(const value of values){const td=document.createElement('td');td.textContent=value;tr.appendChild(td);}
+    rows.appendChild(tr);
+  }
+}
 link.addEventListener('click',openExpanded);hourlyClose?.addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
 
 const safeKey=s=>/^[a-z0-9_-]+$/.test(s);
