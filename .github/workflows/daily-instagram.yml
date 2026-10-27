@@ -51,7 +51,24 @@ jobs:
           git add instagram/generated/*.png
           if ! git diff --cached --quiet; then
             git commit -m "Update marine forecast Instagram PNGs for ${{ steps.freshness.outputs.today }}"
-            git push
+            # Another workflow may update main while this job is rendering.
+            # Rebase and retry without force-pushing or discarding other changes.
+            for attempt in 1 2 3; do
+              git fetch origin main
+              if ! git rebase origin/main; then
+                git rebase --abort || true
+                echo 'Rebase conflict: stopped without overwriting remote changes.' >&2
+                exit 1
+              fi
+              if git push origin HEAD:main; then
+                echo 'Generated images published successfully.'
+                exit 0
+              fi
+              echo "Push attempt ${attempt} raced with another update; retrying."
+              sleep 2
+            done
+            echo 'Unable to publish after three attempts; remote files were not overwritten.' >&2
+            exit 1
           else
             echo 'Generator succeeded but no image changes were staged.'
           fi
