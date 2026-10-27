@@ -152,12 +152,12 @@ function makeSvg(p){
    <rect x="${x+3}" y="762" width="500" height="356" fill="url(#bankShade)"/>
    ${top(x+3,713,500,name)}
    ${rr(x+331,774,156,52,c,13)}${t(x+409,806,word,27,white,900,'text-anchor="middle"')}${comfort?t(x+409,822,`COMFORT ${comfort}`,13,white,750,'text-anchor="middle"'):''}
-   ${icon('target',x+22,938,36,white)}${t(x+71,953,focus==='pelagic'?'PELAGIC FOCUS':'BOTTOM / REEF FOCUS',19,'#d8f7ff',850)}
-   ${t(x+71,979,focus==='pelagic'?'Tuna · Wahoo · Dolphin':'Snapper · Grouper · Reef fish',18,white,650)}
-   ${icon('wave',x+22,995,36,'#a7efff')}${t(x+71,1014,'CONDITIONS',18,'#b6ecff',850)}
-   ${t(x+71,1040,truncate(detail,32),19,white,650)}
-   ${icon('rain',x+22,1053,36,'#56d7ff')}${t(x+71,1071,'RAIN / OUTLOOK',18,'#b6ecff',850)}
-   ${t(x+71,1097,truncate(rain,32),19,white,650)}`;
+   ${icon('target',x+22,873,36,white)}${t(x+71,888,focus==='pelagic'?'PELAGIC FOCUS':'BOTTOM / REEF FOCUS',19,'#d8f7ff',850)}
+   ${t(x+71,914,focus==='pelagic'?'Tuna · Wahoo · Dolphin':'Snapper · Grouper · Reef fish',18,white,650)}
+   ${icon('wave',x+22,930,36,'#a7efff')}${t(x+71,949,'CONDITIONS',18,'#b6ecff',850)}
+   ${t(x+71,975,truncate(detail,32),19,white,650)}
+   ${icon('rain',x+22,988,36,'#56d7ff')}${t(x+71,1006,'RAIN / OUTLOOK',18,'#b6ecff',850)}
+   ${t(x+71,1032,truncate(rain,32),19,white,650)}`;
  };
  const high=val(d,'highTides'),low=val(d,'lowTides');
  const tideEntries=(raw)=>valid(raw)?String(raw).split(/\s*[·;,|]\s*/).map(x=>x.trim()).filter(Boolean).slice(0,2):[];
@@ -174,11 +174,13 @@ function makeSvg(p){
  const moonArt=`<circle cx="916" cy="1216" r="66" fill="#e4e5d5"/><circle cx="900" cy="1194" r="12" fill="#b5b8b3" opacity=".35"/><circle cx="935" cy="1240" r="16" fill="#a3aba8" opacity=".25"/><path d="M${waxing?850:982} 1150 A66 66 0 0 ${waxing?1:0} ${waxing?850:982} 1282 A${Math.max(1,darkW)} 66 0 0 ${waxing?0:1} ${waxing?850:982} 1150" fill="#081d2c" opacity=".96"/>`;
  const travel=Array.isArray(d.travelWindows)?d.travelWindows:[];
  const travelRows=travel.slice(0,3).map((w,i)=>{
-   const y=1429+i*38;
+   const y=1427+i*38;
    const names=['MAIDEN CAY','MACKEREL BANK','CALIFORNIA BANK'];
    const dep=valid(w?.departure)?w.departure:'Not available';
    const ret=valid(w?.return)?w.return:'Not available';
-   return `${t(50,y,names[i],18,white,850)}${t(415,y,'OUT '+truncate(dep,23),18,'#c5efff',800)}${t(735,y,'BACK '+truncate(ret,23),18,'#c5efff',800)}`;
+   const peak=(numeric(w?.maxGustKn)&&valid(w?.maxGustTime))
+     ?`${Number(w.maxGustKn).toFixed(1)} kt (${w.maxGustTime})`:'Not available';
+   return `${t(50,y,names[i],17,white,850)}${t(314,y,truncate(dep,19),17,'#c5efff',800)}${t(554,y,truncate(ret,19),17,'#c5efff',800)}${t(800,y,truncate(peak,24),17,white,800)}`;
  }).join('');
  const dateLabel=new Date(`${p.day}T12:00:00Z`);
  const dateText=Number.isNaN(dateLabel.getTime())?p.day:new Intl.DateTimeFormat('en-GB',{timeZone:'UTC',weekday:'short',day:'2-digit',month:'short',year:'numeric'}).format(dateLabel).toUpperCase();
@@ -209,7 +211,8 @@ function makeSvg(p){
  ${t(840,1543,'Check official marine',17,white,700)}${t(840,1567,'warnings before departure.',17,white,700)}${t(840,1591,'Not for navigation.',17,white,750)}
  </g>
  ${panel(28,1343,1024,206)}${top(30,1345,1020,'SUGGESTED DEPARTURE & RETURN · JAMAICA TIME')}
- ${travelRows}
+ ${t(50,1392,'LOCATION',15,cyan,850)}${t(314,1392,'DEPART (OUT)',15,cyan,850)}${t(554,1392,'RETURN (BACK)',15,cyan,850)}${t(800,1392,'MAX GUST (TIME)',15,cyan,850)}
+ ${line(48,1403,978)}${travelRows}
  ${t(49,1534,'Forecast guidance only · Route, vessel and transit time not assessed · Not for navigation',15,'#c7e9f4',650)}
  ${p.preview?`${t(50,360,'DESIGN PREVIEW • NOT LIVE',18,'#ffdc4c',850)}`:''}
  </svg>`;
