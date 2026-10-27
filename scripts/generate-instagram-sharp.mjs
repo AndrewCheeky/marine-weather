@@ -1,11 +1,14 @@
 import sharp from 'sharp';
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
-import {resolve} from 'node:path';
+import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
+import {resolve} from 'node:path';
 
 // Direct SVG → Sharp renderer. Uses the SAME verified spreadsheet-backed instagramData payload.
 const endpoint=process.env.INSTAGRAM_DATA_URL || 'https://script.google.com/macros/s/AKfycbzwP_tF1SeJIBgB7HxTRBi374NiF0tQXGcSBFUk7EPPu1rSAepDsALW-iHeny6yo1Y/exec';
 const out=resolve(process.env.OUTPUT_DIR||'instagram/generated');
+const selectedDay=process.argv.includes('--day')?process.argv[process.argv.indexOf('--day')+1]:'tomorrow';
+if(!['today','tomorrow'].includes(selectedDay))throw Error('Use --day today or --day tomorrow');
+const dayOffset=selectedDay==='tomorrow'?1:0;
 const jamaicaDay=(offset=0)=>{const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Jamaica',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());const d=new Date(today+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+offset);return d.toISOString().slice(0,10);};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
 const valid=v=>v!==null&&v!==undefined&&String(v).trim()&&!/^(unavailable|n\/a|undefined|null|—|-)$/i.test(String(v).trim());
@@ -53,7 +56,7 @@ function validateForecast(raw) {
   // Explicitly stale or delayed responses are never published.
   if(data.stale===true||data.isStale===true||/^(delayed|stale|expired)$/i.test(String(first(data,['freshness','dataFreshness'])??'')))
     throw Error('Cached forecast is marked delayed; existing PNG preserved');
-  const expected=jamaicaDay(1);
+  const expected=jamaicaDay(dayOffset);
   const day=normalizedDay(first(data,['day','forecastDay','forecastDate','date']));
   if(!day||day!==expected)throw Error(`Forecast date mismatch: received ${day||'unknown'}, expected ${expected}`);
   const poster=data.poster||data.instagram||data.fields;
@@ -97,7 +100,7 @@ function validateForecast(raw) {
 async function getForecast(){
   // Match the callback naming convention of the proven browser-based Instagram Studio.
   const cb=`mwInstagramCallback_${Date.now()}_1`;
-  const url=new URL(endpoint);url.searchParams.set('action','instagramData');url.searchParams.set('day','tomorrow');url.searchParams.set('callback',cb);
+  const url=new URL(endpoint);url.searchParams.set('action','instagramData');url.searchParams.set('day',selectedDay);url.searchParams.set('callback',cb);
   const ac=new AbortController();const timer=setTimeout(()=>ac.abort(),65000);
   try {
     const response=await fetch(url,{signal:ac.signal,headers:{Accept:'*/*'}});
@@ -246,11 +249,20 @@ for(let attempt=1;attempt<=3;attempt++){
  try{
   const payload=await getForecast();const png=await sharp(Buffer.from(makeSvg(payload))).png({compressionLevel:8}).toBuffer();
   if(png.length<20000)throw Error('Rendered PNG unexpectedly small');
-  await writeFile(resolve(out,`marine-weather-jamaica-${payload.day}.png`),png);
-  await writeFile(resolve(out,'today.png'),png);
-  const metadata={forecastDate:payload.day,generatedAt:new Date().toISOString(),timezone:'America/Jamaica',sha256:createHash('sha256').update(png).digest('hex'),bytes:png.length};
-  await writeFile(resolve(out,'daily-forecast-freshness.json'),JSON.stringify(metadata,null,2)+'\n');
-  console.log(`SUCCESS: ${payload.day}, ${png.length} bytes, Sharp 1080x1560, verified cached forecast`);process.exit(0);
+  const dated=resolve(out,`marine-weather-jamaica-${payload.day}.png`);
+  const alias=resolve(out,`${selectedDay}.png`);
+  const metadata=resolve(out,`${selectedDay}-freshness.json`);
+  const sha256=createHash('sha256').update(png).digest('hex');
+  const record={forecastDay:payload.day,selection:selectedDay,generatedAt:new Date().toISOString(),sha256,bytes:png.length};
+  // Render and verify completely before replacing any existing public image.
+  const temp=resolve(out,`.${selectedDay}-${process.pid}.png.tmp`);
+  await writeFile(temp,png);
+  const inspected=await sharp(temp).metadata();
+  if(inspected.format!=='png'||inspected.width!==1080||inspected.height!==1560)throw Error('Rendered PNG dimensions/format invalid');
+  await rename(temp,dated);
+  await writeFile(alias,png);
+  await writeFile(metadata,JSON.stringify(record,null,2)+'\n');
+  console.log(`SUCCESS: ${selectedDay} ${payload.day}, ${png.length} bytes, verified cached forecast`);process.exit(0);
  }catch(e){last=e;console.error(`Attempt ${attempt}/3: ${e.message}`);if(attempt<3)await new Promise(r=>setTimeout(r,2500));}
 }
 console.error('Forecast graphic not regenerated; existing PNG preserved.',last?.message);process.exit(1);
