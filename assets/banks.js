@@ -60,7 +60,7 @@ function hourlyWindow(snapshots,when){
   const start=when==='tomorrow'?tomorrow+'T07':today+'T'+String(jmHour()).padStart(2,'0');
   const end=when==='tomorrow'?tomorrow+'T17':null;
   return [...all.values()].filter(r=>r.stamp>=start&&(!end||r.stamp<=end))
-    .sort((a,b)=>a.stamp.localeCompare(b.stamp)).slice(0,when==='tomorrow'?11:6);
+    .sort((a,b)=>a.stamp.localeCompare(b.stamp)).slice(0,when==='tomorrow'?11:12);
 }
 async function liveHours(key,when){
   const today=jmDay(),tomorrow=jmDay(1);
@@ -87,7 +87,7 @@ async function openExpanded(event){
   if(!item||!dialog)return;
   const when=period.value,id=++hourlyOpenId;
   expanded.src=img.src;
-  heading.textContent=item.name+' — '+(when==='tomorrow'?'Tomorrow 07:00–17:00':'Current 6 hours');
+  heading.textContent=item.name+' — '+(when==='tomorrow'?'Tomorrow 07:00–17:00':'Current 12 hours');
   meta.textContent='Loading available hourly forecast…';
   rows.replaceChildren();dialog.showModal();
   let result,notice='';
@@ -99,7 +99,7 @@ async function openExpanded(event){
   }
   if(id!==hourlyOpenId||!dialog.open||bank.value!==item.key||period.value!==when)return;
   const {hours,updated,source}=result;
-  const expected=when==='tomorrow'?11:6;
+  const expected=when==='tomorrow'?11:12;
   meta.textContent=notice+source+' · '+hours.length+' hourly records'+
     (updated?' · Updated '+new Date(updated).toLocaleString('en-JM',{timeZone:'America/Jamaica'}):'')+
     (hours.length<expected?' · Partial forecast — verify current conditions':'');
