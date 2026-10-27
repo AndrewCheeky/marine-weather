@@ -1,12 +1,12 @@
 /* Marine Weather Jamaica: versioned offline app shell; no background forecast requests. */
-const VERSION = 'mwja-pwa-v7.9.4';
+const VERSION = 'mwja-pwa-v7.9.5';
 const SHELL = VERSION + '-shell';
 const FORECAST = VERSION + '-forecasts';
 const CACHE_PREFIX = 'mwja-pwa-';
 const ASSETS = [
   '/', '/index.html', '/assets/landing.css?v=7.9.3', '/assets/pwa.css?v=6.1',
   '/assets/landing.js', '/assets/pwa.js', '/assets/shared-footer.js',
-  '/assets/shared-footer.css', '/assets/banks.js?v=7.9.4', '/assets/marine-alert.js',
+  '/assets/shared-footer.css', '/assets/banks.js?v=7.9.5', '/assets/marine-alert.js',
   '/banks/banks.json', '/assets/jamaica-sea-sunset.jpg',
   '/icons/icon-192.png', '/icons/icon-512.png'
 ];
