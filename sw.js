@@ -1,5 +1,5 @@
 /* Marine Weather Jamaica: versioned offline app shell; no background forecast requests. */
-const VERSION = 'mwja-pwa-v7.9.1';
+const VERSION = 'mwja-pwa-v7.9.2';
 const SHELL = VERSION + '-shell';
 const FORECAST = VERSION + '-forecasts';
 const CACHE_PREFIX = 'mwja-pwa-';
@@ -37,7 +37,7 @@ self.addEventListener('activate', event => {
 async function networkFirst(request, cacheName, fallbackRequest) {
   const cache = await caches.open(cacheName);
   try {
-    const response = await fetch(request);
+    const response = await fetch(request, { cache: 'no-store' });
     if (response.ok) await cache.put(request, response.clone());
     return response;
   } catch (_) {
