@@ -114,10 +114,13 @@ function integratedTrends(rows,available){
  t+=boxAt(650,408,'SEAS & SWELL')+legend(seas,685)+lines(rows,seas,722,842)+axis(865)+txt(67,902,'Swell direction (toward)',19,'#bcebf7',600)+arrows('swellDirDeg',922,false)+txt(67,972,'Period (s)',19,'#bcebf7',600);
  rows.forEach((r,i)=>t+=`<text x="${x(i)}" y="${972}" text-anchor="middle" fill="#fff" font-size="16">${num(r,'avgWavePeriodS')===null?'·':Math.round(num(r,'avgWavePeriodS'))}</text>`);
  t+=txt(67,1032,'Wave height in metres · peak waves only where provided',17,'#a8d8e8',400);
- const weather=[{key:'temperatureC',label:'Temp °C',color:'#ff737e',max:45},{key:'uvHourlyMax',label:'UV',color:'#ffc043',max:15},{key:'rainProbabilityPct',label:'Rain %',color:'#69e08d',max:100}];
+ const weather=[{key:'temperatureC',label:'Temp °C',color:'#ff737e',max:45},{key:'uvHourlyMax',label:'UV',color:'#ffc043',max:15}];
  t+=boxAt(1070,424,'WEATHER')+legend(weather,1105);
  rows.forEach((r,i)=>{const symbol=num(r,'weatherCode')===null?'·':skySymbol(r,(i+4)%24);t+=`<text x="${x(i)}" y="1153" font-size="22" text-anchor="middle" fill="#fff">${esc(symbol)}</text>`;});
- t+=lines(rows,weather,1175,1310)+axis(1337)+txt(67,1380,'Temperature 0–45°C · UV 0–15 · rain chance 0–100%',17,'#a8d8e8',400);
+ t+=lines(rows,weather,1175,1290)+axis(1314);
+ t+=txt(67,1351,'Rain chance (%)',18,'#9be9a7',600);
+ rows.forEach((r,i)=>{const v=num(r,'rainProbabilityPct');t+=`<text x="${x(i)}" y="1375" text-anchor="middle" font-family="Arial" font-size="14" fill="${v===null?'#7795a5':'#9be9a7'}">${v===null?'·':Math.round(v)+'%'}</text>`;});
+ t+=txt(67,1409,'Temperature 0–45°C · UV 0–15 · rain probability shown hourly as %',17,'#a8d8e8',400);
  t+=txt(67,1445,available+'/24 hourly forecast records available · Missing values shown as gaps',20,'#f1d08c',500);
  t+=txt(67,1477,'04:00 next day closes the timeline; no unsupplied values are plotted',17,'#b7d7e4',400);
  return t;
