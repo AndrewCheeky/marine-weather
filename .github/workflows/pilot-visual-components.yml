@@ -1,0 +1,24 @@
+name: Marine Visual Pilot (manual)
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  pilot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --no-audit --no-fund sharp@0.34.4
+      - run: node scripts/generate-pilot-components.mjs
+      - name: Publish pilot graphics only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add pilot/generated/
+          if ! git diff --cached --quiet; then
+            git commit -m "Refresh standalone marine visual pilot"
+            git push
+          fi
