@@ -1,0 +1,113 @@
+{
+  "generated_at": "2026-10-28T17:09:47.903Z",
+  "components": [
+    {
+      "key": "maiden",
+      "name": "Maiden Cay",
+      "type": "snapshot",
+      "path": "pilot/generated/maiden-snapshot.png",
+      "day": "2026-10-28",
+      "version": "20261028-053752",
+      "published_at": "2026-10-28T10:37:52.766Z"
+    },
+    {
+      "key": "maiden",
+      "name": "Maiden Cay",
+      "type": "trends",
+      "path": "pilot/generated/maiden-trends.png",
+      "day": "2026-10-28",
+      "version": "20261028-053752",
+      "published_at": "2026-10-28T10:37:52.766Z"
+    },
+    {
+      "key": "maiden",
+      "name": "Maiden Cay",
+      "type": "windows",
+      "path": "pilot/generated/maiden-windows.png",
+      "day": "2026-10-28",
+      "version": "20261028-053752",
+      "published_at": "2026-10-28T10:37:52.766Z"
+    },
+    {
+      "key": "maiden",
+      "name": "Maiden Cay",
+      "type": "intelligence",
+      "path": "pilot/generated/maiden-intelligence.png",
+      "day": "2026-10-28",
+      "version": "20261028-053752",
+      "published_at": "2026-10-28T10:37:52.766Z"
+    },
+    {
+      "key": "bowditch",
+      "name": "Mackerel (Bowditch) Bank",
+      "type": "snapshot",
+      "path": "pilot/generated/bowditch-snapshot.png",
+      "day": "2026-10-28",
+      "version": "20261028-053752",
+      "published_at": "2026-10-28T10:37:52.766Z"
+    },
+    {
+      "key": "bowditch",
+      "name": "Mackerel (Bowditch) Bank",
+      "type": "trends",
+      "path": "pilot/generated/bowditch-trends.png",
+      "day": "2026-10-28",
+      "version": "20261028-053752",
+      "published_at": "2026-10-28T10:37:52.766Z"
+    },
+    {
+      "key": "bowditch",
+      "name": "Mackerel (Bowditch) Bank",
+      "type": "windows",
+      "path": "pilot/generated/bowditch-windows.png",
+      "day": "2026-10-28",
+      "version": "20261028-053752",
+      "published_at": "2026-10-28T10:37:52.766Z"
+    },
+    {
+      "key": "bowditch",
+      "name": "Mackerel (Bowditch) Bank",
+      "type": "intelligence",
+      "path": "pilot/generated/bowditch-intelligence.png",
+      "day": "2026-10-28",
+      "version": "20261028-053752",
+      "published_at": "2026-10-28T10:37:52.766Z"
+    },
+    {
+      "key": "california",
+      "name": "California Bank",
+      "type": "snapshot",
+      "path": "pilot/generated/california-snapshot.png",
+      "day": "2026-10-28",
+      "version": "20261028-053752",
+      "published_at": "2026-10-28T10:37:52.766Z"
+    },
+    {
+      "key": "california",
+      "name": "California Bank",
+      "type": "trends",
+      "path": "pilot/generated/california-trends.png",
+      "day": "2026-10-28",
+      "version": "20261028-053752",
+      "published_at": "2026-10-28T10:37:52.766Z"
+    },
+    {
+      "key": "california",
+      "name": "California Bank",
+      "type": "windows",
+      "path": "pilot/generated/california-windows.png",
+      "day": "2026-10-28",
+      "version": "20261028-053752",
+      "published_at": "2026-10-28T10:37:52.766Z"
+    },
+    {
+      "key": "california",
+      "name": "California Bank",
+      "type": "intelligence",
+      "path": "pilot/generated/california-intelligence.png",
+      "day": "2026-10-28",
+      "version": "20261028-053752",
+      "published_at": "2026-10-28T10:37:52.766Z"
+    }
+  ]
+}
