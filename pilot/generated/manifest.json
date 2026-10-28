@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-28T21:11:03.009Z",
+  "generated_at": "2026-10-28T21:48:37.775Z",
   "components": [
     {
       "key": "maiden",
@@ -7,10 +7,10 @@
       "type": "snapshot",
       "path": "pilot/generated/maiden-snapshot.png",
       "day": "2026-10-28",
-      "version": "20261028-153644",
-      "published_at": "2026-10-28T20:36:44.758Z",
+      "version": "20261028-153646",
+      "published_at": "2026-10-28T20:36:46.726Z",
       "source_hours": 24,
-      "condition_background": "GREEN",
+      "condition_background": "neutral",
       "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
@@ -19,10 +19,10 @@
       "type": "trends",
       "path": "pilot/generated/maiden-trends.png",
       "day": "2026-10-28",
-      "version": "20261028-153644",
-      "published_at": "2026-10-28T20:36:44.758Z",
+      "version": "20261028-153646",
+      "published_at": "2026-10-28T20:36:46.726Z",
       "source_hours": 24,
-      "condition_background": "GREEN",
+      "condition_background": "neutral",
       "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
@@ -31,10 +31,10 @@
       "type": "windows",
       "path": "pilot/generated/maiden-windows.png",
       "day": "2026-10-28",
-      "version": "20261028-153644",
-      "published_at": "2026-10-28T20:36:44.758Z",
+      "version": "20261028-153646",
+      "published_at": "2026-10-28T20:36:46.726Z",
       "source_hours": 24,
-      "condition_background": "GREEN",
+      "condition_background": "neutral",
       "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
@@ -43,10 +43,10 @@
       "type": "intelligence",
       "path": "pilot/generated/maiden-intelligence.png",
       "day": "2026-10-28",
-      "version": "20261028-153644",
-      "published_at": "2026-10-28T20:36:44.758Z",
+      "version": "20261028-153646",
+      "published_at": "2026-10-28T20:36:46.726Z",
       "source_hours": 24,
-      "condition_background": "GREEN",
+      "condition_background": "neutral",
       "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
@@ -55,10 +55,10 @@
       "type": "snapshot",
       "path": "pilot/generated/bowditch-snapshot.png",
       "day": "2026-10-28",
-      "version": "20261028-153644",
-      "published_at": "2026-10-28T20:36:44.758Z",
+      "version": "20261028-153646",
+      "published_at": "2026-10-28T20:36:46.726Z",
       "source_hours": 24,
-      "condition_background": "GREEN",
+      "condition_background": "neutral",
       "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
@@ -67,10 +67,10 @@
       "type": "trends",
       "path": "pilot/generated/bowditch-trends.png",
       "day": "2026-10-28",
-      "version": "20261028-153644",
-      "published_at": "2026-10-28T20:36:44.758Z",
+      "version": "20261028-153646",
+      "published_at": "2026-10-28T20:36:46.726Z",
       "source_hours": 24,
-      "condition_background": "GREEN",
+      "condition_background": "neutral",
       "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
@@ -79,10 +79,10 @@
       "type": "windows",
       "path": "pilot/generated/bowditch-windows.png",
       "day": "2026-10-28",
-      "version": "20261028-153644",
-      "published_at": "2026-10-28T20:36:44.758Z",
+      "version": "20261028-153646",
+      "published_at": "2026-10-28T20:36:46.726Z",
       "source_hours": 24,
-      "condition_background": "GREEN",
+      "condition_background": "neutral",
       "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
@@ -91,10 +91,10 @@
       "type": "intelligence",
       "path": "pilot/generated/bowditch-intelligence.png",
       "day": "2026-10-28",
-      "version": "20261028-153644",
-      "published_at": "2026-10-28T20:36:44.758Z",
+      "version": "20261028-153646",
+      "published_at": "2026-10-28T20:36:46.726Z",
       "source_hours": 24,
-      "condition_background": "GREEN",
+      "condition_background": "neutral",
       "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
@@ -103,10 +103,10 @@
       "type": "snapshot",
       "path": "pilot/generated/california-snapshot.png",
       "day": "2026-10-28",
-      "version": "20261028-153644",
-      "published_at": "2026-10-28T20:36:44.758Z",
+      "version": "20261028-153646",
+      "published_at": "2026-10-28T20:36:46.726Z",
       "source_hours": 24,
-      "condition_background": "GREEN",
+      "condition_background": "neutral",
       "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
@@ -115,10 +115,10 @@
       "type": "trends",
       "path": "pilot/generated/california-trends.png",
       "day": "2026-10-28",
-      "version": "20261028-153644",
-      "published_at": "2026-10-28T20:36:44.758Z",
+      "version": "20261028-153646",
+      "published_at": "2026-10-28T20:36:46.726Z",
       "source_hours": 24,
-      "condition_background": "GREEN",
+      "condition_background": "neutral",
       "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
@@ -127,10 +127,10 @@
       "type": "windows",
       "path": "pilot/generated/california-windows.png",
       "day": "2026-10-28",
-      "version": "20261028-153644",
-      "published_at": "2026-10-28T20:36:44.758Z",
+      "version": "20261028-153646",
+      "published_at": "2026-10-28T20:36:46.726Z",
       "source_hours": 24,
-      "condition_background": "GREEN",
+      "condition_background": "neutral",
       "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
@@ -139,10 +139,10 @@
       "type": "intelligence",
       "path": "pilot/generated/california-intelligence.png",
       "day": "2026-10-28",
-      "version": "20261028-153644",
-      "published_at": "2026-10-28T20:36:44.758Z",
+      "version": "20261028-153646",
+      "published_at": "2026-10-28T20:36:46.726Z",
       "source_hours": 24,
-      "condition_background": "GREEN",
+      "condition_background": "neutral",
       "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     }
   ]
