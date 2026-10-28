@@ -1,0 +1,270 @@
+{
+  "key": "maiden",
+  "day": "2026-10-28",
+  "through": "2026-10-29",
+  "window": "04:00–04:00 Jamaica time",
+  "published_at": "2026-10-28T10:37:52.766Z",
+  "version": null,
+  "hours": [
+    {
+      "day": "2026-10-28",
+      "time": "04:00",
+      "available": false
+    },
+    {
+      "day": "2026-10-28",
+      "time": "05:00",
+      "available": false
+    },
+    {
+      "day": "2026-10-28",
+      "time": "06:00",
+      "available": false
+    },
+    {
+      "day": "2026-10-28",
+      "time": "07:00",
+      "avgWindKn": 1.8898488105000002,
+      "peakGustKn": 2.0518358514,
+      "windDirMeanDeg": 43,
+      "avgWaveM": 0.6,
+      "peakWaveM": null,
+      "avgWavePeriodS": 6.3,
+      "swellDirDeg": null,
+      "avgCurrentKn": 0.17818574499000003,
+      "currentDirMeanDeg": 10.301531838388428,
+      "precipSumMm": 0,
+      "rainProbabilityPct": 0,
+      "uvHourlyMax": 9,
+      "temperatureC": null,
+      "weatherCode": null,
+      "conditionColor": "GREEN"
+    },
+    {
+      "day": "2026-10-28",
+      "time": "08:00",
+      "avgWindKn": 2.3218142529,
+      "peakGustKn": 3.0237580968,
+      "windDirMeanDeg": 95,
+      "avgWaveM": 0.6,
+      "peakWaveM": null,
+      "avgWavePeriodS": 6.2,
+      "swellDirDeg": null,
+      "avgCurrentKn": 0.17818574499000003,
+      "currentDirMeanDeg": 10.301531838388428,
+      "precipSumMm": 0,
+      "rainProbabilityPct": 0,
+      "uvHourlyMax": 9,
+      "temperatureC": null,
+      "weatherCode": null,
+      "conditionColor": "GREEN"
+    },
+    {
+      "day": "2026-10-28",
+      "time": "09:00",
+      "avgWindKn": 3.5097192195000004,
+      "peakGustKn": 4.481641464900001,
+      "windDirMeanDeg": 129,
+      "avgWaveM": 0.62,
+      "peakWaveM": null,
+      "avgWavePeriodS": 6.1,
+      "swellDirDeg": null,
+      "avgCurrentKn": 0.17818574499000003,
+      "currentDirMeanDeg": 10.301531838388428,
+      "precipSumMm": 0,
+      "rainProbabilityPct": 0,
+      "uvHourlyMax": 9,
+      "temperatureC": null,
+      "weatherCode": null,
+      "conditionColor": "GREEN"
+    },
+    {
+      "day": "2026-10-28",
+      "time": "10:00",
+      "avgWindKn": 4.6976241861,
+      "peakGustKn": 5.39956803,
+      "windDirMeanDeg": 148,
+      "avgWaveM": 0.62,
+      "peakWaveM": null,
+      "avgWavePeriodS": 6,
+      "swellDirDeg": null,
+      "avgCurrentKn": 0.17818574499000003,
+      "currentDirMeanDeg": 10.301531838388428,
+      "precipSumMm": 0,
+      "rainProbabilityPct": 0,
+      "uvHourlyMax": 9,
+      "temperatureC": null,
+      "weatherCode": null,
+      "conditionColor": "GREEN"
+    },
+    {
+      "day": "2026-10-28",
+      "time": "11:00",
+      "avgWindKn": 5.615550751200001,
+      "peakGustKn": 5.9935205133,
+      "windDirMeanDeg": 156,
+      "avgWaveM": 0.62,
+      "peakWaveM": null,
+      "avgWavePeriodS": 5.9,
+      "swellDirDeg": null,
+      "avgCurrentKn": 0.17818574499000003,
+      "currentDirMeanDeg": 10.301531838388428,
+      "precipSumMm": 0,
+      "rainProbabilityPct": 0,
+      "uvHourlyMax": 9,
+      "temperatureC": null,
+      "weatherCode": null,
+      "conditionColor": "GREEN"
+    },
+    {
+      "day": "2026-10-28",
+      "time": "12:00",
+      "avgWindKn": 6.371490275400001,
+      "peakGustKn": 6.5334773163,
+      "windDirMeanDeg": 162,
+      "avgWaveM": 0.64,
+      "peakWaveM": null,
+      "avgWavePeriodS": 5.8,
+      "swellDirDeg": null,
+      "avgCurrentKn": 0.17818574499000003,
+      "currentDirMeanDeg": 10.301531838388428,
+      "precipSumMm": 0,
+      "rainProbabilityPct": 0,
+      "uvHourlyMax": 9,
+      "temperatureC": null,
+      "weatherCode": null,
+      "conditionColor": "GREEN"
+    },
+    {
+      "day": "2026-10-28",
+      "time": "13:00",
+      "avgWindKn": 6.7494600375000005,
+      "peakGustKn": 6.5334773163,
+      "windDirMeanDeg": 168,
+      "avgWaveM": 0.64,
+      "peakWaveM": null,
+      "avgWavePeriodS": 5.75,
+      "swellDirDeg": null,
+      "avgCurrentKn": 0.17818574499000003,
+      "currentDirMeanDeg": 10.301531838388428,
+      "precipSumMm": 0,
+      "rainProbabilityPct": 0,
+      "uvHourlyMax": 9,
+      "temperatureC": null,
+      "weatherCode": null,
+      "conditionColor": "GREEN"
+    },
+    {
+      "day": "2026-10-28",
+      "time": "14:00",
+      "avgWindKn": 6.479481636000001,
+      "peakGustKn": 6.0475161936,
+      "windDirMeanDeg": 165,
+      "avgWaveM": 0.64,
+      "peakWaveM": null,
+      "avgWavePeriodS": 5.75,
+      "swellDirDeg": null,
+      "avgCurrentKn": 0.17818574499000003,
+      "currentDirMeanDeg": 10.301531838388428,
+      "precipSumMm": 0,
+      "rainProbabilityPct": 0,
+      "uvHourlyMax": 9,
+      "temperatureC": null,
+      "weatherCode": null,
+      "conditionColor": "GREEN"
+    },
+    {
+      "day": "2026-10-28",
+      "time": "15:00",
+      "avgWindKn": 5.831533472400001,
+      "peakGustKn": 5.3455723497,
+      "windDirMeanDeg": 161,
+      "avgWaveM": 0.64,
+      "peakWaveM": null,
+      "avgWavePeriodS": 5.75,
+      "swellDirDeg": null,
+      "avgCurrentKn": 0.17818574499000003,
+      "currentDirMeanDeg": 10.301531838388428,
+      "precipSumMm": 0,
+      "rainProbabilityPct": 0,
+      "uvHourlyMax": 9,
+      "temperatureC": null,
+      "weatherCode": null,
+      "conditionColor": "GREEN"
+    },
+    {
+      "day": "2026-10-28",
+      "time": "16:00",
+      "avgWindKn": 4.9676025876,
+      "peakGustKn": 4.7516198664000004,
+      "windDirMeanDeg": 157,
+      "avgWaveM": 0.64,
+      "peakWaveM": null,
+      "avgWavePeriodS": 5.8,
+      "swellDirDeg": null,
+      "avgCurrentKn": 0.17818574499000003,
+      "currentDirMeanDeg": 10.301531838388428,
+      "precipSumMm": 0,
+      "rainProbabilityPct": 0,
+      "uvHourlyMax": 9,
+      "temperatureC": null,
+      "weatherCode": null,
+      "conditionColor": "GREEN"
+    },
+    {
+      "day": "2026-10-28",
+      "time": "17:00",
+      "available": false
+    },
+    {
+      "day": "2026-10-28",
+      "time": "18:00",
+      "available": false
+    },
+    {
+      "day": "2026-10-28",
+      "time": "19:00",
+      "available": false
+    },
+    {
+      "day": "2026-10-28",
+      "time": "20:00",
+      "available": false
+    },
+    {
+      "day": "2026-10-28",
+      "time": "21:00",
+      "available": false
+    },
+    {
+      "day": "2026-10-28",
+      "time": "22:00",
+      "available": false
+    },
+    {
+      "day": "2026-10-28",
+      "time": "23:00",
+      "available": false
+    },
+    {
+      "day": "2026-10-29",
+      "time": "00:00",
+      "available": false
+    },
+    {
+      "day": "2026-10-29",
+      "time": "01:00",
+      "available": false
+    },
+    {
+      "day": "2026-10-29",
+      "time": "02:00",
+      "available": false
+    },
+    {
+      "day": "2026-10-29",
+      "time": "03:00",
+      "available": false
+    }
+  ]
+}
