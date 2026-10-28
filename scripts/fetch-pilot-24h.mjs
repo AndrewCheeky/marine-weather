@@ -50,7 +50,7 @@ await mkdir('pilot/cache',{recursive:true});
 for(const key of keys){
  const sources=[];
  for(const day of [first,second]){
-  try{sources.push(await snapshot(key,day));}
+  try{const result=await snapshot(key,day);sources.push(result);console.log(`${key} ${day}: published snapshot returned ${result.hours.length} rows`);}
   catch(e){console.warn(`${key} ${day}: ${e.message}; checking repository cache`);}
  }
  // Repository snapshots are supplemental; published endpoint records take priority.
@@ -68,6 +68,9 @@ for(const key of keys){
   hours.push(map.get(day+'T'+time)||{day,time,available:false});
  }
  const count=hours.filter(h=>h.available!==false).length;
+ const missing=hours.filter(h=>h.available===false).map(h=>`${h.day} ${h.time}`);
+ if(missing.length)console.warn(`${key}: published data missing ${missing.join(', ')}`);
+ if(process.env.PILOT_REQUIRE_24H==='1' && missing.length)throw Error(`${key}: ${count}/24 records; refusing to publish partial forecast. Confirm action=snapshot returns full day rows for both ${first} and ${second}.`);
  if(count===0)throw Error(`${key}: no cached hours for ${first} 04:00–${second} 04:00; refusing to publish misleading charts`);
  const latest=[...localSources,...sources].map(s=>s.published_at).filter(Boolean).sort().at(-1)||null;
  await writeFile(`pilot/cache/${key}-24h.json`,JSON.stringify({key,day:first,through:second,window:'04:00–04:00 Jamaica time',closing_time:second+'T04:00',published_at:latest,version:sources.at(-1)?.version||null,hours},null,2));
