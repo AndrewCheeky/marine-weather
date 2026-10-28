@@ -12,9 +12,10 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save --no-audit --no-fund sharp@0.34.4
-      - name: Validate complete 24-hour snapshot before publishing
+      - name: Validate complete 24-hour forecast from Google Sheet
         env:
-          PILOT_REQUIRE_24H: "1"
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          PILOT_REQUIRE_24H: '1'
         run: node scripts/fetch-pilot-24h.mjs
       - run: node scripts/generate-pilot-components.mjs
       - name: Publish pilot graphics only
