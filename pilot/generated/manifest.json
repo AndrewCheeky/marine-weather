@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-28T17:28:01.994Z",
+  "generated_at": "2026-10-28T17:47:26.584Z",
   "components": [
     {
       "key": "maiden",
@@ -8,7 +8,10 @@
       "path": "pilot/generated/maiden-snapshot.png",
       "day": "2026-10-28",
       "version": "20261028-053752",
-      "published_at": "2026-10-28T10:37:52.766Z"
+      "published_at": "2026-10-28T10:37:52.766Z",
+      "source_hours": 5,
+      "condition_background": "GREEN",
+      "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
       "key": "maiden",
@@ -17,7 +20,10 @@
       "path": "pilot/generated/maiden-trends.png",
       "day": "2026-10-28",
       "version": "20261028-053752",
-      "published_at": "2026-10-28T10:37:52.766Z"
+      "published_at": "2026-10-28T10:37:52.766Z",
+      "source_hours": 5,
+      "condition_background": "GREEN",
+      "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
       "key": "maiden",
@@ -26,7 +32,10 @@
       "path": "pilot/generated/maiden-windows.png",
       "day": "2026-10-28",
       "version": "20261028-053752",
-      "published_at": "2026-10-28T10:37:52.766Z"
+      "published_at": "2026-10-28T10:37:52.766Z",
+      "source_hours": 5,
+      "condition_background": "GREEN",
+      "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
       "key": "maiden",
@@ -35,7 +44,10 @@
       "path": "pilot/generated/maiden-intelligence.png",
       "day": "2026-10-28",
       "version": "20261028-053752",
-      "published_at": "2026-10-28T10:37:52.766Z"
+      "published_at": "2026-10-28T10:37:52.766Z",
+      "source_hours": 5,
+      "condition_background": "GREEN",
+      "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
       "key": "bowditch",
@@ -44,7 +56,10 @@
       "path": "pilot/generated/bowditch-snapshot.png",
       "day": "2026-10-28",
       "version": "20261028-053752",
-      "published_at": "2026-10-28T10:37:52.766Z"
+      "published_at": "2026-10-28T10:37:52.766Z",
+      "source_hours": 5,
+      "condition_background": "GREEN",
+      "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
       "key": "bowditch",
@@ -53,7 +68,10 @@
       "path": "pilot/generated/bowditch-trends.png",
       "day": "2026-10-28",
       "version": "20261028-053752",
-      "published_at": "2026-10-28T10:37:52.766Z"
+      "published_at": "2026-10-28T10:37:52.766Z",
+      "source_hours": 5,
+      "condition_background": "GREEN",
+      "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
       "key": "bowditch",
@@ -62,7 +80,10 @@
       "path": "pilot/generated/bowditch-windows.png",
       "day": "2026-10-28",
       "version": "20261028-053752",
-      "published_at": "2026-10-28T10:37:52.766Z"
+      "published_at": "2026-10-28T10:37:52.766Z",
+      "source_hours": 5,
+      "condition_background": "GREEN",
+      "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
       "key": "bowditch",
@@ -71,7 +92,10 @@
       "path": "pilot/generated/bowditch-intelligence.png",
       "day": "2026-10-28",
       "version": "20261028-053752",
-      "published_at": "2026-10-28T10:37:52.766Z"
+      "published_at": "2026-10-28T10:37:52.766Z",
+      "source_hours": 5,
+      "condition_background": "GREEN",
+      "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
       "key": "california",
@@ -80,7 +104,10 @@
       "path": "pilot/generated/california-snapshot.png",
       "day": "2026-10-28",
       "version": "20261028-053752",
-      "published_at": "2026-10-28T10:37:52.766Z"
+      "published_at": "2026-10-28T10:37:52.766Z",
+      "source_hours": 5,
+      "condition_background": "GREEN",
+      "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
       "key": "california",
@@ -89,7 +116,10 @@
       "path": "pilot/generated/california-trends.png",
       "day": "2026-10-28",
       "version": "20261028-053752",
-      "published_at": "2026-10-28T10:37:52.766Z"
+      "published_at": "2026-10-28T10:37:52.766Z",
+      "source_hours": 5,
+      "condition_background": "GREEN",
+      "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
       "key": "california",
@@ -98,7 +128,10 @@
       "path": "pilot/generated/california-windows.png",
       "day": "2026-10-28",
       "version": "20261028-053752",
-      "published_at": "2026-10-28T10:37:52.766Z"
+      "published_at": "2026-10-28T10:37:52.766Z",
+      "source_hours": 5,
+      "condition_background": "GREEN",
+      "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     },
     {
       "key": "california",
@@ -107,7 +140,10 @@
       "path": "pilot/generated/california-intelligence.png",
       "day": "2026-10-28",
       "version": "20261028-053752",
-      "published_at": "2026-10-28T10:37:52.766Z"
+      "published_at": "2026-10-28T10:37:52.766Z",
+      "source_hours": 5,
+      "condition_background": "GREEN",
+      "data_fields": "actual published hourly JSON; unavailable values shown as dashes"
     }
   ]
 }
