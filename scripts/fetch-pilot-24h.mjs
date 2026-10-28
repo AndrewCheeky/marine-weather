@@ -14,18 +14,28 @@ if(+local.hour<4)startUTC.setUTCDate(startUTC.getUTCDate()-1);
 const first=iso(parts(startUTC));startUTC.setUTCDate(startUTC.getUTCDate()+1);const second=iso(parts(startUTC));
 const numeric=v=>v===null||v===undefined||v===''||!Number.isFinite(Number(v))?null:Number(v);
 const fields=['avgWindKn','peakGustKn','windDirMeanDeg','avgWaveM','peakWaveM','avgWavePeriodS','swellDirDeg','avgCurrentKn','currentDirMeanDeg','precipSumMm','rainProbabilityPct','uvHourlyMax','temperatureC','weatherCode'];
+const dateOK=s=>/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s+'T12:00:00Z'));
 function normalize(r,defaultDay){
  const m=r.metrics||r, raw=r.hour??r.time??m.hour??m.time;
- const match=String(raw??'').match(/(?:T|\b)(\d{1,2}):(?:\d{2})/);
- const hour=match?+match[1]:Number.isInteger(+raw)&&String(raw??'').trim()!==''?+raw:NaN;
+ const str=String(raw??'').trim();
+ let day=String(r.day||r.date||'').slice(0,10),hour;
+ const stamped=str.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/i);
+ if(stamped){
+  if(stamped[4]){
+   const d=new Date(str.replace(' ','T'));
+   if(Number.isNaN(+d))return null;
+   const p=parts(d);day=iso(p);hour=+p.hour;
+  }else{day=stamped[1];hour=+stamped[2];}
+ }else if(/^\d{1,2}:\d{2}(?::\d{2})?$/.test(str))hour=+str.split(':')[0];
+ else if(/^\d{1,2}$/.test(str))hour=+str;
+ else return null;
  if(!Number.isInteger(hour)||hour<0||hour>23)return null;
- const explicitDate=String(r.day||r.date||'').slice(0,10);
- const timestampDate=/^\d{4}-\d{2}-\d{2}T/.test(String(raw||''))?String(raw).slice(0,10):'';
- const day=explicitDate||timestampDate||String(defaultDay||'').slice(0,10);
- if(!/^\d{4}-\d{2}-\d{2}$/.test(day))return null;
+ if(!day)day=String(defaultDay||'').slice(0,10);
+ if(!dateOK(day))return null;
  const out={day,time:String(hour).padStart(2,'0')+':00'};
  for(const f of fields)out[f]=numeric(m[f]);
  out.conditionColor=String(m.conditionColor||m.statusColor||'');
+ if(!fields.some(f=>out[f]!==null))return null;
  return out;
 }
 async function snapshot(key,day){
@@ -35,6 +45,8 @@ async function snapshot(key,day){
  if(!response.ok)throw Error('Snapshot unavailable');
  const payload=await response.json();
  if(!Array.isArray(payload.hours))throw Error('Snapshot has no hourly array');
+ const days=[...new Set(payload.hours.map(r=>normalize(r,payload.day||day)?.day).filter(Boolean))];
+ console.log(`${key} ${day}: snapshot declared=${payload.day||'none'} rows=${payload.hours.length} normalizedDays=${days.join(',')||'none'} usable=${payload.hours.filter(r=>normalize(r,payload.day||day)).length}`);
  return {hours:payload.hours,day:payload.day||day,published_at:payload.published_at,version:payload.version,source:'published snapshot'};
 }
 async function localFiles(key){
@@ -56,10 +68,11 @@ for(const key of keys){
  // Repository snapshots are supplemental; published endpoint records take priority.
  const localSources=await localFiles(key);
  const map=new Map();
+ const priority=new Map();
  for(const source of [...localSources,...sources]){
   for(const raw of source.hours){
    const r=normalize(raw,source.day);
-   if(r)map.set(r.day+'T'+r.time,r);
+   if(r){const id=r.day+'T'+r.time; const rank=source.source==='published snapshot'?2:1; if((priority.get(id)||0)<=rank){map.set(id,r);priority.set(id,rank);}}
   }
  }
  const hours=[];
