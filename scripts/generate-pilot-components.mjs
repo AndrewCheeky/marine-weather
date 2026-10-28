@@ -91,19 +91,44 @@ function weatherPanel(rows,y){
   s+=txt(76,y+320,'Separate scales: temperature 0–45°C · UV 0–15 · rain 0–100%',17,'#a8d8e8',500);
   return s;
 }
+
+// Three integrated chart panels, with direction, period and weather icons INSIDE each panel.
+// All 25 tick labels include the closing 04:00 on the next day; data is plotted only when supplied.
+function integratedTrends(rows,available){
+ const x=i=>126+i*35.9, left=126,right=x(24);
+ const num=(r,k)=>r&&r.available!==false?n(r[k]):null;
+ const hours=Array.from({length:25},(_,i)=>String((i+4)%24).padStart(2,'0'));
+ function axis(y){let t='';hours.forEach((h,i)=>t+=`<text x="${x(i)}" y="${y}" text-anchor="middle" font-family="Arial" font-size="13" fill="#d3e9f4">${h}</text>`);return t;}
+ function lines(rows,series,top,bottom){
+  let t='';for(let j=0;j<=4;j++){const yy=bottom-(bottom-top)*j/4;t+=`<line x1="${left}" y1="${yy}" x2="${right}" y2="${yy}" stroke="#28556c" stroke-width="1"/>`;}
+  for(const z of series){let path='',connected=false;rows.forEach((r,i)=>{let v=num(r,z.key);if(v===null){connected=false;return;}const yy=bottom-Math.max(0,Math.min(1,v/z.max))*(bottom-top);path+=(connected?' L ':' M ')+x(i).toFixed(1)+' '+yy.toFixed(1);connected=true;t+=`<circle cx="${x(i)}" cy="${yy}" r="2.8" fill="${z.color}"/>`;});t+=`<path d="${path}" fill="none" stroke="${z.color}" stroke-width="3.2"/>`;}
+  return t;
+ }
+ function legend(series,y){return series.map((z,j)=>`<circle cx="${480+j*170}" cy="${y}" r="5" fill="${z.color}"/>`+txt(494+j*170,y+6,z.label,17,'#e6f5ff',600)).join('');}
+ function arrows(key,y,wind){let t='';rows.forEach((r,i)=>{let v=num(r,key);if(v===null){t+=`<text x="${x(i)}" y="${y+6}" text-anchor="middle" fill="#7795a5" font-size="17">·</text>`;return;}const angle=(v+(wind?180:0))%360;t+=`<g transform="translate(${x(i)} ${y}) rotate(${angle})"><path d="M0 -11 L6 7 L0 3 L-6 7 Z" fill="#6ce7f7"/></g>`;});return t;}
+ function boxAt(y,h,title){return rect(44,y,992,h,'#082d46',20,'#287c9d')+txt(67,y+43,title,29,'#f1faff',800);}
+ const wind=[{key:'avgWindKn',label:'Wind',color:'#20c6f2',max:Math.max(20,Math.ceil((max(rows,'peakGustKn')||0)/5)*5)},{key:'peakGustKn',label:'Gusts',color:'#ffaf3c',max:Math.max(20,Math.ceil((max(rows,'peakGustKn')||0)/5)*5)}];
+ const seasMax=Math.max(2,Math.ceil(Math.max(max(rows,'avgWaveM')||0,max(rows,'peakWaveM')||0)*2)/2);
+ const seas=[{key:'avgWaveM',label:'Waves',color:'#20c6f2',max:seasMax},{key:'peakWaveM',label:'Peak waves',color:'#ffaf3c',max:seasMax}];
+ let t=boxAt(278,360,'WIND & GUSTS')+legend(wind,313)+lines(rows,wind,350,480)+axis(504)+txt(67,547,'Wind direction (toward)',19,'#bcebf7',600)+arrows('windDirMeanDeg',565,true)+txt(67,609,'Wind and gust speed in knots · direction arrows show travel',17,'#a8d8e8',400);
+ t+=boxAt(650,408,'SEAS & SWELL')+legend(seas,685)+lines(rows,seas,722,842)+axis(865)+txt(67,902,'Swell direction (toward)',19,'#bcebf7',600)+arrows('swellDirDeg',922,false)+txt(67,972,'Period (s)',19,'#bcebf7',600);
+ rows.forEach((r,i)=>t+=`<text x="${x(i)}" y="${972}" text-anchor="middle" fill="#fff" font-size="16">${num(r,'avgWavePeriodS')===null?'·':Math.round(num(r,'avgWavePeriodS'))}</text>`);
+ t+=txt(67,1032,'Wave height in metres · peak waves only where provided',17,'#a8d8e8',400);
+ const weather=[{key:'temperatureC',label:'Temp °C',color:'#ff737e',max:45},{key:'uvHourlyMax',label:'UV',color:'#ffc043',max:15},{key:'rainProbabilityPct',label:'Rain %',color:'#69e08d',max:100}];
+ t+=boxAt(1070,424,'WEATHER')+legend(weather,1105);
+ rows.forEach((r,i)=>{const symbol=num(r,'weatherCode')===null?'·':skySymbol(r,(i+4)%24);t+=`<text x="${x(i)}" y="1153" font-size="22" text-anchor="middle" fill="#fff">${esc(symbol)}</text>`;});
+ t+=lines(rows,weather,1175,1310)+axis(1337)+txt(67,1380,'Temperature 0–45°C · UV 0–15 · rain chance 0–100%',17,'#a8d8e8',400);
+ t+=txt(67,1445,available+'/24 hourly forecast records available · Missing values shown as gaps',20,'#f1d08c',500);
+ t+=txt(67,1477,'04:00 next day closes the timeline; no unsupplied values are plotted',17,'#b7d7e4',400);
+ return t;
+}
 function card(type,name,day,rows){const wind=avg(rows,'avgWindKn'),gust=max(rows,'peakGustKn'),sea=avg(rows,'avgWaveM'),period=avg(rows,'avgWavePeriodS'),current=avg(rows,'avgCurrentKn'),rain=max(rows,'rainProbabilityPct'),rainfall=sum(rows,'precipSumMm'),uv=max(rows,'uvHourlyMax'),windDir=compass(avg(rows,'windDirMeanDeg')),currentDir=compass(avg(rows,'currentDirMeanDeg')),score=windowScore(rows),status=score===null?'DATA LIMITED':score>=75?'FAVOURABLE':score>=55?'CAUTION':'UNFAVOURABLE';let body='';
 if(type==='snapshot'){
 body+=panel(300,310)+rect(70,335,940,125,score===null?'#626e7a':score>=75?'#087d59':score>=55?'#bd8a08':'#a53734',22)+txt(100,415,status,53,'#fff',800)+txt(780,415,score===null?'—':score+'/100',47,'#fff',800);
 body+=metric(65,495,'AVERAGE WIND',fmt(wind)+' kn')+metric(393,495,'PEAK GUST',fmt(gust)+' kn')+metric(721,495,'AVERAGE SEAS',fmt(sea)+' m');body+=metric(65,665,'CURRENT',fmt(current)+' kn')+metric(393,665,'WAVE PERIOD',fmt(period)+' s')+metric(721,665,'MAX RAIN CHANCE',rain===null?'—':Math.round(rain)+'%');body+=panel(860,300)+txt(72,913,'WIND '+windDir+' · CURRENT '+currentDir+' · RAIN '+(rainfall===null?'—':fmt(rainfall)+' mm')+' · UV '+(uv===null?'—':fmt(uv,0)),25,'#a9dced',600)+txt(72,974,'WHAT THIS MEANS',34,'#72d8f0',700)+txt(72,1035,score===null?'Insufficient measurements for an overall score.':score>=75?'Relatively settled conditions in this forecast window.':score>=55?'Some conditions warrant additional caution.':'Conditions may be challenging for small craft.',29,'#fff',500)+txt(72,1111,'Scores are experimental; vessel and route not assessed.',23,'#bed5dd',400);
-}else if(type==='trends'){
+ }else if(type==='trends'){
 const chartRows=dayRows24(rows),available=chartRows.filter(r=>r.available!==false).length;
-const windMax=Math.max(20,Math.ceil((max(chartRows,'peakGustKn')||0)/5)*5);
-const waveMax=Math.max(2,Math.ceil(Math.max(max(chartRows,'peakWaveM')||0,max(chartRows,'avgWaveM')||0)*2)/2);
-body+=trendPanel(chartRows,290,'WIND & GUSTS',[{key:'avgWindKn',label:'Wind',color:'#24c9f4'},{key:'peakGustKn',label:'Gusts',color:'#ffae3d'}],windMax,'Knots · arrows show direction of travel; wind bearings are FROM');
-body+=directionRow(chartRows,623,'windDirMeanDeg','Wind arrows (toward)',true,false);
-body+=trendPanel(chartRows,697,'SEAS & SWELL',[{key:'avgWaveM',label:'Wave height',color:'#39baf8'},{key:'peakWaveM',label:'Peak waves',color:'#ffa73b'}],waveMax,'Metres · peak wave line only when a genuine source value exists');
-body+=directionRow(chartRows,1030,'swellDirDeg','Swell arrows (toward)',false,true);
-body+=weatherPanel(chartRows,1160);body+=txt(70,1540,available+'/24 forecast hours available · Missing values left blank',20,'#e2c988',500);
+body+=integratedTrends(chartRows,available);
 }else if(type==='windows'){
 const win=windows(rows),best=win[0],other=win.find(w=>best&&w.start!==best.start&&Math.abs(Number(w.start.slice(0,2))-Number(best.start.slice(0,2)))>=2);body+=panel(300,440)+txt(75,365,'BEST TWO-HOUR WINDOW',32,'#80e6ec',700);body+=txt(75,450,best?best.start+' – '+best.end:'Unavailable',64,'#fff',800);body+=txt(75,530,best?'Conditions score '+best.score+'/100':'Insufficient hourly data',32,'#e6eff4');body+=txt(75,615,best&&best.score>=75?'Relatively lighter forecast wind and seas.':best?'Compare wind, seas and gusts before departure.':'No recommendation available.',29,'#d2e8ed');body+=panel(770,315)+txt(75,835,'ALTERNATIVE WINDOW',30,'#80e6ec',700)+txt(75,910,other?other.start+' – '+other.end:'No separate window identified',44,'#fff',750)+txt(75,1005,'Weather suitability only; not a fish-bite prediction.',25,'#c7dce4');body+=txt(75,1150,'Never use this score alone to decide whether to go to sea.',24,'#f6d67a');
 }else if(type==='intelligence'){

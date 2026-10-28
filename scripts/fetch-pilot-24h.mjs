@@ -19,7 +19,9 @@ function normalize(r,defaultDay){
  const match=String(raw??'').match(/(?:T|\b)(\d{1,2}):(?:\d{2})/);
  const hour=match?+match[1]:Number.isInteger(+raw)&&String(raw??'').trim()!==''?+raw:NaN;
  if(!Number.isInteger(hour)||hour<0||hour>23)return null;
- const day=String(r.day||r.date||defaultDay||'').slice(0,10);
+ const explicitDate=String(r.day||r.date||'').slice(0,10);
+ const timestampDate=/^\d{4}-\d{2}-\d{2}T/.test(String(raw||''))?String(raw).slice(0,10):'';
+ const day=explicitDate||timestampDate||String(defaultDay||'').slice(0,10);
  if(!/^\d{4}-\d{2}-\d{2}$/.test(day))return null;
  const out={day,time:String(hour).padStart(2,'0')+':00'};
  for(const f of fields)out[f]=numeric(m[f]);
@@ -68,6 +70,6 @@ for(const key of keys){
  const count=hours.filter(h=>h.available!==false).length;
  if(count===0)throw Error(`${key}: no cached hours for ${first} 04:00–${second} 04:00; refusing to publish misleading charts`);
  const latest=[...localSources,...sources].map(s=>s.published_at).filter(Boolean).sort().at(-1)||null;
- await writeFile(`pilot/cache/${key}-24h.json`,JSON.stringify({key,day:first,through:second,window:'04:00–04:00 Jamaica time',published_at:latest,version:sources.at(-1)?.version||null,hours},null,2));
+ await writeFile(`pilot/cache/${key}-24h.json`,JSON.stringify({key,day:first,through:second,window:'04:00–04:00 Jamaica time',closing_time:second+'T04:00',published_at:latest,version:sources.at(-1)?.version||null,hours},null,2));
  console.log(`${key}: ${count}/24 real hourly records; ${24-count} explicitly unavailable`);
 }
