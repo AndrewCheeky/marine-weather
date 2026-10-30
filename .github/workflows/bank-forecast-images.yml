@@ -20,6 +20,10 @@ jobs:
       - run: |
           npm install --no-save playwright@1.56.1 sharp@0.34.4
           npx playwright install --with-deps chromium
+      - name: Publish complete hourly forecasts from Google Sheet
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: node scripts/publish-bank-24h.mjs
       - name: Render available bank forecasts
         id: render
         continue-on-error: true
@@ -35,7 +39,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          if compgen -G 'banks/generated/*.webp' > /dev/null; then
+          if compgen -G 'banks/generated/*.webp' > /dev/null || compgen -G 'banks/hourly/*-24h.json' > /dev/null; then
             git add banks/generated/*.webp
             git add -A banks/hourly/ 2>/dev/null || true
             if ! git diff --cached --quiet; then
