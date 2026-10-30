@@ -53,18 +53,23 @@ function hourlyWindow(snapshots,when){
     if(!row||!row.metrics||!row.day||row.hour==null)continue;
     const hour=Number(row.hour);
     if(!Number.isInteger(hour)||hour<0||hour>23)continue;
-    const stamp=row.day+'T'+String(hour).padStart(2,'0');
+    const stamp=row.day+'T'+String(hour).padStart(2,'0')+':00';
     all.set(stamp,{...row,stamp});
   }
   const today=jmDay(),tomorrow=jmDay(1);
-  const start=when==='tomorrow'?tomorrow+'T07':today+'T'+String(jmHour()).padStart(2,'0');
-  const end=when==='tomorrow'?tomorrow+'T17':null;
-  return [...all.values()].filter(r=>r.stamp>=start&&(!end||r.stamp<=end))
-    .sort((a,b)=>a.stamp.localeCompare(b.stamp)).slice(0,when==='tomorrow'?11:12);
+  // Jamaica has no DST. Construct local hourly slots without relying on browser timezone.
+  const start=when==='tomorrow'?tomorrow+'T07:00':today+'T'+String(jmHour()+1).padStart(2,'0')+':00';
+  const startDate=new Date(start+'-05:00');
+  const count=when==='tomorrow'?11:24;
+  return Array.from({length:count},(_,i)=>{
+    const d=new Date(startDate.getTime()+i*3600000);
+    const stamp=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Jamaica',year:'numeric',month:'2-digit',day:'2-digit'}).format(d)+'T'+new Intl.DateTimeFormat('en-GB',{timeZone:'America/Jamaica',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(d);
+    return all.get(stamp)||{day:stamp.slice(0,10),hour:stamp.slice(11,13),time:stamp.slice(11,16),stamp,metrics:{},missing:true};
+  });
 }
 async function liveHours(key,when){
   const today=jmDay(),tomorrow=jmDay(1);
-  const days=when==='tomorrow'?[tomorrow]:[today,tomorrow];
+  const days=when==='tomorrow'?[tomorrow]:[today,tomorrow,jmDay(2)];
   const results=await Promise.allSettled(days.map(day=>fetchSnapshot(key,day)));
   const snapshots=results.filter(r=>r.status==='fulfilled').map(r=>r.value);
   if(!snapshots.length)throw Error('Live hourly data unavailable');
@@ -87,7 +92,7 @@ async function openExpanded(event){
   if(!item||!dialog)return;
   const when=period.value,id=++hourlyOpenId;
   expanded.src=img.src;
-  heading.textContent=item.name+' — '+(when==='tomorrow'?'Tomorrow 07:00–17:00':'Current 12 hours');
+  heading.textContent=item.name+' — '+(when==='tomorrow'?'Tomorrow 07:00–17:00':'Rolling 24-hour forecast');
   meta.textContent='Loading available hourly forecast…';
   rows.replaceChildren();dialog.showModal();
   let result,notice='';
@@ -99,13 +104,14 @@ async function openExpanded(event){
   }
   if(id!==hourlyOpenId||!dialog.open||bank.value!==item.key||period.value!==when)return;
   const {hours,updated,source}=result;
-  const expected=when==='tomorrow'?11:12;
-  meta.textContent=notice+source+' · '+hours.length+' hourly records'+
+  const expected=when==='tomorrow'?11:24;
+  const available=hours.filter(h=>!h.missing&&Object.keys(h.metrics||h).length>0).length;
+  meta.textContent=notice+source+' · '+available+'/'+expected+' hourly records available'+
     (updated?' · Updated '+new Date(updated).toLocaleString('en-JM',{timeZone:'America/Jamaica'}):'')+
-    (hours.length<expected?' · Partial forecast — verify current conditions':'');
+    (available<expected?' · Missing hours shown as unavailable; no values estimated':'');
   for(const h of hours){
     const m=h.metrics||h,tr=document.createElement('tr');
-    const time=(h.day?h.day+' ':'')+(h.time||String(h.hour).padStart(2,'0')+':00');
+    const time=h.stamp?h.stamp.replace('T',' '):(h.day?h.day+' ':'')+(h.time||String(h.hour).padStart(2,'0')+':00');
     const values=[time,fmt(m.avgWindKn),fmt(m.peakGustKn),fmt(m.avgWaveM==null?null:Number(m.avgWaveM)*3.28084),fmt(m.avgWavePeriodS),fmt(m.avgCurrentKn),fmt(m.rainProbabilityPct)];
     for(const value of values){const td=document.createElement('td');td.textContent=value;tr.appendChild(td);}
     rows.appendChild(tr);
