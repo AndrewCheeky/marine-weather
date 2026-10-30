@@ -171,11 +171,25 @@ function makeSvg(p){
  const moonset=val(d,'moonset',val(d,'moonSet',''));
  const moon=val(d,'moonPhase'),illum=val(d,'moonIllum');
  const moonPhase=moon.toLowerCase();
- // Draw a phase-aware moon: bright disc + masked dark portion; labels remain data-driven.
- const moonMask=moonPhase.includes('new')?0.03:moonPhase.includes('full')&&Number.isFinite(parseFloat(illum))?Math.min(1,parseFloat(illum)/100):Math.max(0.05,Math.min(0.95,(Number.isFinite(parseFloat(illum))?parseFloat(illum):0)/100));
+ // Accurate phase geometry: illuminated fraction controls the terminator ellipse.
+ // Waning phases are lit on the left; waxing phases are lit on the right.
+ const fractionRaw=parseFloat(illum);
+ const fraction=Number.isFinite(fractionRaw)?Math.max(0,Math.min(1,fractionRaw/100)):(moonPhase.includes('full')?1:moonPhase.includes('new')?0:0.5);
  const waxing=moonPhase.includes('waxing')||moonPhase.includes('first');
- const darkW=120*(1-moonMask);
- const moonArt=`<circle cx="916" cy="1216" r="66" fill="#e4e5d5"/><circle cx="900" cy="1194" r="12" fill="#b5b8b3" opacity=".35"/><circle cx="935" cy="1240" r="16" fill="#a3aba8" opacity=".25"/><path d="M${waxing?850:982} 1150 A66 66 0 0 ${waxing?1:0} ${waxing?850:982} 1282 A${Math.max(1,darkW)} 66 0 0 ${waxing?0:1} ${waxing?850:982} 1150" fill="#081d2c" opacity=".96"/>`;
+ const r=66,cx=916,cy=1216;
+ const halfWidth=Math.abs(2*fraction-1)*r;
+ // Start with dark disc. Paint the illuminated half, then add or subtract
+ // the elliptical terminator. All shapes stay inside the circular silhouette.
+ const litSide=waxing?'right':'left';
+ const halfPath=litSide==='right'
+   ?`M${cx} ${cy-r} A${r} ${r} 0 0 1 ${cx} ${cy+r} Z`
+   :`M${cx} ${cy-r} A${r} ${r} 0 0 0 ${cx} ${cy+r} Z`;
+ const ellipseFill=fraction>=0.5?'#e4e5d5':'#081d2c';
+ const moonArt=`<defs><clipPath id="moon-disc"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath><clipPath id="moon-left"><rect x="${cx-r}" y="${cy-r}" width="${r}" height="${2*r}"/></clipPath><clipPath id="moon-right"><rect x="${cx}" y="${cy-r}" width="${r}" height="${2*r}"/></clipPath></defs>`+
+   `<g clip-path="url(#moon-disc)"><circle cx="${cx}" cy="${cy}" r="${r}" fill="#081d2c"/>`+
+   `<path d="${halfPath}" fill="#e4e5d5"/>`+
+   `<g clip-path="url(#moon-${fraction>=0.5?(waxing?'left':'right'):(waxing?'right':'left')})"><ellipse cx="${cx}" cy="${cy}" rx="${halfWidth}" ry="${r}" fill="${ellipseFill}"/></g>`+
+   `</g><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#dce6e7" stroke-width="1" opacity=".35"/>`;
  const travel=Array.isArray(d.travelWindows)?d.travelWindows:[];
  const travelRows=travel.slice(0,3).map((w,i)=>{
    const y=1427+i*38;
