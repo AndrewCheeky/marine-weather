@@ -2,7 +2,7 @@ name: Daily Marine Forecast PNG
 on:
  on:
   schedule:
-    - cron: '1 5,110 * * *'
+    - cron: '1 5,11 * * *'
   workflow_dispatch:
 permissions:
   contents: write
