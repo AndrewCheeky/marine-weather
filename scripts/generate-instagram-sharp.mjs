@@ -169,7 +169,7 @@ function makeSvg(p){
   const name=truncate(val(d,`bank${n}`,'FISHING BANK'),28).toUpperCase();
   const picture=globalThis.__marineArt?.[focus]||'';
   const mixedPicture=focus==='mixed';
-  const bankPicture=mixedPicture ? `${image(globalThis.__marineArt?.pelagic,x+3,763,250,355)}${image(globalThis.__marineArt?.reef,x+253,763,250,355)}` : image(picture,x+3,763,500,355);
+  const bankPicture=mixedPicture ? `${image(globalThis.__marineArt?.pelagic,x+3,763,500,178)}${image(globalThis.__marineArt?.reef,x+3,941,500,177)}` : image(picture,x+3,763,500,355);
   const detail=val(d,`bank${n}detail`);
   const rain=val(d,`bank${n}rain`);
   const comfort=val(d,`bank${n}comfort`,'');
