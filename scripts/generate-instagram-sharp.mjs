@@ -88,8 +88,24 @@ function validateForecast(raw) {
     if(!w || !valid(w.destination) || !valid(w.departure) || !valid(w.return))
       throw Error('Incomplete departure/return window; existing PNG preserved');
   }
-  // Optional flag computed from cached Kingston daytime hourly records by GAS.
-  d.rainIndicator=poster.rainIndicator===true;
+  // Rain is a separate advisory, never a modification of the marine status.
+  // The poster rain value is the Kingston 07:00–17:00 forecast total.
+  // Do not treat missing or nonnumeric rainfall as zero.
+  const rainText=String(d.rain??'').trim();
+  const rainMatch=rainText.match(/^([0-9]+(?:\.[0-9]+)?)\s*(?:mm)?$/i);
+  const daytimeRainMm=rainMatch?Number(rainMatch[1]):null;
+  const amountTrigger=daytimeRainMm!==null&&daytimeRainMm>3.5;
+  // GAS may also supply the 10-hour probability decision from its hourly cache.
+  // Accept the authoritative positive flag, but do not let an absent/false flag
+  // suppress a valid daytime rainfall threshold.
+  const probabilityTrigger=poster.rainIndicator===true;
+  d.rainIndicator=amountTrigger||probabilityTrigger;
+  console.log('RAIN INDICATOR:',JSON.stringify({
+    daytimeRainAvailable:daytimeRainMm!==null,
+    rainfallThresholdExceeded:amountTrigger,
+    hourlyProbabilityFlag:probabilityTrigger,
+    show:d.rainIndicator
+  }));
   d.freshness='Current';
   // Missing optional fields do not invalidate a real forecast. Required scores,
   // dates and sea-state values above are checked independently.
