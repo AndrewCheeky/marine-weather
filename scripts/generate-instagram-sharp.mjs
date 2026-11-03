@@ -1,4 +1,5 @@
 import sharp from 'sharp';
+import {fishingFocus} from './fishing-focus.mjs';
 import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
@@ -167,15 +168,17 @@ function makeSvg(p){
   const [c,,word]=theme(val(d,`bank${n}status`,'AMBER'));
   const name=truncate(val(d,`bank${n}`,'FISHING BANK'),28).toUpperCase();
   const picture=globalThis.__marineArt?.[focus]||'';
+  const mixedPicture=focus==='mixed';
+  const bankPicture=mixedPicture ? `${image(globalThis.__marineArt?.pelagic,x+3,763,250,355)}${image(globalThis.__marineArt?.reef,x+253,763,250,355)}` : image(picture,x+3,763,500,355);
   const detail=val(d,`bank${n}detail`);
   const rain=val(d,`bank${n}rain`);
   const comfort=val(d,`bank${n}comfort`,'');
-  return `${panel(x,710,506,413)}${image(picture,x+3,763,500,355)}
+  return `${panel(x,710,506,413)}${bankPicture}
    <rect x="${x+3}" y="762" width="500" height="356" fill="url(#bankShade)"/>
    ${top(x+3,713,500,name)}
    ${rr(x+331,774,156,52,c,13)}${t(x+409,806,word,27,white,900,'text-anchor="middle"')}${comfort?t(x+409,822,`COMFORT ${comfort}`,13,white,750,'text-anchor="middle"'):''}
-   ${icon('target',x+22,873,36,white)}${t(x+71,888,focus==='pelagic'?'PELAGIC FOCUS':'BOTTOM / REEF FOCUS',19,'#d8f7ff',850)}
-   ${t(x+71,914,focus==='pelagic'?'Tuna · Wahoo · Dolphin':'Snapper · Grouper · Reef fish',18,white,650)}
+   ${icon('target',x+22,873,36,white)}${t(x+71,888,focus==='pelagic'?'PELAGIC FOCUS':focus==='reef'?'BOTTOM / REEF FOCUS':'MIXED FISHING',19,'#d8f7ff',850)}
+   ${t(x+71,914,focus==='pelagic'?'Tuna · Wahoo · Dolphin':focus==='reef'?'Snapper · Grouper · Reef fish':'Pelagic · Bottom / Reef',18,white,650)}
    ${icon('wave',x+22,930,36,'#a7efff')}${t(x+71,949,'CONDITIONS',18,'#b6ecff',850)}
    ${t(x+71,975,truncate(detail,32),19,white,650)}
    ${icon('rain',x+22,988,36,'#56d7ff')}${t(x+71,1006,'RAIN / OUTLOOK',18,'#b6ecff',850)}
@@ -230,7 +233,7 @@ function makeSvg(p){
  ${line(48,581,976)}${info(52,630,'wind','WIND / GUSTS',val(d,'wind'),`Gusts ${val(d,'gust')}`)}
  ${info(269,630,'wave','SEAS',val(d,'seas'))}${info(479,630,'tide','WAVE PERIOD',val(d,'period'))}
  ${info(710,630,'rain','RAIN',val(d,'rain'))}${info(873,630,'sun','UV INDEX',val(d,'uv'))}
- ${bank(28,1,'pelagic')}${bank(546,2,'reef')}
+ ${bank(28,1,fishingFocus({focus:d.bank1focus,focusVerified:d.bank1focusVerified,fishingEvidence:d.bank1fishingEvidence}))}${bank(546,2,fishingFocus({focus:d.bank2focus,focusVerified:d.bank2focusVerified,fishingEvidence:d.bank2fishingEvidence}))}
  ${panel(28,1141,482,255)}${top(30,1143,478,'TIDES  ·  KINGSTON')}
  ${icon('tide',49,1210,49,'#5ee0ff')}${t(121,1214,'HIGH',20,'#bcefff',850)}${tideLine(highEntries,121,1241)}
  ${icon('tide',49,1312,49,'#5ee0ff')}${t(121,1312,'LOW',20,'#bcefff',850)}${tideLine(lowEntries,121,1339)}
