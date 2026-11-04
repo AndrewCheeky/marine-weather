@@ -1,0 +1,35 @@
+name: Seven-Day Marine Outlook
+on:
+  schedule:
+    - cron: '45 11 * * *' # 06:45 Jamaica time
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: seven-day-outlook
+  cancel-in-progress: false
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Sharp
+        run: npm install --no-save --no-audit --no-fund sharp@0.34.4
+      - name: Render seven days from validated feed
+        env:
+          SEVEN_DAY_DATA_URL: ${{ secrets.SEVEN_DAY_DATA_URL }}
+        run: node scripts/generate-seven-day.mjs
+      - name: Publish seven-day posters
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add instagram/generated/seven-day-*.png instagram/generated/seven-day-*.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Update seven-day marine outlook'
+          git pull --rebase origin main
+          git push origin HEAD:main
