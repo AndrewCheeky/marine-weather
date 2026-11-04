@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: '22'
       - name: Install renderer
-        run: npm install --no-save --no-audit --no-fund sharp@0.34.4
+        run: npm install --no-save --no-audit --no-fund sharp@0.34.4 suncalc@1.9.0
       - name: Generate test posters
         env:
           SEVEN_DAY_DATA_URL: ${{ secrets.SEVEN_DAY_DATA_URL }}
