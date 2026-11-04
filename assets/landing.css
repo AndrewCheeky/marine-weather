@@ -109,3 +109,12 @@
 
 /* Expanded image and cached hourly forecast */
 .bank-hourly-dialog{border:0;border-radius:18px;padding:20px;width:min(96vw,1600px);max-width:1600px;max-height:94vh;overflow:auto;background:#f2f9fc;color:#08283b;box-shadow:0 24px 80px #001b2b88}.bank-hourly-dialog::backdrop{background:#001c2bc9}.bank-hourly-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:16px}.bank-hourly-head h2{margin:0;font-size:clamp(18px,2vw,28px)}.bank-hourly-head button{background:#082d43;color:white;border:0;border-radius:8px;padding:11px 14px;cursor:pointer}.bank-hourly-layout{display:grid;grid-template-columns:minmax(0,3fr) minmax(440px,2fr);gap:18px;align-items:start}.bank-hourly-layout img{width:100%;height:auto;display:block;border-radius:9px}.bank-hourly-data{min-width:0}.bank-hourly-scroll{overflow-x:auto;max-height:70vh;overflow-y:auto}.bank-hourly-scroll table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}.bank-hourly-scroll th,.bank-hourly-scroll td{padding:9px 7px;text-align:right;border-bottom:1px solid #c9dce5}.bank-hourly-scroll th:first-child,.bank-hourly-scroll td:first-child{text-align:left}.bank-hourly-scroll th{position:sticky;top:0;background:#dceef4}.bank-hourly-note{font-size:12px;color:#516c7c;line-height:1.5}@media(max-width:1000px){.bank-hourly-layout{grid-template-columns:1fr}.bank-hourly-scroll{max-height:none}}
+
+/* Seven-day forecast selector: short-range green, extended outlook orange. */
+.seven-day-select{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin:0 0 12px;width:100%}
+.seven-day-select[hidden]{display:none}
+.seven-day-button{border:2px solid transparent;border-radius:9px;padding:10px 2px;font-size:clamp(10px,1vw,13px);font-weight:800;color:white;cursor:pointer;min-width:0;line-height:1.2}
+.seven-day-short{background:#178346}.seven-day-extended{background:#d97706}
+.seven-day-button[aria-pressed="true"]{outline:3px solid white;outline-offset:1px;filter:brightness(1.14)}
+.seven-day-button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+@media(max-width:560px){.seven-day-select{gap:3px}.seven-day-button{padding:9px 0;font-size:10px}}
