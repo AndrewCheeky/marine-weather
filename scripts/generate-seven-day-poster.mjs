@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import SunCalc from 'suncalc';
+// Astronomy is supplied by the existing production Google Apps Script functions.
 import {fishingFocus} from './fishing-focus.mjs';
 import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
@@ -212,7 +212,7 @@ function makeSvg(p){
    `<path d="${halfPath}" fill="#e4e5d5"/>`+
    `<g clip-path="url(#moon-${fraction>=0.5?(waxing?'left':'right'):(waxing?'right':'left')})"><ellipse cx="${cx}" cy="${cy}" rx="${halfWidth}" ry="${r}" fill="${ellipseFill}"/></g>`+
    `</g><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#dce6e7" stroke-width="1" opacity=".35"/>`;
- const travel=Array.isArray(d.travelWindows)?d.travelWindows:[];
+ const travel=Array.isArray(d.travelWindows)?d.travelWindows:Array.isArray(maiden.travelWindows)?maiden.travelWindows:[];
  const travelRows=travel.slice(0,3).map((w,i)=>{
    const y=1427+i*38;
    const names=['MAIDEN CAY','MACKEREL BANK','CALIFORNIA BANK'];
@@ -312,16 +312,15 @@ function scoreFromExistingRules(site){
 const timeJA=(date)=>date instanceof Date&&Number.isFinite(date.getTime())
   ?new Intl.DateTimeFormat('en-US',{timeZone:'America/Jamaica',hour:'numeric',minute:'2-digit',hour12:true}).format(date)
   :'Not available';
-function astronomy(date,lat,lon){
- const noon=new Date(`${date}T17:00:00Z`); // 12:00 Jamaica (UTC-5)
- const solar=SunCalc.getTimes(noon,lat,lon);
- const moonTimes=SunCalc.getMoonTimes(noon,lat,lon,false);
- const moon=SunCalc.getMoonIllumination(noon);
- const f=moon.phase;
- const phase=f<.035||f>=.965?'New Moon':f<.215?'Waxing Crescent':f<.285?'First Quarter':f<.465?'Waxing Gibbous':f<.535?'Full Moon':f<.715?'Waning Gibbous':f<.785?'Last Quarter':'Waning Crescent';
- return {sunrise:timeJA(solar.sunrise),sunset:timeJA(solar.sunset),
-   moonrise:timeJA(moonTimes.rise),moonset:timeJA(moonTimes.set),
-   moonPhase:phase,moonIllum:`${Math.round(moon.fraction*100)}%`};
+function astronomyFromProduction(day){
+ const a=day.astronomy||{};
+ const present=v=>v!==null&&v!==undefined&&String(v).trim()!=='';
+ return {sunrise:present(a.sunrise)?a.sunrise:'Not available',
+   sunset:present(a.sunset)?a.sunset:'Not available',
+   moonrise:present(a.moonrise)?a.moonrise:'Not available',
+   moonset:present(a.moonset)?a.moonset:'Not available',
+   moonPhase:present(a.moonPhase)?a.moonPhase:'Not available',
+   moonIllum:Number.isFinite(Number(a.moonIllum))&&a.moonIllum!==null?`${Math.round(Number(a.moonIllum))}%`:'Not available'};
 }
 const compass=(deg)=>typeof deg==='number'&&Number.isFinite(deg)
  ?['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round((((deg%360)+360)%360)/22.5)%16]:'';
@@ -338,7 +337,7 @@ function toPoster(day){
   // These are provisional, computed with the original GAS formula from cached
   // daily aggregates. Thunderstorm, squall and hourly travel-screening flags
   // remain unverified and are not silently treated as confirmed absent.
-  const sky=astronomy(day.date,maiden.lat,maiden.lon);
+  const sky=astronomyFromProduction(day);
   const poster={
     status:primary.condition,condition:'Provisional marine conditions',comfort:`${primary.score}/5`,
     freshness:'TEST',wind:fmt(maiden.windKn,'kn'),gust:fmt(maiden.gustKn,'kn'),
@@ -349,9 +348,10 @@ function toPoster(day){
     bank1focus:'mixed',bank2focus:'mixed',bank1focusVerified:false,bank2focusVerified:false,
     highTides:maiden.highTides||'Not available',lowTides:maiden.lowTides||'Not available',
     ...sky,
-    current:'Not available (units unverified)',currentDir:'',
+    current:maiden.currentUnitVerified&&Number.isFinite(maiden.currentKn)?fmt(maiden.currentKn,'kn'):'Not available (units unverified)',
+    currentDir:maiden.currentUnitVerified?compass(maiden.currentDirectionDeg):'',
     sst:fmt(maiden.sstC,'°C'),swell:`${fmt(maiden.swellM,'m')} ${compass(maiden.swellDirectionDeg)}`, 
-    travelWindows:[]
+    travelWindows:Array.isArray(maiden.travelWindows)?maiden.travelWindows:[]
   };
   return {day:day.date,poster,extended:day.dayOffset>=3};
 }
