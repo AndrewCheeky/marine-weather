@@ -1,7 +1,7 @@
 {
-  "forecastDay": "2026-11-04",
+  "forecastDay": "2026-11-05",
   "selection": "tomorrow",
-  "generatedAt": "2026-11-03T17:37:51.336Z",
-  "sha256": "019e1bf9f3ba1cf8cfb964e96f02482e0b61a1e4be17c6debc53d3381ebf0a24",
-  "bytes": 1086812
+  "generatedAt": "2026-11-04T13:12:36.317Z",
+  "sha256": "4f8274d019e3a1955c4c10b0425e85cbc7e165c17ed32fab5cca2dc479060f89",
+  "bytes": 1109686
 }
