@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2026-11-04T05:25:50.589Z",
+  "timezone": "America/Jamaica",
+  "days": [
+    {
+      "date": "2026-11-04",
+      "offset": 0,
+      "outlook": "short-range",
+      "image": "instagram/generated/seven-day-2026-11-04.png"
+    },
+    {
+      "date": "2026-11-05",
+      "offset": 1,
+      "outlook": "short-range",
+      "image": "instagram/generated/seven-day-2026-11-05.png"
+    },
+    {
+      "date": "2026-11-06",
+      "offset": 2,
+      "outlook": "short-range",
+      "image": "instagram/generated/seven-day-2026-11-06.png"
+    },
+    {
+      "date": "2026-11-07",
+      "offset": 3,
+      "outlook": "extended",
+      "image": "instagram/generated/seven-day-2026-11-07.png"
+    },
+    {
+      "date": "2026-11-08",
+      "offset": 4,
+      "outlook": "extended",
+      "image": "instagram/generated/seven-day-2026-11-08.png"
+    },
+    {
+      "date": "2026-11-09",
+      "offset": 5,
+      "outlook": "extended",
+      "image": "instagram/generated/seven-day-2026-11-09.png"
+    },
+    {
+      "date": "2026-11-10",
+      "offset": 6,
+      "outlook": "extended",
+      "image": "instagram/generated/seven-day-2026-11-10.png"
+    }
+  ]
+}
