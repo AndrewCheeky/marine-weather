@@ -73,5 +73,5 @@ for(const day of feed.days){
   console.log(`Published ${day.date} (${day.outlook})`);
  }catch(e){failures.push(day.date);console.error(`Preserved existing ${day.date} poster: ${e.message}`);}
 }
-if(failures.length)throw Error(`Incomplete publication: ${failures.join(', ')}`);
+if(failures.length)throw Error(`Incomplete publication: ${failures.join(', ')}. Check the read-only seven-day feed and confirm both weather and marine caches were refreshed with forecast_days=8. No incomplete seven-day manifest was published.`);
 await writeFile(resolve(root,'seven-day-manifest.json'),JSON.stringify({generatedAt:new Date().toISOString(),timezone:ja,days:feed.days.filter(d=>!failures.includes(d.date)).map(d=>({date:d.date,offset:d.dayOffset,outlook:d.outlook,image:`instagram/generated/seven-day-${d.date}.png`}))},null,2)+'\n');
