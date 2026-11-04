@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-04T14:55:17.509Z",
+  "generatedAt": "2026-11-04T15:10:54.515Z",
   "mode": "TEST",
   "days": [
     {
@@ -8,7 +8,7 @@
       "status": "GREEN",
       "comfort": "3/5",
       "image": "2026-11-04.png",
-      "sha256": "5d38fb40d5ae2f7d8355e377a1d55fb4bb8b62dbeec9fe5ff4a8e21fe9e09a85"
+      "sha256": "ddd8b68cc842c36b4ee97cf52135d42d5a9e1456a33a4fcf86bb1fa4548e4413"
     },
     {
       "date": "2026-11-05",
@@ -16,7 +16,7 @@
       "status": "GREEN",
       "comfort": "4/5",
       "image": "2026-11-05.png",
-      "sha256": "7cc6792a7bae0c97c2a58b17a32f4d8d83f923a5fd7e4dca85b8cb05cdc305c1"
+      "sha256": "2c299db1da243c89818c018ca9b281810eb156143d42ed8c4216934818f28657"
     },
     {
       "date": "2026-11-06",
@@ -24,7 +24,7 @@
       "status": "GREEN",
       "comfort": "4/5",
       "image": "2026-11-06.png",
-      "sha256": "51d0ab62367ea365f6a7b8207e0e594f4db0900f4bae0f63eb87506b6020d291"
+      "sha256": "4c1ca776db79afbc575b9608fffbf8b2bfe8353242383c5e8a9b264bcced0713"
     },
     {
       "date": "2026-11-07",
@@ -32,7 +32,7 @@
       "status": "GREEN",
       "comfort": "4/5",
       "image": "2026-11-07.png",
-      "sha256": "bd7c511f78f9459d9917045069dc31285b7208a0acc8245f4b9649ed9a02b9f4"
+      "sha256": "e4b352ba7534093828e9917f43d5ef4f813efae9f46a1faedf47197568de4fdf"
     },
     {
       "date": "2026-11-08",
@@ -40,7 +40,7 @@
       "status": "GREEN",
       "comfort": "4/5",
       "image": "2026-11-08.png",
-      "sha256": "367cc9dac3a9038596ba5f2f5bcc679168b64024e273bd021efda1470764017b"
+      "sha256": "a56cd5011df213633019a89652b09b26de3f0fe6bed58bee2749be8e00a021e4"
     },
     {
       "date": "2026-11-09",
@@ -48,7 +48,7 @@
       "status": "GREEN",
       "comfort": "4/5",
       "image": "2026-11-09.png",
-      "sha256": "27ba04de900359ef56b0d1a65e8c508405baa4b3b5bacc0cfe02601830fd2a1d"
+      "sha256": "3604c19a8da3717212b6f8b4ba864e995f1b536b2a13097c9fa8f7c3192c9bdd"
     },
     {
       "date": "2026-11-10",
@@ -56,7 +56,7 @@
       "status": "GREEN",
       "comfort": "3/5",
       "image": "2026-11-10.png",
-      "sha256": "e84bd3b3c735f2934b11909e25dc874944d7ef51490edc75b1e9bf5c40d10a2b"
+      "sha256": "7932a106e098cd514d502e3cf68ba016e646d94a54c56fac3a4c66acf0da8dc2"
     }
   ]
 }
