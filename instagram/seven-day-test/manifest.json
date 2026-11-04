@@ -1,0 +1,48 @@
+{
+  "generatedAt": "2026-11-04T05:33:48.668Z",
+  "mode": "TEST",
+  "days": [
+    {
+      "date": "2026-11-04",
+      "category": "short-range",
+      "image": "2026-11-04.png",
+      "sha256": "d7e9dbdf1d093841a3c2ccf6d9e98c5038a1b04263207b0ca0f91d0ebe11110a"
+    },
+    {
+      "date": "2026-11-05",
+      "category": "short-range",
+      "image": "2026-11-05.png",
+      "sha256": "37cc010bb0cddffe680da5be9040498391ea1901b952dafe53c8aba57491b733"
+    },
+    {
+      "date": "2026-11-06",
+      "category": "short-range",
+      "image": "2026-11-06.png",
+      "sha256": "09662ab49523517aa8af9e215fe16cd57a3548628e32150e421506e107beb958"
+    },
+    {
+      "date": "2026-11-07",
+      "category": "extended",
+      "image": "2026-11-07.png",
+      "sha256": "7e71ab4f5582bacc4e04c045b815da6d6bbcdbe82bcfa2e896fad22e627badfb"
+    },
+    {
+      "date": "2026-11-08",
+      "category": "extended",
+      "image": "2026-11-08.png",
+      "sha256": "0cda593f09a7d36e053923920060f13ff2bf4d58d0ec546f9ad3457df5cb4382"
+    },
+    {
+      "date": "2026-11-09",
+      "category": "extended",
+      "image": "2026-11-09.png",
+      "sha256": "3e484be1fd665394c3df9a3e81113a09fc78701f5bc063ab4c5605fc3c9d28ec"
+    },
+    {
+      "date": "2026-11-10",
+      "category": "extended",
+      "image": "2026-11-10.png",
+      "sha256": "ff7784398384a54d095d79036e737876ab56ee7a36da8f2cdbf24b5f18d790b3"
+    }
+  ]
+}
