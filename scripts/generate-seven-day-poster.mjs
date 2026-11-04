@@ -170,12 +170,15 @@ function makeSvg(p){
   const name=truncate(val(d,`bank${n}`,'FISHING BANK'),28).toUpperCase();
   const picture=globalThis.__marineArt?.[focus]||'';
   const mixedPicture=focus==='mixed';
-  const bankPicture=mixedPicture ? `${image(globalThis.__marineArt?.pelagic,x+3,763,500,178)}${image(globalThis.__marineArt?.reef,x+3,941,500,177)}` : image(picture,x+3,763,500,355);
+  const hasDeparture=Array.isArray(d.travelWindows) && valid(d.travelWindows[n]?.departure) && d.travelWindows[n].departure!=='None identified';
+  // Per-bank visual treatment: no usable departure window => fade the photo, keep text readable.
+  const photoOpacity=hasDeparture?1:0.12;
+  const bankPicture=mixedPicture ? `${image(globalThis.__marineArt?.pelagic,x+3,763,500,178,photoOpacity)}${image(globalThis.__marineArt?.reef,x+3,941,500,177,photoOpacity)}` : image(picture,x+3,763,500,355,photoOpacity);
   const detail=val(d,`bank${n}detail`);
   const rain=val(d,`bank${n}rain`);
   const comfort=val(d,`bank${n}comfort`,'');
   return `${panel(x,710,506,413)}${bankPicture}
-   <rect x="${x+3}" y="762" width="500" height="356" fill="url(#bankShade)"/>
+   <rect x="${x+3}" y="762" width="500" height="356" fill="${hasDeparture?'url(#bankShade)':'#052d43'}" fill-opacity="${hasDeparture?1:0.78}"/>
    ${top(x+3,713,500,name)}
    ${rr(x+331,774,156,52,c,13)}${t(x+409,806,word,27,white,900,'text-anchor="middle"')}${comfort?t(x+409,822,`COMFORT ${comfort}`,13,white,750,'text-anchor="middle"'):''}
    ${icon('target',x+22,873,36,white)}${t(x+71,888,focus==='pelagic'?'PELAGIC FOCUS':focus==='reef'?'BOTTOM / REEF FOCUS':'MIXED FISHING',19,'#d8f7ff',850)}
@@ -328,6 +331,11 @@ function toPoster(day){
   const find=id=>day.locations.find(x=>x.id===id);
   const maiden=find('maiden'), bow=find('bowditch'), cal=find('california');
   if(![maiden,bow,cal].every(x=>x&&x.ready&&!x.stale))throw Error(`Incomplete or stale source data for ${day.date}`);
+  for(const site of [maiden,bow,cal]) {
+    const hours=site.hourlyEvidence||[];
+    if(hours.length!==10 || hours.some((h,i)=>h.hour!==i+7 || !h.complete || !Number.isFinite(h.gustKn)))
+      throw Error(`Missing timestamped gust evidence for ${site.name} on ${day.date}; poster preserved`);
+  }
   const conditions=s=>`${fmt(s.windKn,'kn')} wind · ${fmt(s.waveM,'m')} seas · ${fmt(s.wavePeriodS,'s')} period`;
   const rain=s=>`${fmt(s.rainMm,'mm')} · peak rain chance ${fmt(s.rainProbabilityPct,'%',0)}`;
   const authoritative=s=>s.productionScore&&
@@ -368,10 +376,14 @@ function toPoster(day){
   }
   const windows=[maiden,bow,cal].map((s,i)=>{
     const w=conditionalWindow(s);
+    const gustSamples=(s.hourlyEvidence||[]).filter(h=>Number.isFinite(h.gustKn)&&Number.isInteger(h.hour)&&h.hour>=7&&h.hour<17);
+    // Peak gust is from the exact 07:00-17:00 hourly samples; ties use earliest occurrence.
+    const peak=gustSamples.reduce((best,h)=>!best||h.gustKn>best.gustKn?h:best,null);
     return {destination:['Maiden Cay','Mackerel Bank','California Bank'][i],
       departure:w?w.departure:'None identified',
       return:w?w.return:'None identified',
-      maxGust:Number.isFinite(s.gustKn)?fmt(s.gustKn,'kn'):'Not available',
+      maxGustKn:peak?peak.gustKn:null,
+      maxGustTime:peak?hourFmt(peak.hour):null,
       assessment:w?w.assessment:'No suitable two-hour period identified using available inputs'};
   });
   const poster={
