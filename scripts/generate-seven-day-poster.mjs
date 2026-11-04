@@ -1,4 +1,5 @@
 import sharp from 'sharp';
+import SunCalc from 'suncalc';
 import {fishingFocus} from './fishing-focus.mjs';
 import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
@@ -185,9 +186,9 @@ function makeSvg(p){
    ${t(x+71,1032,truncate(rain,32),19,white,650)}`;
  };
  const high=val(d,'highTides'),low=val(d,'lowTides');
- const tideEntries=(raw)=>valid(raw)?String(raw).split(/\s*[·;,|]\s*/).map(x=>x.trim()).filter(Boolean).slice(0,2):[];
+ const tideEntries=(raw)=>valid(raw)&&raw!=='Not available'?String(raw).split(/\s*[·;,|]\s*/).map(x=>x.trim()).filter(Boolean).slice(0,2):[];
  const highEntries=tideEntries(high),lowEntries=tideEntries(low);
- const tideLine=(entries,x,y)=>entries.length?entries.map((entry,i)=>t(x,y+i*26,truncate(entry,20),22,white,850)).join(''):t(x,y,'Not available',19,'#b7d2de',650);
+ const tideLine=(entries,x,y)=>entries.length?entries.map((entry,i)=>t(x,y+i*26,truncate(entry,25),22,white,850)).join(''):t(x,y,'Not available',19,'#b7d2de',650);
  const moonrise=val(d,'moonrise',val(d,'moonRise',''));
  const moonset=val(d,'moonset',val(d,'moonSet',''));
  const moon=val(d,'moonPhase'),illum=val(d,'moonIllum');
@@ -229,12 +230,12 @@ function makeSvg(p){
  ${rr(28,18,1024,81,'#03233e',15)}${t(52,63,dateText,35,white,900)}${t(52,88,'07:00–17:00 JAMAICA TIME  ·  KINGSTON / MAIDEN CAY',17,'#ccefff',750)}${t(923,62,val(d,'freshness','N/A').toUpperCase(),17,'#b8ffda',850)}
  <g transform="translate(0,-276)">${panel(28,390,1024,301)}${t(48,434,'OVERALL MARINE CONDITIONS',34,white,950)}
  ${rr(48,455,355,108,statusColor,16)}${icon('wave',67,481,57,white)}${d.rainIndicator?icon('rain',354,484,38,white):''}${t(149,519,statusWord,54,white,950)}${t(151,547,`COMFORT ${val(d,'comfort','NOT SCORED')} · PROVISIONAL`,19,white,850)}
- ${t(429,485,truncate(val(d,'condition'),40),25,white,750)}${t(429,521,'KINGSTON  ·  MAIDEN CAY',20,'#a5ecff',850)}
+ ${t(429,485,'Forecast guidance · provisional comfort assessment',22,white,750)}${t(429,521,'KINGSTON  ·  MAIDEN CAY',20,'#a5ecff',850)}
  ${line(48,581,976)}${info(52,630,'wind','WIND / GUSTS',val(d,'wind'),`Gusts ${val(d,'gust')}`)}
  ${info(269,630,'wave','SEAS',val(d,'seas'))}${info(479,630,'tide','WAVE PERIOD',val(d,'period'))}
  ${info(710,630,'rain','RAIN',val(d,'rain'))}${info(873,630,'sun','UV INDEX',val(d,'uv'))}
  ${bank(28,1,fishingFocus({focus:d.bank1focus,focusVerified:d.bank1focusVerified,fishingEvidence:d.bank1fishingEvidence}))}${bank(546,2,fishingFocus({focus:d.bank2focus,focusVerified:d.bank2focusVerified,fishingEvidence:d.bank2fishingEvidence}))}
- ${panel(28,1141,482,255)}${top(30,1143,478,'TIDES  ·  KINGSTON')}
+ ${panel(28,1141,482,255)}${top(30,1143,478,'TIDES  ·  KINGSTON (MODEL)')}
  ${icon('tide',49,1210,49,'#5ee0ff')}${t(121,1214,'HIGH',20,'#bcefff',850)}${tideLine(highEntries,121,1241)}
  ${icon('tide',49,1312,49,'#5ee0ff')}${t(121,1312,'LOW',20,'#bcefff',850)}${tideLine(lowEntries,121,1339)}
  ${panel(526,1141,526,255)}${top(528,1143,522,'SUN & MOON')}
@@ -251,9 +252,9 @@ function makeSvg(p){
  </g>
  ${panel(28,1343,1024,206)}${top(30,1345,1020,'SUGGESTED DEPARTURE & RETURN · JAMAICA TIME')}
  ${t(50,1392,'LOCATION',15,cyan,850)}${t(314,1392,'DEPART (OUT)',15,cyan,850)}${t(554,1392,'RETURN (BACK)',15,cyan,850)}${t(800,1392,'MAX GUST (TIME)',15,cyan,850)}
- ${line(48,1403,978)}${t(50,1450,'NOT ASSESSED · No verified departure or return windows',21,white,800)}
- ${t(49,1534,'TEST · Provisional scores; thunder/squalls and travel windows not verified',15,'#c7e9f4',650)}
- ${t(746,87,'PROVISIONAL SCORE',15,'#ffdc4c',850)}
+ ${line(48,1403,978)}${travelRows || t(50,1450,'NOT ASSESSED · No verified departure or return windows',21,white,800)}
+ ${t(49,1534,'TEST · Provisional marine scores; verify official warnings before departure',15,'#c7e9f4',650)}
+ ${t(746,87,'TEST OUTLOOK',15,'#ffdc4c',850)}
  ${p.preview?`${t(50,360,'DESIGN PREVIEW • NOT LIVE',18,'#ffdc4c',850)}`:''}
  </svg>`;
 }
@@ -306,6 +307,24 @@ function scoreFromExistingRules(site){
  return {condition,score,provisional:true};
 }
 
+// Astronomical calculations for the Kingston reference point. These are calculated
+// from the date and coordinates, never copied from the illustrative mockup.
+const timeJA=(date)=>date instanceof Date&&Number.isFinite(date.getTime())
+  ?new Intl.DateTimeFormat('en-US',{timeZone:'America/Jamaica',hour:'numeric',minute:'2-digit',hour12:true}).format(date)
+  :'Not available';
+function astronomy(date,lat,lon){
+ const noon=new Date(`${date}T17:00:00Z`); // 12:00 Jamaica (UTC-5)
+ const solar=SunCalc.getTimes(noon,lat,lon);
+ const moonTimes=SunCalc.getMoonTimes(noon,lat,lon,false);
+ const moon=SunCalc.getMoonIllumination(noon);
+ const f=moon.phase;
+ const phase=f<.035||f>=.965?'New Moon':f<.215?'Waxing Crescent':f<.285?'First Quarter':f<.465?'Waxing Gibbous':f<.535?'Full Moon':f<.715?'Waning Gibbous':f<.785?'Last Quarter':'Waning Crescent';
+ return {sunrise:timeJA(solar.sunrise),sunset:timeJA(solar.sunset),
+   moonrise:timeJA(moonTimes.rise),moonset:timeJA(moonTimes.set),
+   moonPhase:phase,moonIllum:`${Math.round(moon.fraction*100)}%`};
+}
+const compass=(deg)=>typeof deg==='number'&&Number.isFinite(deg)
+ ?['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round((((deg%360)+360)%360)/22.5)%16]:'';
 function toPoster(day){
   const find=id=>day.locations.find(x=>x.id===id);
   const maiden=find('maiden'), bow=find('bowditch'), cal=find('california');
@@ -319,6 +338,7 @@ function toPoster(day){
   // These are provisional, computed with the original GAS formula from cached
   // daily aggregates. Thunderstorm, squall and hourly travel-screening flags
   // remain unverified and are not silently treated as confirmed absent.
+  const sky=astronomy(day.date,maiden.lat,maiden.lon);
   const poster={
     status:primary.condition,condition:'Provisional marine conditions',comfort:`${primary.score}/5`,
     freshness:'TEST',wind:fmt(maiden.windKn,'kn'),gust:fmt(maiden.gustKn,'kn'),
@@ -327,11 +347,10 @@ function toPoster(day){
     bank1:'Mackerel (Bowditch)',bank1status:b1.condition,bank1comfort:`${b1.score}/5`,bank1detail:conditions(bow),bank1rain:rain(bow),
     bank2:'California Bank',bank2status:b2.condition,bank2comfort:`${b2.score}/5`,bank2detail:conditions(cal),bank2rain:rain(cal),
     bank1focus:'mixed',bank2focus:'mixed',bank1focusVerified:false,bank2focusVerified:false,
-    highTides:'Not available',lowTides:'Not available',
-    moonPhase:'Not available',moonIllum:'Not available',
-    sunrise:'Not available',sunset:'Not available',moonrise:'Not available',moonset:'Not available',
+    highTides:maiden.highTides||'Not available',lowTides:maiden.lowTides||'Not available',
+    ...sky,
     current:'Not available (units unverified)',currentDir:'',
-    sst:fmt(maiden.sstC,'°C'),swell:fmt(maiden.swellM,'m'),
+    sst:fmt(maiden.sstC,'°C'),swell:`${fmt(maiden.swellM,'m')} ${compass(maiden.swellDirectionDeg)}`, 
     travelWindows:[]
   };
   return {day:day.date,poster,extended:day.dayOffset>=3};
