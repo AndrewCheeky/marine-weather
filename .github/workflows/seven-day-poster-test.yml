@@ -1,0 +1,33 @@
+name: Seven-Day Poster TEST (isolated)
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: seven-day-poster-test
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install renderer
+        run: npm install --no-save --no-audit --no-fund sharp@0.34.4
+      - name: Generate test posters
+        env:
+          SEVEN_DAY_DATA_URL: ${{ secrets.SEVEN_DAY_DATA_URL }}
+        run: node scripts/generate-seven-day-poster.mjs
+      - name: Publish test images only
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add instagram/seven-day-test/
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Generate isolated seven-day test posters'
+          git pull --rebase origin main
+          git push origin HEAD:main
