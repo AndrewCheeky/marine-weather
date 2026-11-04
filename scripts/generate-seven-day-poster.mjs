@@ -17,7 +17,7 @@ const val=(d,k,f='—')=>valid(d[k])?String(d[k]):f;
 const truncate=(v,n=28)=>String(v).length>n?String(v).slice(0,n-1)+'…':String(v);
 const label=(x,y,t,size=22,color='#102c49',weight=700,extra='')=>`<text x="${x}" y="${y}" fill="${color}" font-size="${size}" font-weight="${weight}" font-family="Arial, DejaVu Sans, sans-serif" ${extra}>${esc(t)}</text>`;
 const rect=(x,y,w,h,fill,r=14,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" ${extra}/>`;
-const theme=s=>s==='GREEN'?['#0c984b','#e5f7e8','GOOD']:s==='RED'?['#bf3434','#fff0ef','CAUTION']:s==='AMBER'?['#c68a08','#fff6d6','FAIR']:['#456b83','#e9f0f5','UNRATED'];
+const theme=s=>s==='GREEN'?['#0c984b','#e5f7e8','GOOD']:s==='RED'?['#bf3434','#fff0ef','CAUTION']:(s==='YELLOW'||s==='AMBER')?['#c68a08','#fff6d6','FAIR']:['#456b83','#e9f0f5','UNRATED'];
 // Inspect only the response envelope, never log response bodies, query strings or data.
 function describeResponse(body, contentType, status, finalUrl) {
   const s=String(body).replace(/^\uFEFF/, '').trim();
@@ -228,7 +228,7 @@ function makeSvg(p){
  ${rr(0,0,W,H,'#087a9b',0)}${image(photo,0,0,1080,H)}${rr(0,0,W,H,'url(#shade)',0)}
  ${rr(28,18,1024,81,'#03233e',15)}${t(52,63,dateText,35,white,900)}${t(52,88,'07:00–17:00 JAMAICA TIME  ·  KINGSTON / MAIDEN CAY',17,'#ccefff',750)}${t(923,62,val(d,'freshness','N/A').toUpperCase(),17,'#b8ffda',850)}
  <g transform="translate(0,-276)">${panel(28,390,1024,301)}${t(48,434,'OVERALL MARINE CONDITIONS',34,white,950)}
- ${rr(48,455,355,108,statusColor,16)}${icon('wave',67,481,57,white)}${d.rainIndicator?icon('rain',354,484,38,white):''}${t(149,519,statusWord,54,white,950)}${t(151,547,'COMFORT NOT SCORED',23,white,850)}
+ ${rr(48,455,355,108,statusColor,16)}${icon('wave',67,481,57,white)}${d.rainIndicator?icon('rain',354,484,38,white):''}${t(149,519,statusWord,54,white,950)}${t(151,547,`COMFORT ${val(d,'comfort','NOT SCORED')} · PROVISIONAL`,19,white,850)}
  ${t(429,485,truncate(val(d,'condition'),40),25,white,750)}${t(429,521,'KINGSTON  ·  MAIDEN CAY',20,'#a5ecff',850)}
  ${line(48,581,976)}${info(52,630,'wind','WIND / GUSTS',val(d,'wind'),`Gusts ${val(d,'gust')}`)}
  ${info(269,630,'wave','SEAS',val(d,'seas'))}${info(479,630,'tide','WAVE PERIOD',val(d,'period'))}
@@ -253,7 +253,6 @@ function makeSvg(p){
  ${t(50,1392,'LOCATION',15,cyan,850)}${t(314,1392,'DEPART (OUT)',15,cyan,850)}${t(554,1392,'RETURN (BACK)',15,cyan,850)}${t(800,1392,'MAX GUST (TIME)',15,cyan,850)}
  ${line(48,1403,978)}${t(50,1450,'NOT ASSESSED · No verified departure or return windows',21,white,800)}
  ${t(49,1534,'TEST · Provisional scores; thunder/squalls and travel windows not verified',15,'#c7e9f4',650)}
- ${p.extended?`${rr(28,101,1024,43,'#bb6513',8)}${t(52,131,'EXTENDED OUTLOOK · DAYS 4–7 · GREATER UNCERTAINTY',21,white,900)}`:`${rr(28,101,1024,43,'#177a45',8)}${t(52,131,'SHORT-RANGE FORECAST · DAYS 1–3',21,white,900)}`}
  ${t(746,87,'PROVISIONAL SCORE',15,'#ffdc4c',850)}
  ${p.preview?`${t(50,360,'DESIGN PREVIEW • NOT LIVE',18,'#ffdc4c',850)}`:''}
  </svg>`;
@@ -370,7 +369,7 @@ for(const day of feed.days){
   if(meta.width!==1080||meta.height!==1560||png.length<20000)throw Error('Poster image validation failed');
   const name=`${day.date}.png`;const tmp=resolve(out,`.${day.date}.tmp`);
   await writeFile(tmp,png);await rename(tmp,resolve(out,name));
-  manifest.push({date:day.date,category:day.dayOffset>=3?'extended':'short-range',image:name,
+  manifest.push({date:day.date,category:day.dayOffset>=3?'extended':'short-range',status:payload.poster.status,comfort:payload.poster.comfort,image:name,
     sha256:createHash('sha256').update(png).digest('hex')});
   console.log(`TEST POSTER: ${day.date} generated, ${png.length} bytes`);
  }catch(e){failures.push(day.date);console.error(`TEST POSTER FAILED: ${day.date}: ${e.message}`);}
