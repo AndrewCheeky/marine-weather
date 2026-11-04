@@ -253,7 +253,7 @@ function makeSvg(p){
  ${panel(28,1343,1024,206)}${top(30,1345,1020,'SUGGESTED DEPARTURE & RETURN · JAMAICA TIME')}
  ${t(50,1392,'LOCATION',15,cyan,850)}${t(314,1392,'DEPART (OUT)',15,cyan,850)}${t(554,1392,'RETURN (BACK)',15,cyan,850)}${t(800,1392,'MAX GUST (TIME)',15,cyan,850)}
  ${line(48,1403,978)}${travelRows || t(50,1450,'NOT ASSESSED · No verified departure or return windows',21,white,800)}
- ${t(49,1534,'TEST · Provisional marine scores; verify official warnings before departure',15,'#c7e9f4',650)}
+ ${t(49,1534,'TEST · Conditional weather windows only; not a vessel or route clearance',15,'#c7e9f4',650)}
  ${t(746,87,'TEST OUTLOOK',15,'#ffdc4c',850)}
  ${p.preview?`${t(50,360,'DESIGN PREVIEW • NOT LIVE',18,'#ffdc4c',850)}`:''}
  </svg>`;
@@ -330,16 +330,52 @@ function toPoster(day){
   if(![maiden,bow,cal].every(x=>x&&x.ready&&!x.stale))throw Error(`Incomplete or stale source data for ${day.date}`);
   const conditions=s=>`${fmt(s.windKn,'kn')} wind · ${fmt(s.waveM,'m')} seas · ${fmt(s.wavePeriodS,'s')} period`;
   const rain=s=>`${fmt(s.rainMm,'mm')} · peak rain chance ${fmt(s.rainProbabilityPct,'%',0)}`;
-  const primary=scoreFromExistingRules(maiden);
-  const b1=scoreFromExistingRules(bow);
-  const b2=scoreFromExistingRules(cal);
+  const authoritative=s=>s.productionScore&&
+    ['GREEN','YELLOW','RED'].includes(s.productionScore.status)&&
+    Number.isFinite(Number(s.productionScore.comfort))?
+    {condition:s.productionScore.status,score:Number(s.productionScore.comfort),provisional:false}:null;
+  const primary=authoritative(maiden)||scoreFromExistingRules(maiden);
+  const b1=authoritative(bow)||scoreFromExistingRules(bow);
+  const b2=authoritative(cal)||scoreFromExistingRules(cal);
   if(!primary||!b1||!b2)throw Error(`Missing inputs needed to score ${day.date}`);
   // These are provisional, computed with the original GAS formula from cached
   // daily aggregates. Thunderstorm, squall and hourly travel-screening flags
   // remain unverified and are not silently treated as confirmed absent.
   const sky=astronomyFromProduction(day);
+  const hourFmt=h=>`${String(h).padStart(2,'0')}:00`;
+  function conditionalWindow(site){
+    const slots=site.hourlyEvidence||[];
+    if(slots.length!==10||slots.some(s=>!s.complete))return null;
+    // Conservative weather-only screen; NOT a departure clearance.
+    const safe=s=>[s.windKn,s.gustKn,s.waveM,s.wavePeriodS,s.rainMm,s.rainProbabilityPct]
+      .every(v=>typeof v==='number'&&Number.isFinite(v)) &&
+      s.windKn<=12 && s.gustKn<=15 && s.waveM<=1.0 &&
+      s.wavePeriodS>=4 && s.rainMm<2 && s.rainProbabilityPct<70;
+    const good=slots.filter(safe).map(s=>s.hour);
+    const runs=[];let run=[];
+    for(let h=7;h<17;h++){
+      if(good.includes(h))run.push(h);
+      else if(run.length){runs.push(run);run=[];}
+    }
+    if(run.length)runs.push(run);
+    const usable=runs.filter(r=>r.length>=2);
+    if(!usable.length)return null;
+    // Earliest 2h window and latest 2h window are forecast periods only.
+    const first=usable[0],last=usable[usable.length-1];
+    return {departure:`${hourFmt(first[0])}–${hourFmt(first[first.length-1]+1)}`,
+      return:`${hourFmt(last[0])}–${hourFmt(last[last.length-1]+1)}`,
+      assessment:'Conditional weather window only, not route or vessel clearance'};
+  }
+  const windows=[maiden,bow,cal].map((s,i)=>{
+    const w=conditionalWindow(s);
+    return {destination:['Maiden Cay','Mackerel Bank','California Bank'][i],
+      departure:w?w.departure:'None identified',
+      return:w?w.return:'None identified',
+      maxGust:Number.isFinite(s.gustKn)?fmt(s.gustKn,'kn'):'Not available',
+      assessment:w?w.assessment:'No suitable two-hour period identified using available inputs'};
+  });
   const poster={
-    status:primary.condition,condition:'Provisional marine conditions',comfort:`${primary.score}/5`,
+    status:primary.condition,condition:primary.provisional?'Provisional marine conditions':'Production score snapshot',comfort:`${primary.score}/5`,
     freshness:'TEST',wind:fmt(maiden.windKn,'kn'),gust:fmt(maiden.gustKn,'kn'),
     seas:fmt(maiden.waveM,'m'),period:fmt(maiden.wavePeriodS,'s'),
     rain:fmt(maiden.rainMm,'mm'),uv:fmt(maiden.uvMax,'',0),
@@ -351,7 +387,7 @@ function toPoster(day){
     current:maiden.currentUnitVerified&&Number.isFinite(maiden.currentKn)?fmt(maiden.currentKn,'kn'):'Not available (units unverified)',
     currentDir:maiden.currentUnitVerified?compass(maiden.currentDirectionDeg):'',
     sst:fmt(maiden.sstC,'°C'),swell:`${fmt(maiden.swellM,'m')} ${compass(maiden.swellDirectionDeg)}`, 
-    travelWindows:Array.isArray(maiden.travelWindows)?maiden.travelWindows:[]
+    travelWindows:windows
   };
   return {day:day.date,poster,extended:day.dayOffset>=3};
 }
