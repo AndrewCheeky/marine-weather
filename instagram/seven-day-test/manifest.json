@@ -1,48 +1,62 @@
 {
-  "generatedAt": "2026-11-04T05:33:48.668Z",
+  "generatedAt": "2026-11-04T14:38:27.408Z",
   "mode": "TEST",
   "days": [
     {
       "date": "2026-11-04",
       "category": "short-range",
+      "status": "GREEN",
+      "comfort": "3/5",
       "image": "2026-11-04.png",
-      "sha256": "d7e9dbdf1d093841a3c2ccf6d9e98c5038a1b04263207b0ca0f91d0ebe11110a"
+      "sha256": "ae33b1e4b8f7319f57ec36a26502a9d652eaba77225480c247a5f23a40df8c83"
     },
     {
       "date": "2026-11-05",
       "category": "short-range",
+      "status": "GREEN",
+      "comfort": "4/5",
       "image": "2026-11-05.png",
-      "sha256": "37cc010bb0cddffe680da5be9040498391ea1901b952dafe53c8aba57491b733"
+      "sha256": "d3d685ebbc2068a54a9ede2f7ca6ac0ae395aef30bdbd0ef8d2ec40d29481ccb"
     },
     {
       "date": "2026-11-06",
       "category": "short-range",
+      "status": "GREEN",
+      "comfort": "4/5",
       "image": "2026-11-06.png",
-      "sha256": "09662ab49523517aa8af9e215fe16cd57a3548628e32150e421506e107beb958"
+      "sha256": "bd1225bf9093935873dbb053422d5122007744e4da17cd5a511dcb98f4730d29"
     },
     {
       "date": "2026-11-07",
       "category": "extended",
+      "status": "GREEN",
+      "comfort": "4/5",
       "image": "2026-11-07.png",
-      "sha256": "7e71ab4f5582bacc4e04c045b815da6d6bbcdbe82bcfa2e896fad22e627badfb"
+      "sha256": "09e518b695ee3d9afbd73339bb947a57fd9c454d5e4fb62c26580b22e957edf1"
     },
     {
       "date": "2026-11-08",
       "category": "extended",
+      "status": "GREEN",
+      "comfort": "4/5",
       "image": "2026-11-08.png",
-      "sha256": "0cda593f09a7d36e053923920060f13ff2bf4d58d0ec546f9ad3457df5cb4382"
+      "sha256": "9e1b3f6324ee889e473dc540aa6dd87adfeb0e27f3293082a0edbd3de32224ae"
     },
     {
       "date": "2026-11-09",
       "category": "extended",
+      "status": "GREEN",
+      "comfort": "4/5",
       "image": "2026-11-09.png",
-      "sha256": "3e484be1fd665394c3df9a3e81113a09fc78701f5bc063ab4c5605fc3c9d28ec"
+      "sha256": "13cee724feb827428e799bea71dd77e47433886ecbecb03532dfc877eb4cf3af"
     },
     {
       "date": "2026-11-10",
       "category": "extended",
+      "status": "GREEN",
+      "comfort": "3/5",
       "image": "2026-11-10.png",
-      "sha256": "ff7784398384a54d095d79036e737876ab56ee7a36da8f2cdbf24b5f18d790b3"
+      "sha256": "f136e67d7d9e4e95a3b78f9d03920c8a2e8ccd6ec56442ebf0f87e7d4fb50c7f"
     }
   ]
 }
