@@ -19,7 +19,7 @@ const val=(d,k,f='—')=>valid(d[k])?String(d[k]):f;
 const truncate=(v,n=28)=>String(v).length>n?String(v).slice(0,n-1)+'…':String(v);
 const label=(x,y,t,size=22,color='#102c49',weight=700,extra='')=>`<text x="${x}" y="${y}" fill="${color}" font-size="${size}" font-weight="${weight}" font-family="Arial, DejaVu Sans, sans-serif" ${extra}>${esc(t)}</text>`;
 const rect=(x,y,w,h,fill,r=14,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" ${extra}/>`;
-const theme=s=>s==='GREEN'?['#0c984b','#e5f7e8','GOOD']:s==='RED'?['#bf3434','#fff0ef','CAUTION']:(s==='YELLOW'||s==='AMBER')?['#c68a08','#fff6d6','FAIR']:['#456b83','#e9f0f5','UNRATED'];
+const theme=s=>s==='GREEN'?['#17834a','#e5f7e8','GOOD']:s==='RED'?['#c83c45','#fff0ef','ALERT']:(s==='YELLOW'||s==='AMBER')?['#f5b942','#fff6d6','CAUTION']:['#52758b','#e9f0f5','UNRATED'];
 // Inspect only the response envelope, never log response bodies, query strings or data.
 function describeResponse(body, contentType, status, finalUrl) {
   const s=String(body).replace(/^\uFEFF/, '').trim();
@@ -149,7 +149,8 @@ function makeSvg(p){
  const d={...p.poster};
  // GS is authoritative for solar times; no client-side fallback.
  const W=1080,H=1390;
- const navy='#03263e',deep='#041c30',cyan='#25c8f1',yellow='#ffdf28',white='#fff';
+ const navy='#123b60',deep='#20384d',cyan='#0877a8',yellow='#f5b942',white='#20384d';
+ const paper='#ffffff',muted='#58768d',aqua='#7dd3df';
  const [statusColor,,statusWord]=theme(val(d,'status','UNRATED'));
  const overall=String(val(d,'status','UNRATED')).toUpperCase();
  const backgroundKey=overall==='GREEN'?'good':overall==='RED'?'poor':'fair';
@@ -162,9 +163,9 @@ function makeSvg(p){
   const paths={wind:'M3 8h15a4 4 0 0 0-4-4 M2 13h20a3 3 0 1 1-3 3 M4 18h10a3 3 0 1 1-3 3',wave:'M2 15c4-7 8-7 12 0s8 7 12 0 M2 22c4-7 8-7 12 0s8 7 12 0',rain:'M7 17a6 6 0 0 1 1-12 8 8 0 0 1 15 4 5 5 0 0 1-1 10H7 M9 23l-2 5 M17 23l-2 5 M25 23l-2 5',sun:'M16 4v5 M16 23v5 M4 16h5 M23 16h5 M7.5 7.5l3.5 3.5 M21 21l3.5 3.5 M24.5 7.5L21 11 M11 21l-3.5 3.5 M16 11a5 5 0 1 0 0 10 5 5 0 0 0 0-10',tide:'M2 12q7-8 14 0t14 0 M2 21q7-8 14 0t14 0',current:'M6 16h20 M19 9l7 7-7 7 M16 3a13 13 0 1 0 0 26',thermo:'M12 5a4 4 0 0 1 8 0v15a7 7 0 1 1-8 0z M16 10v15',compass:'M16 2l5 13-5 15-5-15z',warn:'M16 3L2 29h28z M16 12v8 M16 25v1',target:'M16 2v6 M16 24v6 M2 16h6 M24 16h6 M16 9a7 7 0 1 0 0 14 7 7 0 0 0 0-14'};
   return `<g transform="translate(${x} ${y}) scale(${size/32})" fill="none" stroke="${color}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[name]||paths.wave}"/></g>`;
  };
- const panel=(x,y,w,h)=>rr(x,y,w,h,'#042a43',18,'fill-opacity="0.82" stroke="#b6f5ff" stroke-width="2"');
- const top=(x,y,w,title)=>`${rr(x,y,w,48,'#04243c',13)}${t(x+18,y+33,title,24,white,900)}`;
- const line=(x,y,w)=>`<path d="M${x} ${y}h${w}" stroke="#4db8d1" stroke-width="2"/>`;
+ const panel=(x,y,w,h)=>rr(x,y,w,h,paper,18,'stroke="#7dd3df" stroke-width="2.5"');
+ const top=(x,y,w,title)=>`${rr(x,y,w,48,'#e5f5fb',13)}${t(x+18,y+33,title,24,navy,900)}`;
+ const line=(x,y,w)=>`<path d="M${x} ${y}h${w}" stroke="#b4dfe9" stroke-width="2"/>`;
  // A two-line right-aligned explanation, shown only for non-GOOD conditions.
  // The right edge of the dark explanation box matches the comfort badge.
  const cautionNote=(reason,right,y,width,font=16)=>{
@@ -180,39 +181,41 @@ function makeSvg(p){
   if(lines[1]&&lines[1].length>limit)lines[1]=truncate(lines[1],limit);
   const h=lines.length===2?43:31;
   const topY=y;
-  return rr(right-width,topY,width,h,'#03111d',10,'fill-opacity="0.94" stroke="#a4d8e5" stroke-opacity="0.7" stroke-width="1"')+
-   lines.map((line,i)=>t(right-10,topY+(lines.length===2?17:21)+i*18,line,font,yellow,800,'text-anchor="end"')).join('');
+  return rr(right-width,topY,width,h,'#162d40',10,'fill-opacity="0.97" stroke="#6da9bd" stroke-width="1"')+
+   lines.map((line,i)=>t(right-10,topY+(lines.length===2?17:21)+i*18,line,font,'#ffe18b',800,'text-anchor="end"')).join('');
  };
- const info=(x,y,ic,title,value,sub='',w=160)=>`${icon(ic,x,y-35,39)}${t(x+48,y-15,title,17,'#bdefff',800)}${t(x+48,y+17,truncate(value,18),25,white,850)}${sub?t(x+48,y+41,truncate(sub,22),16,'#ccecf6',600):''}`;
+ const info=(x,y,ic,title,value,sub='',w=160)=>`${icon(ic,x,y-35,39)}${t(x+48,y-15,title,17,'#365c73',800)}${t(x+48,y+17,truncate(value,18),25,white,850)}${sub?t(x+48,y+41,truncate(sub,22),16,'#526e81',600):''}`;
  const bank=(x,n,focus)=>{
   const [c,,word]=theme(val(d,`bank${n}status`,'UNRATED'));
+  const badgeBg=word==='GOOD'?'#17834a':word==='ALERT'?'#c83c45':word==='CAUTION'?'#f5b942':'#52758b';
+  const badgeText=(word==='GOOD'||word==='ALERT')?'#ffffff':'#20384d';
   const name=truncate(val(d,`bank${n}`,'FISHING BANK'),28).toUpperCase();
   const picture=globalThis.__marineArt?.[focus]||'';
   const mixedPicture=focus==='mixed';
   const hasDeparture=true; // Photo visibility is independent of removed travel-window section.
   // Per-bank visual treatment: no usable departure window => fade the photo, keep text readable.
-  const photoOpacity=hasDeparture?1:0.12;
+  const photoOpacity=0.68;
   const bankPicture=mixedPicture ? `${image(globalThis.__marineArt?.pelagic,x+3,763,500,178,photoOpacity)}${image(globalThis.__marineArt?.reef,x+3,941,500,177,photoOpacity)}` : image(picture,x+3,763,500,355,photoOpacity);
   const detail=val(d,`bank${n}detail`);
   const rain=val(d,`bank${n}rain`);
   const comfort=val(d,`bank${n}comfort`,'');
   const reason=String(d[`bank${n}reason`]||'').trim();
   return `${panel(x,710,506,413)}${bankPicture}
-   <rect x="${x+3}" y="762" width="500" height="356" fill="${hasDeparture?'url(#bankShade)':'#052d43'}" fill-opacity="${hasDeparture?1:0.78}"/>
+   <rect x="${x+3}" y="762" width="500" height="356" fill="url(#bankShade)"/>
    ${top(x+3,713,500,name)}
-   ${rr(x+331,774,156,52,c,13)}${t(x+409,806,word,27,white,900,'text-anchor="middle"')}${comfort?t(x+409,822,`COMFORT ${comfort}`,13,white,750,'text-anchor="middle"'):''}
+   ${rr(x+331,774,156,52,badgeBg,13)}${t(x+409,806,word,27,badgeText,900,'text-anchor="middle"')}${comfort?t(x+409,822,`COMFORT ${comfort}`,13,badgeText,750,'text-anchor="middle"'):''}
    ${cautionNote(reason,x+487,829,258,15)}
-   ${icon('target',x+22,873,36,white)}${t(x+71,888,focus==='pelagic'?'PELAGIC FOCUS':focus==='reef'?'BOTTOM / REEF FOCUS':'MIXED FISHING',19,'#d8f7ff',850)}
+   ${icon('target',x+22,873,36,white)}${t(x+71,888,focus==='pelagic'?'PELAGIC FOCUS':focus==='reef'?'BOTTOM / REEF FOCUS':'MIXED FISHING',19,'#365c73',850)}
    ${t(x+71,914,focus==='pelagic'?'Tuna · Wahoo · Dolphin':focus==='reef'?'Snapper · Grouper · Reef fish':'Pelagic · Bottom / Reef',18,white,650)}
-   ${icon('wave',x+22,930,36,'#a7efff')}${t(x+71,949,'CONDITIONS',18,'#b6ecff',850)}
+   ${icon('wave',x+22,930,36,'#0877a8')}${t(x+71,949,'CONDITIONS',18,'#365c73',850)}
    ${t(x+71,973,val(d,`bank${n}windLine`),19,white,700)}${t(x+71,997,val(d,`bank${n}seaLine`),19,white,700)}
-   ${icon('rain',x+22,1021,36,'#56d7ff')}${t(x+71,1038,'RAIN / OUTLOOK',18,'#b6ecff',850)}
+   ${icon('rain',x+22,1021,36,'#0877a8')}${t(x+71,1038,'RAIN / OUTLOOK',18,'#365c73',850)}
    ${t(x+71,1065,truncate(rain,39),19,white,650)}`;
  };
  const high=val(d,'highTides'),low=val(d,'lowTides');
  const tideEntries=(raw)=>valid(raw)&&raw!=='Not available'?String(raw).split(/\s*[·;,|]\s*/).map(x=>x.trim()).filter(Boolean).slice(0,2):[];
  const highEntries=tideEntries(high),lowEntries=tideEntries(low);
- const tideLine=(entries,x,y)=>entries.length?entries.map((entry,i)=>t(x,y+i*26,truncate(entry,25),22,white,850)).join(''):t(x,y,'Not available',19,'#b7d2de',650);
+ const tideLine=(entries,x,y)=>entries.length?entries.map((entry,i)=>t(x,y+i*26,truncate(entry,25),22,white,850)).join(''):t(x,y,'Not available',19,'#657f91',650);
  const moonrise=val(d,'moonrise',val(d,'moonRise',''));
  const moonset=val(d,'moonset',val(d,'moonSet',''));
  const moon=val(d,'moonPhase'),illum=val(d,'moonIllum');
@@ -239,34 +242,34 @@ function makeSvg(p){
  const dateLabel=new Date(`${p.day}T12:00:00Z`);
  const dateText=Number.isNaN(dateLabel.getTime())?p.day:new Intl.DateTimeFormat('en-GB',{timeZone:'UTC',weekday:'short',day:'2-digit',month:'short',year:'numeric'}).format(dateLabel).toUpperCase();
  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
- <defs><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#03182b" stop-opacity=".18"/><stop offset=".65" stop-color="#01243a" stop-opacity=".40"/><stop offset="1" stop-color="#00344b" stop-opacity=".75"/></linearGradient><linearGradient id="bankShade" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#03253c" stop-opacity=".03"/><stop offset=".42" stop-color="#031b30" stop-opacity=".30"/><stop offset=".75" stop-color="#031a2c" stop-opacity=".87"/><stop offset="1" stop-color="#031827" stop-opacity=".96"/></linearGradient></defs>
- ${rr(0,0,W,H,'#087a9b',0)}${image(photo,0,0,1080,H)}${rr(0,0,W,H,'url(#shade)',0)}
- ${rr(28,18,1024,81,'#03233e',15)}${t(52,63,dateText,35,white,900)}${t(52,88,'07:00–17:00 JAMAICA TIME  ·  KINGSTON / MAIDEN CAY',17,'#ccefff',750)}${t(923,62,val(d,'freshness','N/A').toUpperCase(),17,'#b8ffda',850)}
+ <defs><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f1f8fc" stop-opacity=".78"/><stop offset=".65" stop-color="#f1f8fc" stop-opacity=".90"/><stop offset="1" stop-color="#f1f8fc" stop-opacity=".98"/></linearGradient><linearGradient id="bankShade" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffffff" stop-opacity=".55"/><stop offset=".42" stop-color="#ffffff" stop-opacity=".78"/><stop offset=".75" stop-color="#ffffff" stop-opacity=".94"/><stop offset="1" stop-color="#ffffff" stop-opacity=".98"/></linearGradient></defs>
+ ${rr(0,0,W,H,'#f1f8fc',0)}${image(photo,0,0,1080,H,0.18)}${rr(0,0,W,H,'url(#shade)',0)}
+ ${rr(28,18,1024,81,'#ffffff',15,'stroke="#7dd3df" stroke-width="2"')}${t(52,63,dateText,35,white,900)}${t(52,88,'07:00–17:00 JAMAICA TIME  ·  KINGSTON / MAIDEN CAY',17,'#365c73',750)}${t(923,62,val(d,'freshness','N/A').toUpperCase(),17,'#17834a',850)}
  <g transform="translate(0,-276)">${panel(28,390,1024,301)}${t(48,434,'OVERALL MARINE CONDITIONS',34,white,950)}
- ${rr(48,455,355,d.overallReason?81:108,statusColor,16)}${icon('wave',67,474,57,white)}${d.rainIndicator?icon('rain',354,477,38,white):''}${t(149,d.overallReason?507:519,statusWord,54,white,950)}${t(151,d.overallReason?530:547,`COMFORT ${val(d,'comfort','NOT SCORED')}`,19,white,850)}
- ${t(429,485,'Forecast guidance · comfort assessment',22,white,750)}${t(429,521,'KINGSTON  ·  MAIDEN CAY',20,'#a5ecff',850)}
+ ${rr(48,455,355,d.overallReason?81:108,overall==='GREEN'?'#17834a':overall==='RED'?'#c83c45':'#f5b942',16)}${icon('wave',67,474,57,overall==='GREEN'||overall==='RED'?'#ffffff':navy)}${d.rainIndicator?icon('rain',354,477,38,overall==='GREEN'||overall==='RED'?'#ffffff':navy):''}${t(149,d.overallReason?507:519,statusWord,54,overall==='GREEN'||overall==='RED'?'#ffffff':navy,950)}${t(151,d.overallReason?530:547,`COMFORT ${val(d,'comfort','NOT SCORED')}`,19,overall==='GREEN'||overall==='RED'?'#ffffff':navy,850)}
+ ${t(429,485,'Forecast guidance · comfort assessment',22,navy,750)}${t(429,521,'KINGSTON  ·  MAIDEN CAY',20,'#0877a8',850)}
  ${cautionNote(d.overallReason,403,541,355,16)}
  ${line(48,585,976)}${info(52,630,'wind','WIND / GUSTS',val(d,'wind'),`Gusts ${val(d,'gust')}`)}
  ${info(269,630,'wave','SEAS',val(d,'seas'))}${info(479,630,'tide','WAVE PERIOD',val(d,'period'))}
  ${info(710,630,'rain','RAIN',val(d,'rain'))}${info(873,630,'sun','UV INDEX',val(d,'uv'))}
  ${bank(28,1,fishingFocus({focus:d.bank1focus,focusVerified:d.bank1focusVerified,fishingEvidence:d.bank1fishingEvidence}))}${bank(546,2,fishingFocus({focus:d.bank2focus,focusVerified:d.bank2focusVerified,fishingEvidence:d.bank2fishingEvidence}))}
  ${panel(28,1141,482,255)}${top(30,1143,478,'TIDES  ·  KINGSTON (MODEL)')}
- ${icon('tide',49,1210,49,'#5ee0ff')}${t(121,1214,'HIGH',20,'#bcefff',850)}${tideLine(highEntries,121,1241)}
- ${icon('tide',49,1312,49,'#5ee0ff')}${t(121,1312,'LOW',20,'#bcefff',850)}${tideLine(lowEntries,121,1339)}
+ ${icon('tide',49,1210,49,'#0877a8')}${t(121,1214,'HIGH',20,'#365c73',850)}${tideLine(highEntries,121,1241)}
+ ${icon('tide',49,1312,49,'#0877a8')}${t(121,1312,'LOW',20,'#365c73',850)}${tideLine(lowEntries,121,1339)}
  ${panel(526,1141,526,255)}${top(528,1143,522,'SUN & MOON')}
- ${icon('sun',547,1204,44,yellow)}${t(604,1215,'SUNRISE',18,'#c1efff',800)}${t(604,1248,val(d,'sunrise'),26,white,850)}
- ${icon('sun',547,1271,44,'#ffab41')}${t(604,1282,'SUNSET',18,'#c1efff',800)}${t(604,1315,val(d,'sunset'),26,white,850)}
- ${moonArt}${t(835,1307,truncate(moon,16).toUpperCase(),17,white,850)}${t(835,1330,`ILLUMINATION  ${illum}`,15,yellow,800)}${t(550,1364,`MOONRISE  ${moonrise||'—'}`,16,'#c1efff',800)}${t(793,1364,`MOONSET  ${moonset||'—'}`,16,'#c1efff',800)}
+ ${icon('sun',547,1204,44,yellow)}${t(604,1215,'SUNRISE',18,'#365c73',800)}${t(604,1248,val(d,'sunrise'),26,white,850)}
+ ${icon('sun',547,1271,44,'#ffab41')}${t(604,1282,'SUNSET',18,'#365c73',800)}${t(604,1315,val(d,'sunset'),26,white,850)}
+ ${moonArt}${t(835,1307,truncate(moon,16).toUpperCase(),17,white,850)}${t(835,1330,`ILLUMINATION  ${illum}`,15,yellow,800)}${t(550,1364,`MOONRISE  ${moonrise||'—'}`,16,'#365c73',800)}${t(793,1364,`MOONSET  ${moonset||'—'}`,16,'#365c73',800)}
  ${panel(28,1413,1024,209)}${top(30,1415,1020,'OTHER CONDITIONS')}
- ${rr(40,1472,713,132,'#f1faff',15)}
+ ${rr(40,1472,713,132,'#eaf7fb',15)}
  ${icon('current',56,1502,40,'#0877b1')}${t(105,1506,'SURFACE CURRENT',16,'#075a8b',850)}${t(105,1543,truncate(`${val(d,'current')} ${val(d,'currentDir','')}`,18),24,'#052c4d',850)}
  ${icon('thermo',304,1502,40,'#0877b1')}${t(352,1506,'SEA TEMPERATURE',16,'#075a8b',850)}${t(352,1543,val(d,'sst'),24,'#052c4d',850)}
  ${icon('compass',548,1502,40,'#0877b1')}${t(596,1506,'SWELL',16,'#075a8b',850)}${t(596,1543,truncate(val(d,'swell'),10),24,'#052c4d',850)}
- ${icon('warn',772,1498,51,yellow)}${t(840,1512,'SAFETY FIRST',27,cyan,950)}
- ${t(840,1543,'Check official marine',17,white,700)}${t(840,1567,'warnings before departure.',17,white,700)}${t(840,1591,'Not for navigation.',17,white,750)}
+ ${icon('warn',772,1498,51,'#bf7e00')}${t(840,1512,'SAFETY FIRST',27,navy,950)}
+ ${t(840,1543,'Check marine warnings',16,white,700)}${t(840,1567,'before departure.',16,white,700)}${t(840,1591,'Not for navigation.',16,white,750)}
  </g>
- ${t(746,87,'7-DAY OUTLOOK',15,'#ffdc4c',850)}
- ${p.preview?`${t(50,360,'DESIGN PREVIEW • NOT LIVE',18,'#ffdc4c',850)}`:''}
+ ${t(746,87,'7-DAY OUTLOOK',15,'#0877a8',850)}
+ ${p.preview?`${t(50,360,'DESIGN PREVIEW • NOT LIVE',18,'#0877a8',850)}`:''}
  </svg>`;
 }
 // Condition-specific Jamaican sea imagery is bundled locally; no network request is needed.
