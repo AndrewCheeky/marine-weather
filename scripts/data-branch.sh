@@ -85,7 +85,7 @@ publish() {
   [ "$#" -gt 0 ] || { echo "publish needs at least one path" >&2; exit 2; }
   git config user.name >/dev/null || git config user.name 'github-actions[bot]'
   git config user.email >/dev/null || git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-  for attempt in 1 2 3 4 5; do
+  for attempt in 1 2 3 4 5 6; do
     local sha tmp index tree commit old_tree=""
     sha="$(remote_sha)"
     tmp="$(mktemp -d)"; index="$(mktemp -u)"
@@ -117,10 +117,10 @@ publish() {
     if git push --quiet --force-with-lease="refs/heads/$BRANCH:${sha}" origin "$commit:refs/heads/$BRANCH"; then
       echo "DATA: published ${commit:0:8} to $BRANCH ($message)"; return 0
     fi
-    echo "DATA: $BRANCH changed while publishing (attempt $attempt); retrying" >&2
-    sleep $((attempt * 3))
+    echo "DATA: push to $BRANCH did not go through (attempt $attempt); retrying" >&2
+    sleep $((attempt * 15))  # GitHub sometimes rejects pushes for a minute or two ("fatal error in commit_refs")
   done
-  echo "DATA: unable to publish after 5 attempts" >&2; exit 1
+  echo "DATA: unable to publish after 6 attempts" >&2; exit 1
 }
 
 case "${1:-}" in
