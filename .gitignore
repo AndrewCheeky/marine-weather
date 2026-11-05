@@ -1,0 +1,12 @@
+# Generated forecast files are published to the `data` branch (see scripts/data-branch.sh),
+# never committed to main.
+instagram/generated/
+banks/generated/
+banks/hourly/
+banks/diagnostics/
+pilot/generated/
+pilot/cache/
+instagram/seven-day-test/*.png
+instagram/seven-day-test/*.json
+node_modules/
+_site/

@@ -41,3 +41,21 @@ for(const b of banks){const hours=[...map.entries()].filter(([id,r])=>id.startsW
  await writeFile(`banks/hourly/${b.key}-24h.json`,JSON.stringify(out));
  console.log(b.key+': '+hours.length+' future hourly records published');
 }
+
+// Publish bank coordinates for the website map from the Sheet's "banks" tab (key, name, lat, lon).
+// Optional: if the tab is missing or unreadable, the existing banks/locations.json is kept.
+try{
+  const locSheet=process.env.BANKS_SHEET_ID||sheetId;
+  const tab=process.env.BANKS_SHEET_TAB||'banks';
+  const r=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(locSheet)}/values/${encodeURIComponent(tab+'!A1:D200')}`,{headers:{authorization:'Bearer '+token},signal:AbortSignal.timeout(30000)});
+  if(!r.ok)throw Error('HTTP '+r.status);
+  const rows=(await r.json()).values||[];
+  const head=(rows.shift()||[]).map(h=>String(h).trim().toLowerCase());
+  const k=head.indexOf('key'),la=head.indexOf('lat'),lo=head.indexOf('lon');
+  if(k<0||la<0||lo<0)throw Error('expected key, lat and lon columns');
+  const locations=rows.map(row=>({key:String(row[k]||'').trim().toLowerCase(),lat:Number(row[la]),lon:Number(row[lo])}))
+    .filter(l=>keys.has(l.key)&&Number.isFinite(l.lat)&&Number.isFinite(l.lon)&&Math.abs(l.lat)<=90&&Math.abs(l.lon)<=180);
+  if(!locations.length)throw Error('no matching rows');
+  await writeFile('banks/locations.json',JSON.stringify(locations,null,2)+'\n');
+  console.log('Bank locations published for map: '+locations.length+' of '+keys.size);
+}catch(error){console.warn('Bank locations not updated ('+error.message+'); keeping existing banks/locations.json');}

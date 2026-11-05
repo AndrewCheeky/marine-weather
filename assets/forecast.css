@@ -1,0 +1,161 @@
+/* Marine Weather Jamaica v8: readable forecast components (loaded after landing.css). */
+:root{
+  --mw-ink:#123145;--mw-ink-2:#365c73;--mw-muted:#5b7486;--mw-line:#d5e6ee;--mw-surface:#ffffff;--mw-tint:#eef6f9;
+  --mw-green:#17834a;--mw-green-bg:#e5f5ea;--mw-amber:#f5b942;--mw-amber-ink:#5b3d00;--mw-amber-bg:#fff4d6;
+  --mw-red:#c83c45;--mw-red-bg:#fdecec;--mw-grey:#7a8c99;--mw-grey-bg:#eef2f5;
+}
+
+/* Header actions (moved from the old inline style) */
+.site-header .header-actions{display:flex;align-items:center;gap:10px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
+.site-header .header-actions .check-conditions-cta{margin-left:0}
+.site-header .header-actions .catch-log-cta{display:inline-flex;align-items:center;gap:8px;background:var(--yellow,#ffd846);color:#102d3d;box-shadow:0 5px 18px #0002}
+
+/* Hero: headline + text outlook */
+.mw-hero{min-height:0}
+.mw-hero .hero-content.mw-hero-content{grid-template-columns:minmax(0,.9fr) minmax(320px,1.1fr);align-items:start;padding-top:130px;padding-bottom:70px}
+.mw-hero .hero-copy{padding-top:40px}
+.mw-hero h1{font-size:clamp(38px,5vw,76px)}
+
+.outlook{background:rgba(3,27,43,.88);border:1px solid rgba(125,211,223,.55);border-radius:22px;padding:20px;color:#fff;box-shadow:0 24px 60px rgba(0,0,0,.35);backdrop-filter:blur(6px)}
+.outlook-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.outlook-head h2{margin:0;font-size:20px;letter-spacing:-.01em}
+.outlook-updated{margin:0;font-size:14px;color:#bfe3ee}
+
+.day-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:14px}
+.day-btn{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:#fff;min-height:58px}
+.day-btn .day-name{font-size:12px;font-weight:700;color:#cfe8f0;text-transform:uppercase;letter-spacing:.04em}
+.day-btn .day-num{font-size:19px;font-weight:850;line-height:1}
+.day-btn .day-dot{position:absolute;bottom:5px;width:18px;height:4px;border-radius:4px;background:var(--mw-grey)}
+.day-btn.green .day-dot{background:#2fd17e}.day-btn.amber .day-dot{background:var(--mw-amber)}.day-btn.red .day-dot{background:#ff5d68}
+.day-btn[aria-pressed="true"]{background:#fff;color:var(--mw-ink);border-color:#fff}
+.day-btn[aria-pressed="true"] .day-name{color:var(--mw-ink-2)}
+.day-btn:focus-visible{outline:3px solid var(--yellow,#ffd846);outline-offset:2px}
+
+.outlook-banner{margin:0 0 12px;padding:12px 14px;border-radius:12px;font-size:15px;line-height:1.45;background:var(--mw-grey-bg);color:var(--mw-ink)}
+.outlook-banner.red{background:var(--mw-red);color:#fff}
+.outlook-banner.amber{background:var(--mw-amber);color:#20240f}
+.outlook-banner.stale{background:#5a2a00;color:#ffe6c7}
+.outlook-banner .banner-sub{display:block;font-size:13px;opacity:.92;margin-top:4px}
+
+.area-grid{display:grid;gap:10px}
+.area-card{background:var(--mw-surface);color:var(--mw-ink);border-radius:14px;padding:12px 14px;border-left:6px solid var(--mw-grey)}
+.area-card.green{border-left-color:var(--mw-green)}.area-card.amber{border-left-color:var(--mw-amber)}.area-card.red{border-left-color:var(--mw-red)}
+.area-card.highlight{box-shadow:0 0 0 2px var(--mw-red) inset}
+.area-card header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.area-where{margin:0;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--mw-muted)}
+.area-card h3{margin:2px 0 0;font-size:18px;line-height:1.2}
+.area-reason{margin:8px 0 0;font-size:14px;font-weight:650;color:var(--mw-ink-2)}
+.area-stats,.bank-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px 14px;margin:10px 0 0}
+.stat dt{font-size:12px;font-weight:800;color:var(--mw-muted);text-transform:uppercase;letter-spacing:.05em}
+.stat dd{margin:2px 0 0;font-size:17px;font-weight:800;color:var(--mw-ink)}
+.stat dd small{display:block;font-size:13px;font-weight:600;color:var(--mw-muted)}
+.area-missing{background:#fff;color:var(--mw-ink);border-radius:12px;padding:14px;margin:0}
+
+.rating-pill{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:92px;padding:6px 10px;border-radius:10px;font-weight:900;font-size:15px;letter-spacing:.03em;line-height:1.1;text-align:center;background:var(--mw-grey-bg);color:var(--mw-ink)}
+.rating-pill .pill-icon{display:none}
+.rating-pill small{display:block;font-size:11px;font-weight:700;letter-spacing:0;opacity:.9;margin-top:2px;text-transform:none}
+.rating-pill.green{background:var(--mw-green);color:#fff}
+.rating-pill.amber{background:var(--mw-amber);color:#20240f}
+.rating-pill.red{background:var(--mw-red);color:#fff}
+.rating-pill.amber::before,.rating-pill.red::before{content:"⚠";font-size:13px;margin-bottom:1px}
+
+.outlook-more{margin-top:12px;background:rgba(255,255,255,.06);border-radius:12px;padding:0 14px}
+.outlook-more summary{cursor:pointer;padding:12px 0;font-weight:750;font-size:15px}
+.more-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;padding-bottom:14px}
+.more-block{background:#fff;color:var(--mw-ink);border-radius:12px;padding:12px}
+.more-block.wide{grid-column:1/-1}
+.more-block h4{margin:0 0 6px;font-size:14px}
+.more-block dl{display:grid;gap:6px;margin:0}
+.more-block .stat dd{font-size:15px}
+.windows{margin:0;padding-left:18px;font-size:14px;line-height:1.5}
+.fine{font-size:12.5px;color:var(--mw-muted);margin:6px 0 0}
+.outlook-foot{margin:12px 0 0;font-size:13.5px;line-height:1.5;color:#cfe8f0}
+.outlook-foot a{color:var(--yellow,#ffd846);font-weight:750}
+.extended-tag{color:#ffd9a0;font-weight:750}
+.poster-fallback-wrap p{font-size:14px;color:#cfe8f0}
+.poster-fallback-wrap img{width:100%;height:auto;border-radius:12px}
+
+/* Bank section */
+.bank-shell{background:#fff;border-radius:22px;box-shadow:0 18px 50px rgba(5,38,56,.12);overflow:hidden}
+.bank-shell .bank-toolbar{display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:end;padding:18px 20px;background:var(--navy,#052638);color:#fff}
+.bank-shell .bank-toolbar label{display:grid;gap:6px;font-size:13px;font-weight:750}
+.bank-shell .bank-toolbar select{font:inherit;font-size:16px;padding:11px 12px;border-radius:10px;border:0;background:#fff;color:var(--mw-ink)}
+.bank-shell .bank-live{display:inline-flex;align-items:center;justify-content:center;background:var(--yellow,#ffd846);color:#0b2b39;font-weight:850;text-decoration:none;border-radius:30px;padding:12px 18px;white-space:nowrap}
+.bank-layout{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr)}
+.bank-map-wrap{background:var(--mw-tint);padding:16px;border-right:1px solid var(--mw-line)}
+.bank-map{height:420px;border-radius:14px;overflow:hidden;background:#cfe6ef;display:grid;place-items:center}
+.map-placeholder{color:var(--mw-ink-2);font-size:14px;padding:16px;text-align:center}
+.map-legend{display:flex;flex-wrap:wrap;gap:6px 14px;list-style:none;padding:0;margin:10px 0 0;font-size:13px;color:var(--mw-ink-2)}
+.map-legend .dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px;border:2px solid #fff;box-shadow:0 0 0 1px #9bb}
+.dot.green{background:var(--mw-green)}.dot.amber{background:var(--mw-amber)}.dot.red{background:var(--mw-red)}.dot.unknown{background:var(--mw-grey)}
+.map-note{font-size:13px;color:var(--mw-muted);margin:8px 0 0}
+
+.bank-card{padding:20px 22px;min-width:0}
+.bank-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.bank-card-head h3{margin:0;font-size:clamp(22px,2.4vw,30px);line-height:1.15}
+.bank-updated{margin:4px 0 0;font-size:14px;color:var(--mw-muted)}
+.bank-state{font-size:15px;color:var(--mw-ink-2)}
+.bank-stats{background:var(--mw-tint);border-radius:14px;padding:12px 14px;margin-top:14px}
+
+.bank-charts{display:grid;gap:14px;margin-top:16px}
+.chart{margin:0;background:#fff;border:1px solid var(--mw-line);border-radius:14px;padding:10px 12px 4px}
+.chart figcaption{font-size:14px;font-weight:800;color:var(--mw-ink)}
+.chart figcaption span{font-weight:600;color:var(--mw-muted)}
+.chart svg{display:block;width:100%;height:auto;touch-action:pan-y;color:var(--mw-ink)}
+.chart .grid{stroke:#e3edf2;stroke-width:1}
+.chart .axis{font-size:11px;fill:var(--mw-muted)}
+.chart .direct{font-size:11px;font-weight:700;fill:var(--mw-ink-2)}
+.chart .cross{stroke:var(--mw-ink-2);stroke-width:1;stroke-dasharray:3 3}
+.chart-legend{display:flex;gap:14px;list-style:none;margin:4px 0 0;padding:0;font-size:12.5px;color:var(--mw-ink-2)}
+.swatch{display:inline-block;width:16px;height:0;border-top:3px solid var(--c,#0877a8);margin-right:6px;vertical-align:middle}
+.swatch.dashed{border-top-style:dashed}
+.chart-tip{position:absolute;z-index:50;pointer-events:none;background:#052638;color:#fff;border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.45;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.chart-tip .swatch{width:10px;height:10px;border:0;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+.bank-hours,.bank-quicklook{margin-top:14px;border:1px solid var(--mw-line);border-radius:14px;padding:0 14px}
+.bank-hours summary,.bank-quicklook summary{cursor:pointer;padding:12px 0;font-weight:800;color:var(--mw-ink)}
+.table-scroll{overflow-x:auto;margin:0 -14px;padding:0 14px 12px}
+.table-scroll table{border-collapse:collapse;width:100%;min-width:520px;font-size:14px}
+.table-scroll th,.table-scroll td{padding:7px 8px;text-align:right;border-bottom:1px solid #edf3f6;white-space:nowrap;font-variant-numeric:tabular-nums}
+.table-scroll th:first-child{text-align:left;position:sticky;left:0;background:#fff}
+.table-scroll thead th{font-size:12px;color:var(--mw-muted);text-transform:uppercase;letter-spacing:.04em}
+.bank-quicklook img{display:block;width:100%;height:auto;border-radius:10px;margin-bottom:12px}
+.bank-note{font-size:13px;color:var(--mw-muted);line-height:1.5;margin:14px 0 0}
+.bank-note a{color:#0877a8}
+
+.site-credit{max-width:1100px;margin:0 auto;padding:14px 20px 28px;font-size:12.5px;color:var(--mw-muted);text-align:center}
+.site-credit a{color:#0877a8}
+
+/* Tablet */
+@media(max-width:1000px){
+  .mw-hero .hero-content.mw-hero-content{grid-template-columns:1fr;padding-top:118px}
+  .mw-hero .hero-copy{padding-top:0}
+  .bank-layout{grid-template-columns:1fr}
+  .bank-map-wrap{border-right:0;border-bottom:1px solid var(--mw-line)}
+  .bank-map{height:300px}
+}
+/* landing.css puts the header in the page flow below 850px, so the hero needs no top offset */
+@media(max-width:850px){
+  .mw-hero .hero-content.mw-hero-content{padding-top:36px}
+}
+/* Phone */
+@media(max-width:600px){
+  .site-header .header-actions{width:100%;justify-content:center;gap:8px}
+  .site-header .header-actions .nav-cta{font-size:13px;padding:10px 14px}
+  .mw-hero .hero-content.mw-hero-content{padding:24px 12px 40px;gap:18px}
+  .mw-hero h1{font-size:34px;margin-bottom:8px}
+  .mw-hero .eyebrow{font-size:11px;margin-bottom:8px}
+  .mw-hero .lead{font-size:15px;margin:0}
+  .outlook{padding:14px 12px;border-radius:18px}
+  .day-strip{gap:4px}
+  .day-btn{padding:6px 0 11px;min-height:54px}
+  .day-btn .day-name{font-size:10.5px}
+  .day-btn .day-num{font-size:17px}
+  .area-card{padding:12px}
+  .rating-pill{min-width:80px;font-size:14px}
+  .bank-shell{border-radius:16px}
+  .bank-shell .bank-toolbar{grid-template-columns:1fr;padding:14px}
+  .bank-card{padding:16px 14px}
+  .bank-card-head{flex-direction:column}
+  .bank-map{height:260px}
+}

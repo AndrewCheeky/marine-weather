@@ -17,6 +17,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Restore latest generated files from the data branch
+        run: bash scripts/data-branch.sh restore
       - run: |
           npm install --no-save playwright@1.56.1 sharp@0.34.4
           npx playwright install --with-deps chromium
@@ -35,23 +37,8 @@ jobs:
           name: bank-forecast-diagnostics
           path: banks/diagnostics/latest.json
           if-no-files-found: warn
-      - name: Commit successfully rendered images
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          if compgen -G 'banks/generated/*.webp' > /dev/null || compgen -G 'banks/hourly/*-24h.json' > /dev/null; then
-            git add banks/generated/*.webp
-            git add -A banks/hourly/ 2>/dev/null || true
-            if ! git diff --cached --quiet; then
-              git commit -m 'Refresh cached fishing bank forecast images'
-              git pull --rebase origin main
-              git push origin HEAD:main
-            else
-              echo 'No changed bank images.'
-            fi
-          else
-            echo 'No validated images to commit.'
-          fi
+      - name: Publish rendered images and hourly data to the data branch
+        run: bash scripts/data-branch.sh publish 'Refresh cached fishing bank forecast images' banks/generated banks/hourly banks/locations.json
       - name: Fail if no forecasts rendered
         if: steps.render.outcome == 'failure'
         run: exit 1

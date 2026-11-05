@@ -30,7 +30,8 @@ const CONFIG = {
   TIMEZONE: 'America/Jamaica',
 
   // Visual Crossing API Key (used for astronomy only)
-  VISUAL_KEY: 'DKRKP9PWDLRQPANVWJZHGRERM', // Set VISUAL_CROSSING_KEY in Script Properties,
+  // Never put the key in source. Set it in Apps Script: Project Settings > Script Properties > VISUAL_CROSSING_KEY.
+  VISUAL_KEY: '',
 
   RECIPIENT_EMAIL: '',
   SENDER_NAME: 'Marine Bot',

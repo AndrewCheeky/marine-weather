@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Restore latest generated files from the data branch
+        run: bash scripts/data-branch.sh restore
       - name: Determine which forecast images need generating
         id: freshness
         shell: bash
@@ -74,32 +76,9 @@ jobs:
         continue-on-error: true
         if: steps.freshness.outputs.tomorrow_needed == 'true'
         run: node scripts/generate-instagram-sharp.mjs --day tomorrow
-      - name: Commit generated PNGs and freshness records
+      - name: Publish generated PNGs and freshness records to the data branch
         if: always() && (steps.generate_today.outcome == 'success' || steps.generate_tomorrow.outcome == 'success')
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add instagram/generated/*.png
-          for file in instagram/generated/*-freshness.json; do [ ! -f "$file" ] || git add "$file"; done
-          if git diff --cached --quiet; then
-            echo 'No generated changes to publish.'
-            exit 0
-          fi
-          git commit -m "Update today and tomorrow marine forecast PNGs"
-          for attempt in 1 2 3; do
-            git fetch origin main
-            if ! git rebase origin/main; then
-              git rebase --abort || true
-              echo 'Rebase conflict; remote changes preserved.' >&2
-              exit 1
-            fi
-            if git push origin HEAD:main; then exit 0; fi
-            sleep 2
-          done
-          echo 'Unable to publish after three attempts.' >&2
-          exit 1
+        run: bash scripts/data-branch.sh publish 'Update today and tomorrow marine forecast PNGs' 'instagram/generated/today*' 'instagram/generated/tomorrow*' 'instagram/generated/daily-forecast-freshness.json' 'instagram/generated/marine-weather-jamaica-*.png'
       - name: Report any forecast generation failures
         if: always() && (steps.generate_today.outcome == 'failure' || steps.generate_tomorrow.outcome == 'failure')
         run: |

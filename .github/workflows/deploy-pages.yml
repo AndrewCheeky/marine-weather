@@ -1,0 +1,60 @@
+name: Deploy website
+# Publishes the website by combining main (code) with the data branch (latest forecast files).
+# Requires: Settings > Pages > Build and deployment > Source = "GitHub Actions".
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    # Pushes made by GITHUB_TOKEN don't trigger workflows, so redeploy when a generator finishes.
+    workflows:
+      - Cached Bank Forecast Images
+      - Daily Marine Forecast PNG
+      - Seven-Day Marine Outlook
+      - Marine Visual Pilot (manual)
+      - Seven-Day Poster TEST (isolated)
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: write   # write is only needed the very first time, to create the data branch
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore latest generated files from the data branch
+        run: bash scripts/data-branch.sh restore
+      - name: Create the data branch if this is the first deploy
+        run: |
+          if [ -z "$(git ls-remote --heads origin data)" ]; then
+            bash scripts/data-branch.sh publish 'Seed data branch from main history' \
+              instagram/generated instagram/seven-day-test banks/generated banks/hourly banks/locations.json pilot/generated pilot/cache
+          fi
+      - name: Install Sharp
+        run: npm install --no-save --no-audit --no-fund sharp@0.34.4
+      - name: Build site
+        run: node scripts/build-site.mjs
+      - name: Check the build has the forecast files
+        run: |
+          for f in index.html banks/banks.json instagram/generated/seven-day-manifest.json; do
+            test -s "_site/$f" || { echo "Missing _site/$f" >&2; exit 1; }
+          done
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

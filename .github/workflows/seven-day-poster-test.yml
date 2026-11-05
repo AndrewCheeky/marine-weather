@@ -15,6 +15,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Restore latest generated files from the data branch
+        run: bash scripts/data-branch.sh restore
       - name: Install renderer
         run: npm install --no-save --no-audit --no-fund sharp@0.34.4
       - name: Generate master-cache test posters
@@ -22,13 +24,5 @@ jobs:
           SEVEN_DAY_DATA_URL: ${{ secrets.SEVEN_DAY_DATA_URL }}
           MARINE7_TEST: '1'
         run: node scripts/generate-seven-day.mjs
-      - name: Publish test images only
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add instagram/seven-day-test/
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Generate isolated seven-day test posters'
-          git pull --rebase origin main
-          git push origin HEAD:main
+      - name: Publish test images to the data branch
+        run: bash scripts/data-branch.sh publish 'Generate isolated seven-day test posters' instagram/seven-day-test

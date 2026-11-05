@@ -1,140 +1,225 @@
+/* Marine Weather Jamaica: fishing bank forecasts as readable text, charts and a map.
+   Data: banks/banks.json (list), banks/locations.json (optional coordinates, published from the
+   Google Sheet), banks/hourly/<key>-24h.json (hourly rows) and banks/hourly/<key>-<window>.json
+   (server ratings per hour). Nothing here calls a weather provider directly. */
 (()=>{'use strict';
+const M=window.MW;if(!M)return;
+const {el,fmt,num}=M;
 const ENDPOINT='https://script.google.com/macros/s/AKfycbzwP_tF1SeJIBgB7HxTRBi374NiF0tQXGcSBFUk7EPPu1rSAepDsALW-iHeny6yo1Y/exec';
-const bank=document.getElementById('bank-select'),period=document.getElementById('bank-period'),img=document.getElementById('bank-image'),link=document.getElementById('bank-image-link'),live=document.getElementById('bank-live'),state=document.getElementById('bank-image-state'),title=document.getElementById('bank-title');
-if(!bank)return;
+const $=id=>document.getElementById(id);
+const bankSel=$('bank-select'),period=$('bank-period'),live=$('bank-live');
+const title=$('bank-title'),updatedEl=$('bank-updated'),state=$('bank-state');
+const setRating=node=>{node.id='bank-rating';$('bank-rating').replaceWith(node);};
+const statsEl=$('bank-stats'),charts=$('bank-charts'),hoursBox=$('bank-hours'),rowsEl=$('bank-rows');
+const quick=$('bank-quicklook'),quickImg=$('bank-image'),quickLink=$('bank-image-link');
+if(!bankSel)return;
+
 let banks=[];
-const dialog=document.getElementById('bank-hourly-dialog'),hourlyClose=document.getElementById('bank-hourly-close'),expanded=document.getElementById('bank-hourly-image'),heading=document.getElementById('bank-hourly-heading'),meta=document.getElementById('bank-hourly-meta'),rows=document.getElementById('bank-hourly-rows');
-const fmt=(v,unit='')=>v===null||v===undefined||v===''||!Number.isFinite(Number(v))?'—':Number(v).toFixed(1)+unit;
-// Fetch the existing published forecast snapshot when the visitor opens the popup.
-// This is a cache read, not a direct weather-provider request.
-const hourlyCache=new Map(),HOURLY_TTL=10*60*1000;
-const jmDay=(offset=0)=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Jamaica',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(Date.now()+offset*86400000));
-const jmHour=()=>Number(new Intl.DateTimeFormat('en-US',{timeZone:'America/Jamaica',hour:'2-digit',hourCycle:'h23'}).format(new Date()));
-function requestJSONP(url){
+const safeKey=s=>/^[a-z0-9_-]+$/.test(s);
+const nameOf=key=>banks.find(b=>b.key===key)?.name||key;
+const hh=stamp=>String(stamp).slice(11,16);
+
+/* ---------- data ---------- */
+async function hourlyRows(key,when){
+  const today=M.jaDate(),tomorrow=M.jaDate(1);
+  try{
+    const data=await M.getJSON(`banks/hourly/${key}-24h.json`);
+    if(data.key!==key||!Array.isArray(data.hours))throw Error('bad 24h file');
+    const start=when==='tomorrow'?tomorrow+'T07:00':today+'T'+String(M.jaHour()).padStart(2,'0')+':00';
+    const end=when==='tomorrow'?tomorrow+'T17:00':null;
+    const rows=data.hours.filter(r=>r.metrics&&r.stamp>=start&&(!end||r.stamp<=end))
+      .sort((a,b)=>a.stamp.localeCompare(b.stamp)).slice(0,when==='tomorrow'?11:24)
+      .map(r=>({stamp:r.stamp,...r.metrics}));
+    if(rows.length)return {rows,updated:data.generated_at};
+  }catch(e){console.warn('24-hour file unavailable for',key,e.message);}
+  // Fallback: the shorter window file written with the quick-look images.
+  const data=await M.getJSON(`banks/hourly/${key}-${when}.json`);
+  if(data.day!==(when==='tomorrow'?tomorrow:today))throw Error('No hourly forecast published for this window yet.');
+  return {rows:data.hours.map(r=>({stamp:data.day+'T'+r.time,...r})),updated:data.published_at,partial:true};
+}
+
+// Server rating (conditionColor per hour) for the window; only trusted when it is for the right day.
+async function bankRating(key,when){
+  try{
+    const data=await M.getJSON(`banks/hourly/${key}-${when}.json`);
+    const expected=when==='tomorrow'?M.jaDate(1):M.jaDate();
+    if(data.day!==expected)return {status:null,note:'rating out of date'};
+    if(when==='current'&&M.ageHours(data.published_at)>8)return {status:null,note:'rating out of date'};
+    const s=M.worst((data.hours||[]).map(h=>h.conditionColor));
+    return {status:s,note:when==='tomorrow'?'tomorrow 07–17':'next few hours'};
+  }catch{return {status:null,note:'no rating published'};}
+}
+
+/* ---------- charts (one axis each: never mix knots and feet on one scale) ---------- */
+function niceMax(v){const m=Math.max(1,v);const step=m<=4?1:m<=10?2:m<=25?5:10;return Math.ceil(m/step)*step;}
+const tip=el('div',{class:'chart-tip',role:'status'});tip.hidden=true;document.body.append(tip);
+
+function drawChart(fig,{heading,unit,labels,series,bars}){
+  const W=640,H=190,L=34,R=10,T=14,B=26,iw=W-L-R,ih=H-T-B,n=labels.length;
+  const all=series.flatMap(s=>s.values).filter(v=>v!==null);
+  const max=niceMax(all.length?Math.max(...all):1);
+  const x=i=>L+(n<=1?iw/2:bars?(i+0.5)*iw/n:i*iw/(n-1));
+  const y=v=>T+ih-(v/max)*ih;
+  const NS='http://www.w3.org/2000/svg';
+  const s=(tag,a={},text)=>{const e=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(a))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+  const svg=s('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':`${heading} by hour; maximum ${fmt(Math.max(...all))} ${unit}. Full values in the hour-by-hour table.`});
+  const step=max<=4?1:max<=10?2:max<=25?5:10;
+  for(let v=0;v<=max+1e-9;v+=step){
+    const yy=y(v);
+    svg.append(s('line',{x1:L,x2:W-R,y1:yy,y2:yy,class:'grid'}));
+    svg.append(s('text',{x:L-6,y:yy+4,class:'axis','text-anchor':'end'},String(Math.round(v*10)/10)));
+  }
+  const every=n>16?3:n>8?2:1;
+  labels.forEach((lab,i)=>{if(i%every===0)svg.append(s('text',{x:x(i),y:H-8,class:'axis','text-anchor':'middle'},hh(lab).replace(':00','')+'h'));});
+  for(const ser of series){
+    if(bars){
+      const bw=Math.max(4,iw/n-4);
+      ser.values.forEach((v,i)=>{if(v===null)return;const top=y(v),h=Math.max(1,T+ih-top);
+        svg.append(s('path',{d:`M${x(i)-bw/2} ${T+ih}V${top+Math.min(4,h)}q0-4 4-4h${bw-8}q4 0 4 4V${T+ih}Z`,fill:ser.color,class:'bar'}));});
+    }else{
+      const pts=ser.values.map((v,i)=>v===null?null:[x(i),y(v)]);
+      let d='';pts.forEach((p,i)=>{if(!p)return;d+=(d&&pts[i-1]?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);});
+      svg.append(s('path',{d,fill:'none',stroke:ser.color,'stroke-width':2,'stroke-dasharray':ser.dash||'none','stroke-linecap':'round','stroke-linejoin':'round'}));
+      // Direct label at the last point.
+      const last=[...pts].reverse().find(Boolean);
+      if(last&&series.length>1)svg.append(s('text',{x:Math.min(last[0]+4,W-R-2),y:last[1]-6,class:'direct','text-anchor':'end',fill:'currentColor'},ser.name));
+    }
+  }
+  // Hover / tap layer: a crosshair and tooltip per hour.
+  const cross=s('line',{x1:0,x2:0,y1:T,y2:T+ih,class:'cross',visibility:'hidden'});svg.append(cross);
+  const hit=s('rect',{x:L,y:T,width:iw,height:ih,fill:'transparent'});svg.append(hit);
+  const show=ev=>{
+    const r=svg.getBoundingClientRect();const px=(ev.clientX-r.left)/r.width*W;
+    let i=bars?Math.floor((px-L)/(iw/n)):Math.round((px-L)/(iw/Math.max(1,n-1)));i=Math.max(0,Math.min(n-1,i));
+    cross.setAttribute('x1',x(i));cross.setAttribute('x2',x(i));cross.setAttribute('visibility','visible');
+    tip.replaceChildren(el('strong',{},labels[i].replace('T',' ')),...series.map(ser=>el('div',{},el('span',{class:'swatch',style:`background:${ser.color}`}),`${ser.name}: ${fmt(ser.values[i])} ${unit}`)));
+    tip.hidden=false;
+    const tx=Math.min(window.innerWidth-tip.offsetWidth-8,Math.max(8,ev.clientX+12));
+    tip.style.left=tx+'px';tip.style.top=(ev.clientY+window.scrollY-tip.offsetHeight-12)+'px';
+  };
+  hit.addEventListener('pointermove',show);hit.addEventListener('pointerdown',show);
+  hit.addEventListener('pointerleave',()=>{tip.hidden=true;cross.setAttribute('visibility','hidden');});
+  const legend=series.length>1?el('ul',{class:'chart-legend'},series.map(ser=>el('li',{},el('span',{class:'swatch'+(ser.dash?' dashed':''),style:`--c:${ser.color}`}),ser.name))):null;
+  fig.replaceChildren(...[el('figcaption',{},heading+' ',el('span',{},'('+unit+')')),legend,svg].filter(Boolean));
+}
+
+/* ---------- render ---------- */
+function peak(rows,key){let best=null;for(const r of rows){const v=num(r[key]);if(v!==null&&(!best||v>best.v))best={v,stamp:r.stamp};}return best;}
+function stat(label,value,sub){return el('div',{class:'stat'},el('dt',{},label),el('dd',{},value,sub?el('small',{},sub):null));}
+
+let seq=0;
+async function update(){
+  const key=bankSel.value,when=period.value,id=++seq;
+  if(!safeKey(key))return;
+  title.textContent=nameOf(key);
+  live.href=ENDPOINT+'?action=bank&key='+encodeURIComponent(key)+'&when='+encodeURIComponent(when)+'&popup=1&hideFooter=1';
+  state.hidden=false;state.textContent='Loading forecast…';
+  quick.open=false;quick.hidden=false;quickImg.removeAttribute('src');
+  quickImg.alt=nameOf(key)+' quick-look forecast card';
+  quickLink.href=`banks/generated/${key}-${when}.webp`;
+  try{
+    const [{rows,updated,partial},rate]=await Promise.all([hourlyRows(key,when),bankRating(key,when)]);
+    if(id!==seq)return;
+    updatedEl.textContent='Updated '+(M.updatedText(updated)||'time unknown')+(partial?' · partial forecast':'');
+    setRating(M.pill(rate.status,rate.note));
+    const w=peak(rows,'avgWindKn'),g=peak(rows,'peakGustKn'),s=peak(rows,'avgWaveM'),c=peak(rows,'avgCurrentKn'),r=peak(rows,'rainProbabilityPct');
+    const atSeas=s?rows.find(x=>x.stamp===s.stamp):null;
+    statsEl.replaceChildren(
+      stat('Max wind',w?fmt(w.v)+' kt':'—',w?'at '+hh(w.stamp):''),
+      stat('Max gust',g?fmt(g.v)+' kt':'—',g?'at '+hh(g.stamp):''),
+      stat('Max seas',s?fmt(s.v*M.M_TO_FT)+' ft':'—',atSeas&&num(atSeas.avgWavePeriodS)!==null?'period '+fmt(atSeas.avgWavePeriodS)+' s':''),
+      stat('Max current',c?fmt(c.v)+' kt':'—',''),
+      stat('Peak rain chance',r?Math.round(r.v)+'%':'—',r?'at '+hh(r.stamp):''));
+    statsEl.hidden=false;
+    const labels=rows.map(x=>x.stamp);
+    drawChart($('chart-wind'),{heading:'Wind and gusts',unit:'kt',labels,series:[
+      {name:'Wind',color:'#0877a8',values:rows.map(x=>num(x.avgWindKn))},
+      {name:'Gusts',color:'#c2410c',dash:'5 4',values:rows.map(x=>num(x.peakGustKn))}]});
+    drawChart($('chart-seas'),{heading:'Seas',unit:'ft',labels,bars:true,series:[
+      {name:'Seas',color:'#0877a8',values:rows.map(x=>{const v=num(x.avgWaveM);return v===null?null:v*M.M_TO_FT;})}]});
+    charts.hidden=false;
+    rowsEl.replaceChildren(...rows.map(x=>{
+      const dir=M.compass(x.windDirMeanDeg);
+      return el('tr',{},el('th',{scope:'row'},x.stamp.slice(5,10).replace('-','/')+' '+hh(x.stamp)),
+        el('td',{},fmt(x.avgWindKn)+(dir?' '+dir:'')),el('td',{},fmt(x.peakGustKn)),
+        el('td',{},num(x.avgWaveM)===null?'—':fmt(x.avgWaveM*M.M_TO_FT)),el('td',{},fmt(x.avgWavePeriodS)),
+        el('td',{},fmt(x.avgCurrentKn)),el('td',{},num(x.rainProbabilityPct)===null?'—':Math.round(x.rainProbabilityPct)));
+    }));
+    hoursBox.hidden=false;
+    state.hidden=true;
+  }catch(e){
+    if(id!==seq)return;
+    statsEl.hidden=true;charts.hidden=true;hoursBox.hidden=true;
+    setRating(M.pill(null));
+    state.textContent='This bank’s forecast has not been published yet. Use “Open live forecast”. ('+e.message+')';
+  }
+  highlightMarker(key);
+}
+// The quick-look image is only downloaded when someone opens it.
+quick.addEventListener('toggle',()=>{
+  if(!quick.open||quickImg.getAttribute('src'))return;
+  quickImg.onerror=()=>{quickLink.replaceWith(el('p',{class:'fine'},'No quick-look card has been published for this window yet.'));};
+  quickImg.src=quickLink.href;
+});
+
+/* ---------- map (Leaflet, loaded only when the section scrolls into view) ---------- */
+const mapBox=$('bank-map'),mapNote=$('map-note');
+let markers=new Map(),map=null;
+const COLORS={green:'#17834a',amber:'#f5b942',red:'#c83c45',unknown:'#7a8c99'};
+function loadLeaflet(){
+  if(window.L)return Promise.resolve(window.L);
   return new Promise((resolve,reject)=>{
-    const callback='mwHourly_'+Math.random().toString(36).slice(2);
-    const script=document.createElement('script');
-    let done=false;
-    const finish=(error,value)=>{if(done)return;done=true;clearTimeout(timer);delete window[callback];script.remove();error?reject(error):resolve(value);};
-    const timer=setTimeout(()=>finish(new Error('Live hourly request timed out')),12000);
-    window[callback]=value=>finish(null,value);
-    script.onerror=()=>finish(new Error('Live hourly endpoint unavailable'));
-    url.searchParams.set('callback',callback);
-    url.searchParams.set('_',String(Date.now()));
-    script.src=url.toString();document.head.appendChild(script);
+    const css=el('link',{rel:'stylesheet',href:'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css',integrity:'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=',crossorigin:'anonymous'});
+    const js=el('script',{src:'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',integrity:'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=',crossorigin:'anonymous'});
+    js.onload=()=>resolve(window.L);js.onerror=()=>reject(Error('Map library unavailable'));
+    document.head.append(css,js);
   });
 }
-async function fetchSnapshot(key,day){
-  const url=new URL(ENDPOINT);
-  url.searchParams.set('action','snapshot');
-  url.searchParams.set('key',key);
-  url.searchParams.set('day',day);
-  const cacheKey=key+'|'+day,stored=hourlyCache.get(cacheKey);
-  if(stored&&Date.now()-stored.time<HOURLY_TTL)return stored.data;
-  // Google Apps Script redirects can prevent cross-origin fetch; support JSONP
-  // when the deployed Apps Script handler exposes the callback parameter.
-  let data;
+async function buildMap(){
+  const placed=banks.filter(b=>num(b.lat)!==null&&num(b.lon)!==null);
+  if(!placed.length){mapBox.replaceChildren(el('p',{class:'map-placeholder'},'Bank locations have not been published yet.'));return;}
   try{
-    const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),12000);
-    try{
-      const response=await fetch(url.toString(),{cache:'no-store',signal:controller.signal});
-      if(!response.ok)throw Error('Live snapshot unavailable');
-      data=await response.json();
-    }finally{clearTimeout(timer);}
-  }catch(_error){data=await requestJSONP(url);}
-  if(!data||!Array.isArray(data.hours)||!data.version)throw Error('Invalid live hourly snapshot');
-  hourlyCache.set(cacheKey,{time:Date.now(),data});
-  return data;
+    const L=await loadLeaflet();
+    mapBox.replaceChildren();
+    map=L.map(mapBox,{scrollWheelZoom:false,attributionControl:true}).setView([18.0,-77.2],7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:12,attribution:'© OpenStreetMap contributors'}).addTo(map);
+    const ratings=await Promise.all(placed.map(b=>bankRating(b.key,'current')));
+    placed.forEach((b,i)=>{
+      const c=M.cls(ratings[i].status);
+      const m=L.circleMarker([b.lat,b.lon],{radius:9,weight:2,color:'#ffffff',fillColor:COLORS[c],fillOpacity:1})
+        .addTo(map).bindTooltip(`${b.name}: ${M.word(ratings[i].status)}`,{direction:'top'});
+      m.on('click',()=>{bankSel.value=b.key;update();$('bank-card').scrollIntoView({behavior:'smooth',block:'start'});});
+      markers.set(b.key,m);
+    });
+    map.fitBounds(L.latLngBounds(placed.map(b=>[b.lat,b.lon])).pad(0.35),{maxZoom:9});
+    highlightMarker(bankSel.value);
+  }catch(e){mapBox.replaceChildren(el('p',{class:'map-placeholder'},'The map could not load. Use the list above.'));}
+  const missing=banks.length-placed.length;
+  if(missing>0){mapNote.textContent=`${missing} of ${banks.length} locations are not on the map yet (no coordinates published). Pick them from the list.`;mapNote.hidden=false;}
 }
-function hourlyWindow(snapshots,when){
-  const all=new Map();
-  for(const snapshot of snapshots)for(const row of snapshot.hours||[]){
-    if(!row||!row.metrics||!row.day||row.hour==null)continue;
-    const hour=Number(row.hour);
-    if(!Number.isInteger(hour)||hour<0||hour>23)continue;
-    const stamp=row.day+'T'+String(hour).padStart(2,'0');
-    all.set(stamp,{...row,stamp});
-  }
-  const today=jmDay(),tomorrow=jmDay(1);
-  const start=when==='tomorrow'?tomorrow+'T07':today+'T'+String(jmHour()).padStart(2,'0');
-  const end=when==='tomorrow'?tomorrow+'T17':null;
-  return [...all.values()].filter(r=>r.stamp>=start&&(!end||r.stamp<=end))
-    .sort((a,b)=>a.stamp.localeCompare(b.stamp)).slice(0,when==='tomorrow'?11:12);
+function highlightMarker(key){
+  for(const [k,m] of markers)m.setStyle({weight:k===key?4:2,color:k===key?'#052638':'#ffffff',radius:k===key?12:9});
 }
-async function sheetPublishedHours(key,when){
-  const response=await fetch(`banks/hourly/${key}-24h.json`,{cache:'no-store'});
-  if(!response.ok)throw Error('24-hour published forecast unavailable');
-  const data=await response.json();
-  if(data.key!==key||!Array.isArray(data.hours))throw Error('Invalid 24-hour published forecast');
-  const today=jmDay(),tomorrow=jmDay(1);
-  const start=when==='tomorrow'?tomorrow+'T07:00':today+'T'+String(jmHour()).padStart(2,'0')+':00';
-  const end=when==='tomorrow'?tomorrow+'T17:00':null;
-  const selected=data.hours.filter(r=>r.stamp>=start&&(!end||r.stamp<=end)&&r.metrics)
-    .sort((a,b)=>a.stamp.localeCompare(b.stamp));
-  if(!selected.length)throw Error('No current sheet-published hourly records');
-  return {hours:selected.slice(0,when==='tomorrow'?11:24),updated:data.generated_at,source:'Published 24-hour forecast'};
-}
-async function liveHours(key,when){
-  const today=jmDay(),tomorrow=jmDay(1);
-  const days=when==='tomorrow'?[tomorrow]:[today,tomorrow];
-  const results=await Promise.allSettled(days.map(day=>fetchSnapshot(key,day)));
-  const snapshots=results.filter(r=>r.status==='fulfilled').map(r=>r.value);
-  if(!snapshots.length)throw Error('Live hourly data unavailable');
-  const hours=hourlyWindow(snapshots,when);
-  if(!hours.length)throw Error('No hourly records for the requested period');
-  return {hours,updated:snapshots.map(s=>s.published_at).filter(Boolean).sort().at(-1),source:'On-demand forecast'};
-}
-async function publishedHours(key,when){
-  const response=await fetch(`banks/hourly/${key}-${when}.json`,{cache:'no-store'});
-  if(!response.ok)throw Error('No published hourly snapshot');
-  const data=await response.json();
-  if(data.key!==key||data.period!==when||!Array.isArray(data.hours)||!data.hours.length)throw Error('Invalid published hourly snapshot');
-  if(data.day!==jmDay(when==='tomorrow'?1:0))throw Error('Published forecast is for another day');
-  return {hours:data.hours.map(r=>({day:data.day,time:r.time,metrics:r})),updated:data.published_at,source:'Published fallback'};
-}
-let hourlyOpenId=0;
-async function openExpanded(event){
-  event.preventDefault();
-  const item=banks.find(b=>b.key===bank.value);
-  if(!item||!dialog)return;
-  const when=period.value,id=++hourlyOpenId;
-  expanded.src=img.src;
-  heading.textContent=item.name+' — '+(when==='tomorrow'?'Tomorrow 07:00–17:00':'Rolling 24-hour forecast');
-  meta.textContent='Loading available hourly forecast…';
-  rows.replaceChildren();dialog.showModal();
-  let result,notice='';
-  try{result=await sheetPublishedHours(item.key,when);}
-  catch(_error){
-    notice='Full published forecast unavailable; using limited snapshot. ';
-    try{result=await liveHours(item.key,when);}
-    catch(_fallback){try{result=await publishedHours(item.key,when);}catch(error){if(id===hourlyOpenId&&dialog.open)meta.textContent='Hourly details unavailable: '+error.message;return;}}
-  }
-  if(id!==hourlyOpenId||!dialog.open||bank.value!==item.key||period.value!==when)return;
-  const {hours,updated,source}=result;
-  const expected=when==='tomorrow'?11:24;
-  meta.textContent=notice+source+' · '+hours.length+' hourly records'+
-    (updated?' · Updated '+new Date(updated).toLocaleString('en-JM',{timeZone:'America/Jamaica'}):'')+
-    (hours.length<expected?' · Partial forecast — verify current conditions':'');
-  for(const h of hours){
-    const m=h.metrics||h,tr=document.createElement('tr');
-    const time=(h.day?h.day+' ':'')+(h.time||String(h.hour).padStart(2,'0')+':00');
-    const values=[time,fmt(m.avgWindKn),fmt(m.peakGustKn),fmt(m.avgWaveM==null?null:Number(m.avgWaveM)*3.28084),fmt(m.avgWavePeriodS),fmt(m.avgCurrentKn),fmt(m.rainProbabilityPct)];
-    for(const value of values){const td=document.createElement('td');td.textContent=value;tr.appendChild(td);}
-    rows.appendChild(tr);
-  }
-}
-link.addEventListener('click',openExpanded);hourlyClose?.addEventListener('click',()=>dialog.close());dialog?.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
 
-const safeKey=s=>/^[a-z0-9_-]+$/.test(s);
-function update(){const item=banks.find(b=>b.key===bank.value);if(!item)return;title.textContent=item.name;const when=period.value;const src=`banks/generated/${item.key}-${when}.webp`;const liveUrl=ENDPOINT+'?action=bank&key='+encodeURIComponent(item.key)+'&when='+encodeURIComponent(when)+'&popup=1&hideFooter=1';live.href=liveUrl;img.alt=item.name+' '+when+' marine forecast';img.hidden=true;link.hidden=true;state.hidden=false;state.textContent='Checking published forecast image…';const probe=new Image();probe.onload=()=>{img.src=src;link.href=src;link.hidden=false;img.hidden=false;state.hidden=true};probe.onerror=()=>{link.hidden=true;img.hidden=true;state.hidden=false;state.textContent='A cached image has not been published for this location yet. Open the live forecast instead.'};probe.src=src;}
-fetch('banks/banks.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('locations');return r.json()}).then(data=>{banks=data.filter(x=>safeKey(x.key)&&x.name);for(const item of banks){const o=document.createElement('option');o.value=item.key;o.textContent=item.name;bank.appendChild(o)}bank.value=banks[0]?.key||'';update()}).catch(()=>{state.textContent='Fishing locations could not be loaded. Use the Fishing Banks tab above.'});bank.addEventListener('change',update);period.addEventListener('change',update);
-// Keep the loading dialog visible until the live forecast iframe loads (15-second fallback).
-const modal=document.getElementById('live-forecast-modal');
-const frame=document.getElementById('live-forecast-frame');
-const loading=document.getElementById('live-forecast-loading');
-const close=document.getElementById('live-forecast-close');
-const modalTitle=document.getElementById('live-forecast-title');
+/* ---------- start ---------- */
+(async()=>{
+  try{
+    const list=await M.getJSON('banks/banks.json');
+    let coords={};
+    try{const loc=await M.getJSON('banks/locations.json');for(const l of (Array.isArray(loc)?loc:loc.banks||[]))coords[l.key]=l;}catch{}
+    banks=list.filter(x=>safeKey(x.key)&&x.name).map(b=>({...b,lat:num(coords[b.key]?.lat??b.lat),lon:num(coords[b.key]?.lon??b.lon)}));
+    bankSel.replaceChildren(...banks.map(b=>el('option',{value:b.key},b.name)));
+    const fromHash=new URLSearchParams(location.hash.split('?')[1]||'').get('bank');
+    bankSel.value=banks.some(b=>b.key===fromHash)?fromHash:banks[0]?.key||'';
+    update();
+    const io=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){io.disconnect();buildMap();}},{rootMargin:'200px'});
+    io.observe(mapBox);
+  }catch{state.textContent='Fishing locations could not be loaded. Please refresh the page.';}
+})();
+bankSel.addEventListener('change',update);period.addEventListener('change',update);
+
+/* ---------- live forecast pop-up (unchanged behaviour) ---------- */
+const modal=$('live-forecast-modal'),frame=$('live-forecast-frame'),loading=$('live-forecast-loading'),close=$('live-forecast-close'),modalTitle=$('live-forecast-title');
 let loadTimer=null,previousFocus=null,openSeq=0;
 function hideLoading(){if(loadTimer){clearTimeout(loadTimer);loadTimer=null;}loading.hidden=true;}
 function closeLive(){openSeq++;hideLoading();modal.hidden=true;frame.removeAttribute('src');document.body.style.overflow='';if(previousFocus?.isConnected)previousFocus.focus();}
@@ -143,27 +228,17 @@ if(modal&&frame&&loading&&close){
     if(!live.href)return;event.preventDefault();
     previousFocus=document.activeElement;modalTitle.textContent=(title.textContent||'Fishing bank')+' — Live forecast';
     modal.hidden=false;loading.hidden=false;document.body.style.overflow='hidden';close.focus();
-    const seq=++openSeq;
-    // Ignore the initial about:blank iframe load; it is not the forecast.
-    let navigationStarted=false;
-    frame.onload=()=>{if(seq===openSeq && navigationStarted)hideLoading();};
-    // Keep a visible status if the destination takes too long, rather than flashing blank.
-    loadTimer=setTimeout(()=>{if(seq===openSeq && !loading.hidden){
-      loading.querySelector('strong').textContent='Still loading live forecast…';
-      loading.querySelector('span:last-child').textContent='The forecast is taking longer than usual; please wait.';
-    }},15000);
+    const s=++openSeq;let started=false;
+    frame.onload=()=>{if(s===openSeq&&started)hideLoading();};
     loading.querySelector('strong').textContent='Loading live forecast…';
     loading.querySelector('span:last-child').textContent='Please wait while your marine outlook opens.';
-    // Paint the loading dialog BEFORE navigating the iframe.
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      if(seq!==openSeq)return;
-      navigationStarted=true;
-      frame.src=live.href;
-    }));
+    loadTimer=setTimeout(()=>{if(s===openSeq&&!loading.hidden){
+      loading.querySelector('strong').textContent='Still loading live forecast…';
+      loading.querySelector('span:last-child').textContent='The forecast is taking longer than usual; please wait.';}},15000);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{if(s!==openSeq)return;started=true;frame.src=live.href;}));
   });
   close.addEventListener('click',closeLive);
-  modal.addEventListener('click',event=>{if(event.target===modal)closeLive();});
-  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!modal.hidden)closeLive();});
+  modal.addEventListener('click',e=>{if(e.target===modal)closeLive();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)closeLive();});
 }
-
 })();
