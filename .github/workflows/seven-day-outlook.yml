@@ -23,7 +23,7 @@ jobs:
         env:
           SEVEN_DAY_DATA_URL: ${{ secrets.SEVEN_DAY_DATA_URL }}
         run: node scripts/generate-seven-day.mjs
-      - name: Publish seven-day posters
+      - name: Publish all seven newly rendered posters
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
