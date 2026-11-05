@@ -184,9 +184,9 @@ function makeSvg(p){
    ${icon('target',x+22,873,36,white)}${t(x+71,888,focus==='pelagic'?'PELAGIC FOCUS':focus==='reef'?'BOTTOM / REEF FOCUS':'MIXED FISHING',19,'#d8f7ff',850)}
    ${t(x+71,914,focus==='pelagic'?'Tuna · Wahoo · Dolphin':focus==='reef'?'Snapper · Grouper · Reef fish':'Pelagic · Bottom / Reef',18,white,650)}
    ${icon('wave',x+22,930,36,'#a7efff')}${t(x+71,949,'CONDITIONS',18,'#b6ecff',850)}
-   ${t(x+71,975,truncate(detail,32),19,white,650)}
+   ${t(x+71,975,truncate(detail,28),17,white,650)}
    ${icon('rain',x+22,988,36,'#56d7ff')}${t(x+71,1006,'RAIN / OUTLOOK',18,'#b6ecff',850)}
-   ${t(x+71,1032,truncate(rain,32),19,white,650)}`;
+   ${t(x+71,1032,truncate(rain,28),17,white,650)}`;
  };
  const high=val(d,'highTides'),low=val(d,'lowTides');
  const tideEntries=(raw)=>valid(raw)&&raw!=='Not available'?String(raw).split(/\s*[·;,|]\s*/).map(x=>x.trim()).filter(Boolean).slice(0,2):[];
@@ -221,8 +221,8 @@ function makeSvg(p){
    const names=['MAIDEN CAY','MACKEREL BANK','CALIFORNIA BANK'];
    const dep=valid(w?.departure)?w.departure:'Not available';
    const ret=valid(w?.return)?w.return:'Not available';
-   const peak=(numeric(w?.maxGustKn)&&valid(w?.maxGustTime))
-     ?`${Number(w.maxGustKn).toFixed(1)} kt (${w.maxGustTime})`:'Not available';
+   const peak=(numeric(w?.maxGustKn)&&/^\d{2}:\d{2}$/.test(String(w?.maxGustTime||'')))
+     ?`${Number(w.maxGustKn).toFixed(1)} kt (${w.maxGustTime})`:`${numeric(w?.maxGustKn)?Number(w.maxGustKn).toFixed(1)+' kt':'Not available'} (time n/a)`;
    return `${t(50,y,names[i],17,white,850)}${t(314,y,truncate(dep,19),17,'#c5efff',800)}${t(554,y,truncate(ret,19),17,'#c5efff',800)}${t(800,y,truncate(peak,24),17,white,800)}`;
  }).join('');
  const dateLabel=new Date(`${p.day}T12:00:00Z`);
@@ -247,9 +247,9 @@ function makeSvg(p){
  ${moonArt}${t(835,1307,truncate(moon,16).toUpperCase(),17,white,850)}${t(835,1330,`ILLUMINATION  ${illum}`,15,yellow,800)}${t(550,1364,`MOONRISE  ${moonrise||'—'}`,16,'#c1efff',800)}${t(793,1364,`MOONSET  ${moonset||'—'}`,16,'#c1efff',800)}
  ${panel(28,1413,1024,209)}${top(30,1415,1020,'OTHER CONDITIONS')}
  ${rr(40,1472,713,132,'#f1faff',15)}
- ${icon('current',56,1502,40,'#0877b1')}${t(105,1506,'SURFACE CURRENT',16,'#075a8b',850)}${t(105,1543,truncate(`${val(d,'current')} ${val(d,'currentDir','')}`,18),24,'#052c4d',850)}
+ ${icon('current',56,1502,40,'#0877b1')}${t(105,1506,'SURFACE CURRENT',16,'#075a8b',850)}${t(105,1543,truncate(`${val(d,'current')} ${val(d,'currentDir','')}`,20),21,'#052c4d',850)}
  ${icon('thermo',304,1502,40,'#0877b1')}${t(352,1506,'SEA TEMPERATURE',16,'#075a8b',850)}${t(352,1543,val(d,'sst'),24,'#052c4d',850)}
- ${icon('compass',548,1502,40,'#0877b1')}${t(596,1506,'SWELL',16,'#075a8b',850)}${t(596,1543,truncate(val(d,'swell'),10),24,'#052c4d',850)}
+ ${icon('compass',548,1502,40,'#0877b1')}${t(596,1506,'SWELL',16,'#075a8b',850)}${t(596,1543,truncate(val(d,'swell'),16),20,'#052c4d',850)}
  ${icon('warn',772,1498,51,yellow)}${t(840,1512,'SAFETY FIRST',27,cyan,950)}
  ${t(840,1543,'Check official marine',17,white,700)}${t(840,1567,'warnings before departure.',17,white,700)}${t(840,1591,'Not for navigation.',17,white,750)}
  </g>
@@ -310,7 +310,7 @@ function toPoster(day){
  const f=(v,u='',dp=1)=>Number.isFinite(v)?`${v.toFixed(dp)}${u?' '+u:''}`:'Not available';
  const status=s=>s.comfortStatus;
  const conditions=s=>`${f(s.avgWindKn,'kn')} wind · ${f(s.avgWaveM,'m')} seas · ${f(s.avgWavePeriodS,'s')} period`;
- const rain=s=>`${f(s.rainMm,'mm')} · peak waves ${f(s.peakWaveM,'m')}${s.peakWaveLocal?' '+s.peakWaveLocal:''}`;
+ const rain=s=>`${f(s.rainMm,'mm')} rain · peak ${f(s.peakWaveM,'m')} waves`;
  const windows=sites.map((s,i)=>({destination:['Maiden Cay','Mackerel Bank','California Bank'][i],departure:'NOT VERIFIED',return:'NOT VERIFIED',maxGustKn:s.peakGustKn,maxGustTime:s.peakGustLocal||null,assessment:'Departure and return not assessed'}));
  return {day:day.date,extended:day.offset>=3,poster:{
   status:status(maiden),condition:'Standardized master-cache comfort',comfort:`${f(maiden.comfortScore,'',1)}/5`,freshness:'TEST',
@@ -320,7 +320,8 @@ function toPoster(day){
   bank2:'California Bank',bank2status:status(cal),bank2comfort:`${f(cal.comfortScore,'',1)}/5`,bank2detail:conditions(cal),bank2rain:rain(cal),
   bank1focus:'mixed',bank2focus:'mixed',bank1focusVerified:false,bank2focusVerified:false,
   highTides:'Not verified',lowTides:'Not verified',sunrise:'Not available',sunset:'Not available',moonrise:'Not available',moonset:'Not available',moonPhase:'Not available',moonIllum:'Not available',
-  current:Number.isFinite(maiden.avgCurrentKn)?f(maiden.avgCurrentKn,'kn'):'Not available',currentDir:'',sst:f(maiden.sstC,'°C'),swell:'Not available',travelWindows:windows,
+  current:f(maiden.avgCurrentKn,'kn'),currentDir:compass(maiden.currentDirectionDeg),sst:f(maiden.sstC,'°C'),
+  swell:Number.isFinite(maiden.swellHeightM)?`${f(maiden.swellHeightM,'m')} ${compass(maiden.swellDirectionDeg)}${Number.isFinite(maiden.swellPeriodS)?' · '+f(maiden.swellPeriodS,'s'):''}`:'Not available',travelWindows:windows,
   rainIndicator:maiden.rainMm>3.5,peakWave:f(maiden.peakWaveM,'m')+(maiden.peakWaveLocal?` (${maiden.peakWaveLocal})`:' (time unavailable)')
  }};
 }
