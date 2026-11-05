@@ -136,7 +136,7 @@ function makeSvg(p){
    const names=['MAIDEN CAY','MACKEREL BANK','CALIFORNIA BANK'];
    const dep=valid(w?.departure)?w.departure:'Not available';
    const ret=valid(w?.return)?w.return:'Not available';
-   const peak=(numeric(w?.maxGustKn)&&valid(w?.maxGustTime))
+   const peak=(Number.isFinite(w?.maxGustKn)&&valid(w?.maxGustTime))
      ?`${Number(w.maxGustKn).toFixed(1)} kt (${w.maxGustTime})`:'Not available';
    return `${t(50,y,names[i],17,white,850)}${t(314,y,truncate(dep,19),17,'#c5efff',800)}${t(554,y,truncate(ret,19),17,'#c5efff',800)}${t(800,y,truncate(peak,24),17,white,800)}`;
  }).join('');
