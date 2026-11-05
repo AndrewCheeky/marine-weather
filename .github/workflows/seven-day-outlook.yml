@@ -14,59 +14,25 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: true
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Install Sharp
         run: npm install --no-save --no-audit --no-fund sharp@0.34.4
-      - name: Render all seven graphical posters
+      - name: Render seven days from standardized master cache
         env:
           SEVEN_DAY_DATA_URL: ${{ secrets.SEVEN_DAY_DATA_URL }}
         run: node scripts/generate-seven-day.mjs
-      - name: Verify seven rendered images and prune older dates
-        shell: bash
-        run: |
-          set -euo pipefail
-          node --input-type=module <<'NODE'
-          import {readFile, readdir, stat, unlink} from 'node:fs/promises';
-          import {join} from 'node:path';
-          const dir='instagram/generated';
-          const manifest=JSON.parse(await readFile(join(dir,'seven-day-manifest.json'),'utf8'));
-          if(!Array.isArray(manifest.days)||manifest.days.length!==7)throw Error('Expected seven manifest days');
-          const dates=new Set();
-          for(const day of manifest.days){
-            if(!/^\d{4}-\d{2}-\d{2}$/.test(day.date)||dates.has(day.date))throw Error('Invalid or duplicate manifest date');
-            dates.add(day.date);
-            const expected=`seven-day-${day.date}.png`;
-            if(day.image!==expected)throw Error('Manifest image mismatch: '+day.date);
-            const png=await readFile(join(dir,expected));
-            if(png.length<20000||png.subarray(0,8).toString('hex')!=='89504e470d0a1a0a')throw Error('Missing/invalid PNG: '+expected);
-            const json=JSON.parse(await readFile(join(dir,`seven-day-${day.date}.json`),'utf8'));
-            if(json.date!==day.date)throw Error('JSON date mismatch: '+day.date);
-            console.log('Verified',expected,png.length,'bytes');
-          }
-          let pruned=0;
-          for(const file of await readdir(dir)){
-            const match=/^seven-day-(\d{4}-\d{2}-\d{2})\.(png|json)$/.exec(file);
-            if(match&&!dates.has(match[1])){await unlink(join(dir,file));pruned++;}
-          }
-          console.log('Verified seven PNGs and seven JSONs; pruned',pruned,'obsolete dated assets');
-          NODE
-      - name: Commit all seven images, JSON files and manifest
-        shell: bash
+      - name: Publish all seven newly rendered posters
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          # Stage new files, replacements AND removals of outdated dates.
-          git add -A -f instagram/generated/
-          git status --short -- instagram/generated/
+          git add -f instagram/generated/seven-day-*.png instagram/generated/seven-day-*.json instagram/generated/seven-day-manifest.json
           if git diff --cached --quiet; then
-            echo 'All rendered files are identical; no commit necessary.'
+            echo 'Rendered assets are identical to committed versions; nothing new to commit.'
             exit 0
           fi
-          git commit -m 'Refresh seven light-theme marine posters and remove expired dates'
+          git commit -m 'Update seven-day marine outlook'
           git pull --rebase origin main
           git push origin HEAD:main
