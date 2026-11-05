@@ -177,10 +177,12 @@ function makeSvg(p){
   const detail=val(d,`bank${n}detail`);
   const rain=val(d,`bank${n}rain`);
   const comfort=val(d,`bank${n}comfort`,'');
+  const reason=String(d[`bank${n}reason`]||'').trim();
   return `${panel(x,710,506,413)}${bankPicture}
    <rect x="${x+3}" y="762" width="500" height="356" fill="${hasDeparture?'url(#bankShade)':'#052d43'}" fill-opacity="${hasDeparture?1:0.78}"/>
    ${top(x+3,713,500,name)}
    ${rr(x+331,774,156,52,c,13)}${t(x+409,806,word,27,white,900,'text-anchor="middle"')}${comfort?t(x+409,822,`COMFORT ${comfort}`,13,white,750,'text-anchor="middle"'):''}
+   ${reason?t(x+253,851,reason,17,yellow,800,'text-anchor="middle"'):''}
    ${icon('target',x+22,873,36,white)}${t(x+71,888,focus==='pelagic'?'PELAGIC FOCUS':focus==='reef'?'BOTTOM / REEF FOCUS':'MIXED FISHING',19,'#d8f7ff',850)}
    ${t(x+71,914,focus==='pelagic'?'Tuna · Wahoo · Dolphin':focus==='reef'?'Snapper · Grouper · Reef fish':'Pelagic · Bottom / Reef',18,white,650)}
    ${icon('wave',x+22,930,36,'#a7efff')}${t(x+71,949,'CONDITIONS',18,'#b6ecff',850)}
@@ -224,6 +226,7 @@ function makeSvg(p){
  <g transform="translate(0,-276)">${panel(28,390,1024,301)}${t(48,434,'OVERALL MARINE CONDITIONS',34,white,950)}
  ${rr(48,455,355,108,statusColor,16)}${icon('wave',67,481,57,white)}${d.rainIndicator?icon('rain',354,484,38,white):''}${t(149,519,statusWord,54,white,950)}${t(151,547,`COMFORT ${val(d,'comfort','NOT SCORED')}`,19,white,850)}
  ${t(429,485,'Forecast guidance · comfort assessment',22,white,750)}${t(429,521,'KINGSTON  ·  MAIDEN CAY',20,'#a5ecff',850)}
+ ${d.overallReason?t(429,554,d.overallReason,18,yellow,800):''}
  ${line(48,581,976)}${info(52,630,'wind','WIND / GUSTS',val(d,'wind'),`Gusts ${val(d,'gust')}`)}
  ${info(269,630,'wave','SEAS',val(d,'seas'))}${info(479,630,'tide','WAVE PERIOD',val(d,'period'))}
  ${info(710,630,'rain','RAIN',val(d,'rain'))}${info(873,630,'sun','UV INDEX',val(d,'uv'))}
@@ -323,6 +326,22 @@ function toPoster(day){
     if(hours.length!==10 || hours.some((h,i)=>h.hour!==i+7 || !h.complete || !Number.isFinite(h.gustKn)))
       throw Error(`Missing timestamped gust evidence for ${site.name} on ${day.date}; poster preserved`);
   }
+  // Display-only evidence summary, never a substitute for the established comfort score.
+  // Only shown when the existing status is not GREEN; uses observed forecast values.
+  function conditionReason(site, condition, compact=false){
+    if(condition==='GREEN')return '';
+    const factors=[];
+    const gust=Number(site.gustKn), rainChance=Number(site.rainProbabilityPct);
+    const wave=Number(site.waveM), period=Number(site.wavePeriodS);
+    if(Number.isFinite(gust)&&site.gustKn!==null&&gust>=18)factors.push(`Gusts ${gust.toFixed(1)} kt`);
+    if(Number.isFinite(rainChance)&&site.rainProbabilityPct!==null&&rainChance>=80)factors.push(`Rain chance ${Math.round(rainChance)}%`);
+    if(Number.isFinite(wave)&&site.waveM!==null&&wave>=1.0)factors.push(`Seas ${(wave*3.28084).toFixed(1)} ft`);
+    if(Number.isFinite(period)&&site.wavePeriodS!==null&&period<5)factors.push(`Period ${period.toFixed(1)} s`);
+    // No qualifying threshold: show relevant measured conditions, not a fabricated cause.
+    if(!factors.length&&Number.isFinite(rainChance)&&site.rainProbabilityPct!==null)factors.push(`Rain chance ${Math.round(rainChance)}%`);
+    if(!factors.length&&Number.isFinite(gust)&&site.gustKn!==null)factors.push(`Gusts ${gust.toFixed(1)} kt`);
+    return factors.slice(0,compact?2:2).join(' · ');
+  }
   const conditions=s=>`${fmt(s.windKn,'kt')} wind · ${fmt(converted(s.waveM,3.28084),'ft')} seas · ${fmt(s.wavePeriodS,'s')} period`;
   const rain=s=>`${fmt(converted(s.rainMm,1/25.4),'in',2)} · peak chance ${fmt(s.rainProbabilityPct,'%',0)}`;
   const authoritative=s=>s.productionScore&&
@@ -375,6 +394,8 @@ function toPoster(day){
   });
   const poster={
     status:primary.condition,condition:'Marine conditions',comfort:`${primary.score}/5`,
+    overallReason:conditionReason(maiden,primary.condition),
+    bank1reason:conditionReason(bow,b1.condition,true),bank2reason:conditionReason(cal,b2.condition,true),
     freshness:'CURRENT',wind:fmt(maiden.windKn,'kt'),gust:fmt(maiden.gustKn,'kt'),
     seas:fmt(converted(maiden.waveM,3.28084),'ft'),period:fmt(maiden.wavePeriodS,'s'),
     rain:fmt(converted(maiden.rainMm,1/25.4),'in',2),uv:fmt(maiden.uvMax,'',0),
