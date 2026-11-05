@@ -182,7 +182,12 @@ async function buildMap(){
     const L=await loadLeaflet();
     mapBox.replaceChildren();
     map=L.map(mapBox,{scrollWheelZoom:false,attributionControl:true}).setView([18.0,-77.2],7);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:12,attribution:'© OpenStreetMap contributors'}).addTo(map);
+    // CARTO basemap (free with attribution). openstreetmap.org's own tile servers block third-party sites.
+    let tileErrors=0;
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
+      subdomains:'abcd',maxZoom:12,
+      attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
+    }).on('tileerror',()=>{if(++tileErrors===6){mapNote.textContent='Map background could not load; bank dots still work.';mapNote.hidden=false;}}).addTo(map);
     const ratings=await Promise.all(placed.map(b=>bankRating(b.key,'current')));
     placed.forEach((b,i)=>{
       const c=M.cls(ratings[i].status);
