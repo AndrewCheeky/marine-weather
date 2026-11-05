@@ -164,6 +164,24 @@ function makeSvg(p){
  const panel=(x,y,w,h)=>rr(x,y,w,h,'#042a43',18,'fill-opacity="0.82" stroke="#b6f5ff" stroke-width="2"');
  const top=(x,y,w,title)=>`${rr(x,y,w,48,'#04243c',13)}${t(x+18,y+33,title,24,white,900)}`;
  const line=(x,y,w)=>`<path d="M${x} ${y}h${w}" stroke="#4db8d1" stroke-width="2"/>`;
+ // A two-line right-aligned explanation, shown only for non-GOOD conditions.
+ // The right edge of the dark explanation box matches the comfort badge.
+ const cautionNote=(reason,right,y,width,font=16)=>{
+  if(!reason)return '';
+  const words=String(reason).split(/\s+/).filter(Boolean);
+  const lines=[''];
+  const limit=Math.max(15,Math.floor((width-24)/(font*0.55)));
+  for(const word of words){
+   const current=lines[lines.length-1];
+   if(current && (current+' '+word).length>limit && lines.length<2)lines.push(word);
+   else lines[lines.length-1]=current?current+' '+word:word;
+  }
+  if(lines[1]&&lines[1].length>limit)lines[1]=truncate(lines[1],limit);
+  const h=lines.length===2?43:31;
+  const topY=y;
+  return rr(right-width,topY,width,h,'#03111d',10,'fill-opacity="0.94" stroke="#a4d8e5" stroke-opacity="0.7" stroke-width="1"')+
+   lines.map((line,i)=>t(right-10,topY+(lines.length===2?17:21)+i*18,line,font,yellow,800,'text-anchor="end"')).join('');
+ };
  const info=(x,y,ic,title,value,sub='',w=160)=>`${icon(ic,x,y-35,39)}${t(x+48,y-15,title,17,'#bdefff',800)}${t(x+48,y+17,truncate(value,18),25,white,850)}${sub?t(x+48,y+41,truncate(sub,22),16,'#ccecf6',600):''}`;
  const bank=(x,n,focus)=>{
   const [c,,word]=theme(val(d,`bank${n}status`,'UNRATED'));
@@ -182,7 +200,7 @@ function makeSvg(p){
    <rect x="${x+3}" y="762" width="500" height="356" fill="${hasDeparture?'url(#bankShade)':'#052d43'}" fill-opacity="${hasDeparture?1:0.78}"/>
    ${top(x+3,713,500,name)}
    ${rr(x+331,774,156,52,c,13)}${t(x+409,806,word,27,white,900,'text-anchor="middle"')}${comfort?t(x+409,822,`COMFORT ${comfort}`,13,white,750,'text-anchor="middle"'):''}
-   ${reason?t(x+253,851,reason,17,yellow,800,'text-anchor="middle"'):''}
+   ${cautionNote(reason,x+487,829,258,15)}
    ${icon('target',x+22,873,36,white)}${t(x+71,888,focus==='pelagic'?'PELAGIC FOCUS':focus==='reef'?'BOTTOM / REEF FOCUS':'MIXED FISHING',19,'#d8f7ff',850)}
    ${t(x+71,914,focus==='pelagic'?'Tuna · Wahoo · Dolphin':focus==='reef'?'Snapper · Grouper · Reef fish':'Pelagic · Bottom / Reef',18,white,650)}
    ${icon('wave',x+22,930,36,'#a7efff')}${t(x+71,949,'CONDITIONS',18,'#b6ecff',850)}
@@ -224,10 +242,10 @@ function makeSvg(p){
  ${rr(0,0,W,H,'#087a9b',0)}${image(photo,0,0,1080,H)}${rr(0,0,W,H,'url(#shade)',0)}
  ${rr(28,18,1024,81,'#03233e',15)}${t(52,63,dateText,35,white,900)}${t(52,88,'07:00–17:00 JAMAICA TIME  ·  KINGSTON / MAIDEN CAY',17,'#ccefff',750)}${t(923,62,val(d,'freshness','N/A').toUpperCase(),17,'#b8ffda',850)}
  <g transform="translate(0,-276)">${panel(28,390,1024,301)}${t(48,434,'OVERALL MARINE CONDITIONS',34,white,950)}
- ${rr(48,455,355,108,statusColor,16)}${icon('wave',67,481,57,white)}${d.rainIndicator?icon('rain',354,484,38,white):''}${t(149,519,statusWord,54,white,950)}${t(151,547,`COMFORT ${val(d,'comfort','NOT SCORED')}`,19,white,850)}
+ ${rr(48,455,355,d.overallReason?81:108,statusColor,16)}${icon('wave',67,474,57,white)}${d.rainIndicator?icon('rain',354,477,38,white):''}${t(149,d.overallReason?507:519,statusWord,54,white,950)}${t(151,d.overallReason?530:547,`COMFORT ${val(d,'comfort','NOT SCORED')}`,19,white,850)}
  ${t(429,485,'Forecast guidance · comfort assessment',22,white,750)}${t(429,521,'KINGSTON  ·  MAIDEN CAY',20,'#a5ecff',850)}
- ${d.overallReason?t(429,554,d.overallReason,18,yellow,800):''}
- ${line(48,581,976)}${info(52,630,'wind','WIND / GUSTS',val(d,'wind'),`Gusts ${val(d,'gust')}`)}
+ ${cautionNote(d.overallReason,403,541,355,16)}
+ ${line(48,585,976)}${info(52,630,'wind','WIND / GUSTS',val(d,'wind'),`Gusts ${val(d,'gust')}`)}
  ${info(269,630,'wave','SEAS',val(d,'seas'))}${info(479,630,'tide','WAVE PERIOD',val(d,'period'))}
  ${info(710,630,'rain','RAIN',val(d,'rain'))}${info(873,630,'sun','UV INDEX',val(d,'uv'))}
  ${bank(28,1,fishingFocus({focus:d.bank1focus,focusVerified:d.bank1focusVerified,fishingEvidence:d.bank1fishingEvidence}))}${bank(546,2,fishingFocus({focus:d.bank2focus,focusVerified:d.bank2focusVerified,fishingEvidence:d.bank2fishingEvidence}))}
