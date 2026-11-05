@@ -20,7 +20,8 @@ jobs:
       - name: Generate master-cache test posters
         env:
           SEVEN_DAY_DATA_URL: ${{ secrets.SEVEN_DAY_DATA_URL }}
-        run: node scripts/generate-seven-day-poster.mjs
+          MARINE7_TEST: '1'
+        run: node scripts/generate-seven-day.mjs
       - name: Publish test images only
         run: |
           set -euo pipefail
