@@ -232,8 +232,8 @@ function makeSvg(p){
  ${rr(0,0,W,H,'#087a9b',0)}${image(photo,0,0,1080,H)}${rr(0,0,W,H,'url(#shade)',0)}
  ${rr(28,18,1024,81,'#03233e',15)}${t(52,63,dateText,35,white,900)}${t(52,88,'07:00–17:00 JAMAICA TIME  ·  KINGSTON / MAIDEN CAY',17,'#ccefff',750)}${t(923,62,val(d,'freshness','N/A').toUpperCase(),17,'#b8ffda',850)}
  <g transform="translate(0,-276)">${panel(28,390,1024,301)}${t(48,434,'OVERALL MARINE CONDITIONS',34,white,950)}
- ${rr(48,455,355,108,statusColor,16)}${icon('wave',67,481,57,white)}${d.rainIndicator?icon('rain',354,484,38,white):''}${t(149,519,statusWord,54,white,950)}${t(151,547,`COMFORT ${val(d,'comfort','NOT SCORED')} · PROVISIONAL`,19,white,850)}
- ${t(429,485,'Forecast guidance · provisional comfort assessment',22,white,750)}${t(429,521,'KINGSTON  ·  MAIDEN CAY',20,'#a5ecff',850)}
+ ${rr(48,455,355,108,statusColor,16)}${icon('wave',67,481,57,white)}${d.rainIndicator?icon('rain',354,484,38,white):''}${t(149,519,statusWord,54,white,950)}${t(151,547,`COMFORT ${val(d,'comfort','NOT SCORED')} · CACHED`,19,white,850)}
+ ${t(429,485,'Forecast comfort · master cache',22,white,750)}${t(429,521,'KINGSTON  ·  MAIDEN CAY',20,'#a5ecff',850)}
  ${line(48,581,976)}${info(52,630,'wind','WIND / GUSTS',val(d,'wind'),`Gusts ${val(d,'gust')}`)}
  ${info(269,630,'wave','SEAS',val(d,'seas'))}${info(479,630,'tide','WAVE PERIOD',val(d,'period'))}
  ${info(710,630,'rain','RAIN',val(d,'rain'))}${info(873,630,'sun','UV INDEX',val(d,'uv'))}
@@ -253,10 +253,10 @@ function makeSvg(p){
  ${icon('warn',772,1498,51,yellow)}${t(840,1512,'SAFETY FIRST',27,cyan,950)}
  ${t(840,1543,'Check official marine',17,white,700)}${t(840,1567,'warnings before departure.',17,white,700)}${t(840,1591,'Not for navigation.',17,white,750)}
  </g>
- ${panel(28,1343,1024,206)}${top(30,1345,1020,'SUGGESTED DEPARTURE & RETURN · JAMAICA TIME')}
+ ${panel(28,1343,1024,206)}${top(30,1345,1020,'DEPARTURE & RETURN · NOT VERIFIED')}
  ${t(50,1392,'LOCATION',15,cyan,850)}${t(314,1392,'DEPART (OUT)',15,cyan,850)}${t(554,1392,'RETURN (BACK)',15,cyan,850)}${t(800,1392,'MAX GUST (TIME)',15,cyan,850)}
  ${line(48,1403,978)}${travelRows || t(50,1450,'NOT ASSESSED · No verified departure or return windows',21,white,800)}
- ${t(49,1534,'TEST · Conditional weather windows only; not a vessel or route clearance',15,'#c7e9f4',650)}
+ ${t(49,1534,'TEST · No departure clearance · Check official marine warnings',15,'#c7e9f4',650)}
  ${t(746,87,'TEST OUTLOOK',15,'#ffdc4c',850)}
  ${p.preview?`${t(50,360,'DESIGN PREVIEW • NOT LIVE',18,'#ffdc4c',850)}`:''}
  </svg>`;
@@ -281,35 +281,6 @@ try { const jpg=await readFile(resolve('instagram/sunset-background.jpg'));globa
 const fmt=(v,unit='',dec=1)=>typeof v==='number'&&Number.isFinite(v)?`${v.toFixed(dec)}${unit?' '+unit:''}`:'Not available';
 const text=(v)=>typeof v==='string'&&v.trim()?v:'Not available';
 
-// Isolated port of the existing GAS classifyAvg / classifyByAvgWithChop and
-// comfortScore formula. No production code is imported or modified.
-// Daily aggregate feed lacks hourly thunderstorm and squall flags; if these
-// are unknown, classification is marked PROVISIONAL rather than authoritative.
-const STATUS_LIMITS={green:{wave:1.5,wind:12},yellow:{wave:2.0,wind:18},
-  chopOne:3.5,chopTwo:2.5,heavyRain:20,rainChance:80,moderateRain:15};
-function scoreFromExistingRules(site){
- const numericValue=v=>typeof v==='number'&&Number.isFinite(v);
- const {windKn, waveM, wavePeriodS, rainMm, rainProbabilityPct}=site;
- if(![windKn,waveM,wavePeriodS].every(numericValue))return null;
- let index=(waveM<=1.5&&windKn<=12)?0:(waveM<=2&&windKn<=18)?1:2;
- if(wavePeriodS<=2.5)index+=2;
- else if(wavePeriodS<=3.5)index+=1;
- if(numericValue(rainMm)&&
-   (rainMm>=20||(numericValue(rainProbabilityPct)&&rainProbabilityPct>=80&&rainMm>=15)))index+=1;
- // Production uses actual hourly thunderstorm/squall flags. The aggregate feed
- // does not contain these, so the status is a minimum-severity assessment.
- const condition=['GREEN','YELLOW','RED'][Math.min(2,index)];
- const seasFt=waveM*3.28084;
- const seas=seasFt<=2?5:seasFt<=3?4:seasFt<=4?3:seasFt<=5?2:1;
- const wind=windKn<=8?5:windKn<=12?4:windKn<=16?3:windKn<=22?2:1;
- const chopPenalty=wavePeriodS<=5?2:wavePeriodS<=7?1:wavePeriodS>=9?-0.25:0;
- let base=0.5*seas+0.35*wind+0.15*3-chopPenalty;
- if(condition==='YELLOW')base-=0.25;
- if(condition==='RED')base-=0.75;
- const score=Math.max(1,Math.min(5,Math.round(base)));
- return {condition,score,provisional:true};
-}
-
 // Astronomical calculations for the Kingston reference point. These are calculated
 // from the date and coordinates, never copied from the illustrative mockup.
 const timeJA=(date)=>date instanceof Date&&Number.isFinite(date.getTime())
@@ -328,118 +299,64 @@ function astronomyFromProduction(day){
 const compass=(deg)=>typeof deg==='number'&&Number.isFinite(deg)
  ?['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round((((deg%360)+360)%360)/22.5)%16]:'';
 function toPoster(day){
-  const find=id=>day.locations.find(x=>x.id===id);
-  const maiden=find('maiden'), bow=find('bowditch'), cal=find('california');
-  if(![maiden,bow,cal].every(x=>x&&x.ready&&!x.stale))throw Error(`Incomplete or stale source data for ${day.date}`);
-  for(const site of [maiden,bow,cal]) {
-    const hours=site.hourlyEvidence||[];
-    if(hours.length!==10 || hours.some((h,i)=>h.hour!==i+7 || !h.complete || !Number.isFinite(h.gustKn)))
-      throw Error(`Missing timestamped gust evidence for ${site.name} on ${day.date}; poster preserved`);
-  }
-  const conditions=s=>`${fmt(s.windKn,'kn')} wind · ${fmt(s.waveM,'m')} seas · ${fmt(s.wavePeriodS,'s')} period`;
-  const rain=s=>`${fmt(s.rainMm,'mm')} · peak rain chance ${fmt(s.rainProbabilityPct,'%',0)}`;
-  const authoritative=s=>s.productionScore&&
-    ['GREEN','YELLOW','RED'].includes(s.productionScore.status)&&
-    Number.isFinite(Number(s.productionScore.comfort))?
-    {condition:s.productionScore.status,score:Number(s.productionScore.comfort),provisional:false}:null;
-  const primary=authoritative(maiden)||scoreFromExistingRules(maiden);
-  const b1=authoritative(bow)||scoreFromExistingRules(bow);
-  const b2=authoritative(cal)||scoreFromExistingRules(cal);
-  if(!primary||!b1||!b2)throw Error(`Missing inputs needed to score ${day.date}`);
-  // These are provisional, computed with the original GAS formula from cached
-  // daily aggregates. Thunderstorm, squall and hourly travel-screening flags
-  // remain unverified and are not silently treated as confirmed absent.
-  const sky=astronomyFromProduction(day);
-  const hourFmt=h=>`${String(h).padStart(2,'0')}:00`;
-  function conditionalWindow(site){
-    const slots=site.hourlyEvidence||[];
-    if(slots.length!==10||slots.some(s=>!s.complete))return null;
-    // Conservative weather-only screen; NOT a departure clearance.
-    const safe=s=>[s.windKn,s.gustKn,s.waveM,s.wavePeriodS,s.rainMm,s.rainProbabilityPct]
-      .every(v=>typeof v==='number'&&Number.isFinite(v)) &&
-      s.windKn<=12 && s.gustKn<=15 && s.waveM<=1.0 &&
-      s.wavePeriodS>=4 && s.rainMm<2 && s.rainProbabilityPct<70;
-    const good=slots.filter(safe).map(s=>s.hour);
-    const runs=[];let run=[];
-    for(let h=7;h<17;h++){
-      if(good.includes(h))run.push(h);
-      else if(run.length){runs.push(run);run=[];}
-    }
-    if(run.length)runs.push(run);
-    const usable=runs.filter(r=>r.length>=2);
-    if(!usable.length)return null;
-    // Earliest 2h window and latest 2h window are forecast periods only.
-    const first=usable[0],last=usable[usable.length-1];
-    return {departure:`${hourFmt(first[0])}–${hourFmt(first[first.length-1]+1)}`,
-      return:`${hourFmt(last[0])}–${hourFmt(last[last.length-1]+1)}`,
-      assessment:'Conditional weather window only, not route or vessel clearance'};
-  }
-  const windows=[maiden,bow,cal].map((s,i)=>{
-    const w=conditionalWindow(s);
-    const gustSamples=(s.hourlyEvidence||[]).filter(h=>Number.isFinite(h.gustKn)&&Number.isInteger(h.hour)&&h.hour>=7&&h.hour<17);
-    // Peak gust is from the exact 07:00-17:00 hourly samples; ties use earliest occurrence.
-    const peak=gustSamples.reduce((best,h)=>!best||h.gustKn>best.gustKn?h:best,null);
-    return {destination:['Maiden Cay','Mackerel Bank','California Bank'][i],
-      departure:w?w.departure:'None identified',
-      return:w?w.return:'None identified',
-      maxGustKn:peak?peak.gustKn:null,
-      maxGustTime:peak?hourFmt(peak.hour):null,
-      assessment:w?w.assessment:'No suitable two-hour period identified using available inputs'};
-  });
-  const poster={
-    status:primary.condition,condition:primary.provisional?'Provisional marine conditions':'Production score snapshot',comfort:`${primary.score}/5`,
-    freshness:'TEST',wind:fmt(maiden.windKn,'kn'),gust:fmt(maiden.gustKn,'kn'),
-    seas:fmt(maiden.waveM,'m'),period:fmt(maiden.wavePeriodS,'s'),
-    rain:fmt(maiden.rainMm,'mm'),uv:fmt(maiden.uvMax,'',0),
-    bank1:'Mackerel (Bowditch)',bank1status:b1.condition,bank1comfort:`${b1.score}/5`,bank1detail:conditions(bow),bank1rain:rain(bow),
-    bank2:'California Bank',bank2status:b2.condition,bank2comfort:`${b2.score}/5`,bank2detail:conditions(cal),bank2rain:rain(cal),
-    bank1focus:'mixed',bank2focus:'mixed',bank1focusVerified:false,bank2focusVerified:false,
-    highTides:maiden.highTides||'Not available',lowTides:maiden.lowTides||'Not available',
-    ...sky,
-    current:maiden.currentUnitVerified&&Number.isFinite(maiden.currentKn)?fmt(maiden.currentKn,'kn'):'Not available (units unverified)',
-    currentDir:maiden.currentUnitVerified?compass(maiden.currentDirectionDeg):'',
-    sst:fmt(maiden.sstC,'°C'),swell:`${fmt(maiden.swellM,'m')} ${compass(maiden.swellDirectionDeg)}`, 
-    travelWindows:windows
-  };
-  return {day:day.date,poster,extended:day.dayOffset>=3};
+ const find=(id,pattern)=>day.locations.find(x=>x.locationKey===id)||day.locations.find(x=>pattern.test(x.location));
+ const maiden=find('maiden',/maiden/i),bow=find('bowditch',/bowditch|mackerel/i),cal=find('california',/california/i);
+ if(![maiden,bow,cal].every(Boolean))throw Error(`Missing required locations on ${day.date}`);
+ const sites=[maiden,bow,cal];
+ for(const s of sites){
+  if(s.dataState!=='MEASUREMENTS_COMPLETE'||!Number.isFinite(s.comfortScore)||!['GREEN','YELLOW','RED'].includes(s.comfortStatus))throw Error(`Unverified comfort: ${day.date}/${s.locationKey}`);
+  for(const k of ['avgWindKn','peakGustKn','avgWaveM','peakWaveM','avgWavePeriodS','rainMm'])if(!Number.isFinite(s[k]))throw Error(`Missing ${k}: ${day.date}/${s.locationKey}`);
+ }
+ const f=(v,u='',dp=1)=>Number.isFinite(v)?`${v.toFixed(dp)}${u?' '+u:''}`:'Not available';
+ const status=s=>s.comfortStatus;
+ const conditions=s=>`${f(s.avgWindKn,'kn')} wind · ${f(s.avgWaveM,'m')} seas · ${f(s.avgWavePeriodS,'s')} period`;
+ const rain=s=>`${f(s.rainMm,'mm')} · peak waves ${f(s.peakWaveM,'m')}${s.peakWaveLocal?' '+s.peakWaveLocal:''}`;
+ const windows=sites.map((s,i)=>({destination:['Maiden Cay','Mackerel Bank','California Bank'][i],departure:'NOT VERIFIED',return:'NOT VERIFIED',maxGustKn:s.peakGustKn,maxGustTime:s.peakGustLocal||null,assessment:'Departure and return not assessed'}));
+ return {day:day.date,extended:day.offset>=3,poster:{
+  status:status(maiden),condition:'Standardized master-cache comfort',comfort:`${f(maiden.comfortScore,'',1)}/5`,freshness:'TEST',
+  wind:f(maiden.avgWindKn,'kn'),gust:f(maiden.peakGustKn,'kn'),seas:f(maiden.avgWaveM,'m'),period:f(maiden.avgWavePeriodS,'s'),
+  rain:f(maiden.rainMm,'mm'),uv:f(maiden.uvMax,'',0),
+  bank1:'Mackerel (Bowditch)',bank1status:status(bow),bank1comfort:`${f(bow.comfortScore,'',1)}/5`,bank1detail:conditions(bow),bank1rain:rain(bow),
+  bank2:'California Bank',bank2status:status(cal),bank2comfort:`${f(cal.comfortScore,'',1)}/5`,bank2detail:conditions(cal),bank2rain:rain(cal),
+  bank1focus:'mixed',bank2focus:'mixed',bank1focusVerified:false,bank2focusVerified:false,
+  highTides:'Not verified',lowTides:'Not verified',sunrise:'Not available',sunset:'Not available',moonrise:'Not available',moonset:'Not available',moonPhase:'Not available',moonIllum:'Not available',
+  current:Number.isFinite(maiden.avgCurrentKn)?f(maiden.avgCurrentKn,'kn'):'Not available',currentDir:'',sst:f(maiden.sstC,'°C'),swell:'Not available',travelWindows:windows,
+  rainIndicator:maiden.rainMm>3.5,peakWave:f(maiden.peakWaveM,'m')+(maiden.peakWaveLocal?` (${maiden.peakWaveLocal})`:' (time unavailable)')
+ }};
 }
 async function loadFeed(){
- if(!endpoint)throw Error('SEVEN_DAY_DATA_URL secret is missing');
- const callback=`mwInstagramCallback_${Date.now()}_1`;
- const url=new URL(endpoint);url.searchParams.set('action','sevenDayData');url.searchParams.set('callback',callback);
- const ac=new AbortController();const timeout=setTimeout(()=>ac.abort(),65000);
+ if(!endpoint)throw Error('SEVEN_DAY_DATA_URL GitHub secret is missing');
+ const callback=`mwInstagramCallback_${Date.now()}_1`,url=new URL(endpoint);
+ url.searchParams.set('action','marine7MasterData');url.searchParams.set('callback',callback);
+ const ac=new AbortController(),timer=setTimeout(()=>ac.abort(),65000);
  try{
-  const response=await fetch(url,{signal:ac.signal});
-  if(!response.ok)throw Error(`Seven-day endpoint returned HTTP ${response.status}`);
-  const body=(await response.text()).trim();
-  let data;
-  if(body.startsWith('{'))data=JSON.parse(body);
-  else{
-    const match=body.match(/^([A-Za-z_$][\w$]*)\s*\(\s*([\s\S]*?)\s*\)\s*;?$/);
-    if(!match||match[1]!==callback)throw Error('Unexpected endpoint response format or callback');
-    data=JSON.parse(match[2]);
+  const response=await fetch(url,{signal:ac.signal});if(!response.ok)throw Error(`Master feed returned ${response.status}`);
+  const data=parseForecastResponse(await response.text(),callback);
+  if(!data?.ok||data.timezone!=='America/Jamaica'||data.source!=='Marine7DayCache'||!Array.isArray(data.days)||data.days.length!==7)throw Error('Master-cache feed invalid');
+  for(const [i,day] of data.days.entries()){
+   if(day.offset!==i||day.date!==jamaicaDay(i)||!Array.isArray(day.locations)||day.locations.length!==14)throw Error(`Master-cache day ${i} invalid`);
+   for(const s of day.locations){if(s.dataState!=='MEASUREMENTS_COMPLETE'||!Number.isFinite(s.comfortScore)||!['GREEN','YELLOW','RED'].includes(s.comfortStatus)||!s.sourceWeatherAt||!s.sourceMarineAt)throw Error(`Unverified master cache ${day.date}/${s.locationKey}`);}
   }
-  if(!data?.ok||!Array.isArray(data.days)||data.days.length!==7)throw Error('Seven-day feed is incomplete');
-  if(data.timezone!=='America/Jamaica'||data.days[0].date!==jamaicaDay())throw Error('Seven-day dates or timezone mismatch');
   return data;
- }finally{clearTimeout(timeout);}
+ }finally{clearTimeout(timer);}
 }
 await mkdir(out,{recursive:true});
 const feed=await loadFeed();
-const manifest=[];const failures=[];
+const manifest=[];const failures=[];const rendered=[];
 for(const day of feed.days){
  try{
-  if(day.dayOffset!==manifest.length||day.date!==jamaicaDay(day.dayOffset))throw Error('Unexpected date sequence');
+  if(day.offset!==manifest.length||day.date!==jamaicaDay(day.offset))throw Error('Unexpected date sequence');
   const payload=toPoster(day);
   const png=await sharp(Buffer.from(makeSvg(payload))).png({compressionLevel:8}).toBuffer();
   const meta=await sharp(png).metadata();
   if(meta.width!==1080||meta.height!==1560||png.length<20000)throw Error('Poster image validation failed');
   const name=`${day.date}.png`;const tmp=resolve(out,`.${day.date}.tmp`);
-  await writeFile(tmp,png);await rename(tmp,resolve(out,name));
-  manifest.push({date:day.date,category:day.dayOffset>=3?'extended':'short-range',status:payload.poster.status,comfort:payload.poster.comfort,image:name,
+  rendered.push({tmp,name,png});
+  manifest.push({date:day.date,category:day.offset>=3?'extended':'short-range',status:payload.poster.status,comfort:payload.poster.comfort,image:name,source:'Marine7DayCache',summary:`Wind ${payload.poster.wind}; gust ${payload.poster.gust}; seas ${payload.poster.seas}; peak wave ${payload.poster.peakWave}; rain ${payload.poster.rain}`, 
     sha256:createHash('sha256').update(png).digest('hex')});
   console.log(`TEST POSTER: ${day.date} generated, ${png.length} bytes`);
  }catch(e){failures.push(day.date);console.error(`TEST POSTER FAILED: ${day.date}: ${e.message}`);}
 }
 if(failures.length)throw Error(`Test incomplete: ${failures.join(', ')}. Live posters unaffected.`);
+for(const item of rendered){await writeFile(item.tmp,item.png);await rename(item.tmp,resolve(out,item.name));}
 await writeFile(resolve(out,'manifest.json'),JSON.stringify({generatedAt:new Date().toISOString(),mode:'TEST',days:manifest},null,2)+'\n');
