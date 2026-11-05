@@ -27,7 +27,7 @@ poster.addEventListener("error",()=>{document.getElementById("poster-fallback").
   const res=await fetch(`instagram/generated/seven-day-manifest.json?v=${Date.now()}`,{cache:'no-store'});
   if(!res.ok) return;
   const manifest=await res.json();
-  if(!Array.isArray(manifest.days)||manifest.days.length!==7||manifest.days[0].date!==jaDate())return;
+  if(!Array.isArray(manifest.days)||manifest.days.length!==7||manifest.days[0].date!==jaDate()||!Number.isFinite(Date.parse(manifest.generatedAt))||Date.now()-Date.parse(manifest.generatedAt)>24*3600000)return;
   let selected=-1;
   function choose(index){
    const item=manifest.days[index];if(!item)return;
@@ -45,11 +45,11 @@ poster.addEventListener("error",()=>{document.getElementById("poster-fallback").
    if(selected>=0){selected=-1;img.src=previousSrc;img.hidden=false;if(caption)caption.innerHTML=previousCaption;}
   });
   manifest.days.forEach((item,i)=>{
-   const b=document.createElement('button');b.type='button';b.className='seven-day-button '+(i<3?'seven-day-short':'seven-day-extended');
+   const b=document.createElement('button');b.type='button';const status=String(item.status||'').toUpperCase();b.className='seven-day-button '+(['GREEN','YELLOW','AMBER','RED'].includes(status)?'seven-day-'+status.toLowerCase():'seven-day-unknown');
    const day=new Date(item.date+'T12:00:00Z');
    const name=new Intl.DateTimeFormat('en-US',{weekday:'short',timeZone:'UTC'}).format(day);
    b.textContent=`${name} ${day.getUTCDate()}`;
-   b.title=i<3?'Short-range forecast':'Extended outlook';
+   b.title=(item.status||'Unrated')+' · '+(i<3?'Short-range forecast':'Extended outlook, greater uncertainty')+' · provisional';
    b.setAttribute('aria-pressed','false');b.addEventListener('click',()=>choose(i));nav.appendChild(b);
   });
   nav.hidden=false;choose(0);

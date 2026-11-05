@@ -118,3 +118,6 @@
 .seven-day-button[aria-pressed="true"]{outline:3px solid white;outline-offset:1px;filter:brightness(1.14)}
 .seven-day-button:focus-visible{outline:3px solid #fff;outline-offset:2px}
 @media(max-width:560px){.seven-day-select{gap:3px}.seven-day-button{padding:9px 0;font-size:10px}}
+
+/* Live seven-day buttons now follow the tested provisional comfort colours. */
+.seven-day-green{background:#168348}.seven-day-yellow,.seven-day-amber{background:#bc830c}.seven-day-red{background:#b63738}.seven-day-unknown{background:#65717d}
