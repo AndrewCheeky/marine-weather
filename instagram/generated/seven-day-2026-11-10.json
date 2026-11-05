@@ -3,7 +3,7 @@
   "offset": 6,
   "outlook": "extended",
   "source": "Marine7DayCache",
-  "generatedAt": "2026-11-05T03:59:04.633Z",
+  "generatedAt": "2026-11-05T04:13:34.281Z",
   "locations": [
     {
       "id": "maiden",
@@ -48,5 +48,5 @@
       "updatedAt": "2026-11-04T20:36:18.291Z"
     }
   ],
-  "sha256": "3645a58e95805a6845e5c1c0876c2400f7b6c5e5051218be60fbbf42b604a4d7"
+  "sha256": "a5235fed89743de996e88bdc8248c72d82929cdbbee165ac6ce416381836f8f7"
 }
