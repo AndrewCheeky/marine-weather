@@ -2,6 +2,51 @@
   "date": "2026-11-07",
   "offset": 3,
   "outlook": "extended",
-  "generatedAt": "2026-11-04T18:53:46.387Z",
-  "sha256": "ab28785b5031c347b32e8ca13afeb149debc9a53f72e6dcc1646e581607a7140"
+  "source": "Marine7DayCache",
+  "generatedAt": "2026-11-05T03:30:04.150Z",
+  "locations": [
+    {
+      "id": "maiden",
+      "status": "GREEN",
+      "score": 4.8,
+      "conditionLabel": "Very comfortable",
+      "windKn": 3.0507559369500004,
+      "gustKn": 7.3434125208,
+      "waveM": 0.274,
+      "peakWaveM": 0.3,
+      "wavePeriodS": 6.0649999999999995,
+      "rainMm": 0.6,
+      "rainProbabilityPct": 97,
+      "updatedAt": "2026-11-04T20:36:18.291Z"
+    },
+    {
+      "id": "bowditch",
+      "status": "GREEN",
+      "score": 4.6,
+      "conditionLabel": "Very comfortable",
+      "windKn": 8.261339085900001,
+      "gustKn": 10.6911446994,
+      "waveM": 0.32999999999999996,
+      "peakWaveM": 0.36,
+      "wavePeriodS": 6.124999999999999,
+      "rainMm": 2,
+      "rainProbabilityPct": 52,
+      "updatedAt": "2026-11-04T20:36:18.291Z"
+    },
+    {
+      "id": "california",
+      "status": "GREEN",
+      "score": 4.8,
+      "conditionLabel": "Very comfortable",
+      "windKn": 5.853131744520001,
+      "gustKn": 11.879049666,
+      "waveM": 0.31999999999999995,
+      "peakWaveM": 0.34,
+      "wavePeriodS": 6.15,
+      "rainMm": 0.3,
+      "rainProbabilityPct": 52,
+      "updatedAt": "2026-11-04T20:36:18.291Z"
+    }
+  ],
+  "sha256": "fb34d9d0e575cb5d767417b0512ed59e2d00a56908ab332b25185c1bfe4e28a5"
 }
