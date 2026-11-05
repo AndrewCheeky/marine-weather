@@ -1,14 +1,130 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#052638"><meta name="description" content="Jamaica marine weather, fishing banks, currents and coastal forecasts — plan safer days on the water."><title>Marine Weather Jamaica | Plan · Fish · Explore</title><link rel="stylesheet" href="assets/landing.css?v=7.9.3"><link rel="stylesheet" href="/assets/pwa.css?v=6.1"><link rel="manifest" href="/manifest.webmanifest"><link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png"><link rel="apple-touch-icon" href="/icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><style>.site-header .header-actions{display:flex;align-items:center;gap:10px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}.site-header .header-actions .check-conditions-cta{margin-left:0}.site-header .header-actions .catch-log-cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--yellow,#ffd846);color:#102d3d;box-shadow:0 5px 18px #0002}.site-header .header-actions .catch-log-cta:hover{background:#ffe475}@media(max-width:520px){.site-header .header-actions{width:100%;justify-content:center;gap:8px}.site-header .header-actions .nav-cta{font-size:11px;padding:10px 12px}}</style><link rel="stylesheet" href="assets/seven-day-nav.css?v=3"></head>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#052638">
+<meta name="description" content="Jamaica marine weather for fishing banks: wind, seas, wave period, currents, tides and a 7-day outlook for Kingston, Mackerel (Bowditch), California Bank and more.">
+<title>Marine Weather Jamaica | Plan · Fish · Explore</title>
+<link rel="stylesheet" href="assets/landing.css?v=8.0.0">
+<link rel="stylesheet" href="assets/pwa.css?v=6.1">
+<link rel="stylesheet" href="assets/forecast.css?v=8.0.0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
 <body>
-<header class="site-header"><a href="#home" class="brand" aria-label="Marine Weather Jamaica home"><span class="brand-wave" aria-hidden="true">≋</span><span><strong>MARINE WEATHER</strong><small>J A M A I C A</small></span></a><nav class="header-actions" aria-label="Quick actions"><a class="nav-cta check-conditions-cta" href="#bank-snapshots">Check Conditions <span aria-hidden="true">↗</span></a><a class="nav-cta catch-log-cta" href="https://fishing-logs.andrewcheeky.com/" target="_blank" rel="noopener noreferrer">Log Daily Catch <span aria-hidden="true">↗</span></a></nav></header>
+<header class="site-header">
+  <a href="#home" class="brand" aria-label="Marine Weather Jamaica home"><span class="brand-wave" aria-hidden="true">≋</span><span><strong>MARINE WEATHER</strong><small>J A M A I C A</small></span></a>
+  <nav class="header-actions" aria-label="Quick actions">
+    <a class="nav-cta check-conditions-cta" href="#bank-snapshots">Check a bank</a>
+    <a class="nav-cta catch-log-cta" href="https://fishing-logs.andrewcheeky.com/" target="_blank" rel="noopener noreferrer">Log catch <span aria-hidden="true">↗</span></a>
+  </nav>
+</header>
 <div id="pwa-offline-notice" class="pwa-offline-notice" role="status" hidden>Offline: showing previously saved content where available; forecast information may be outdated, so verify current conditions and official marine advisories before going offshore.</div>
+
 <main id="home">
-<section class="hero" aria-labelledby="hero-title"><div class="hero-overlay"></div><div class="hero-content"><div class="hero-copy"><p class="eyebrow">MADE FOR JAMAICA'S WATERS</p><h1 id="hero-title">A brighter day <em>on the water.</em></h1><p class="lead">Marine forecasts, fishing bank conditions and coastal insights all in one place, built for the way Jamaica gets out on the sea.</p></div><div class="poster-panel" id="today-outlook"><div class="seven-day-select" id="seven-day-select" aria-label="Select marine forecast day"></div><p id="seven-day-explanation" class="seven-day-explanation">Select a forecast day to view the marine outlook for Kingston / Maiden Cay, Mackerel (Bowditch) and California Bank. Days 4–7 are extended forecasts with greater uncertainty.</p><img id="daily-poster" src="instagram/generated/today.png" alt="Latest published daily Marine Weather Jamaica forecast for Kingston and Maiden Cay, including fishing banks" loading="eager" fetchpriority="high"><div id="poster-fallback" hidden class="poster-fallback">Today's forecast image is not available yet. Use the forecast tools below for current guidance.</div><p class="poster-caption">Latest published forecast image · <a href="instagram/generated/today.png" target="_blank" rel="noopener">View full size ↗</a></p></div></div><div class="hero-bottom"><span>JAMAICA <b>•</b> PLAN <b>•</b> FISH <b>•</b> EXPLORE</span><a href="#explore">DISCOVER MORE ↓</a></div></section>
-<section class="bank-snapshots section" id="bank-snapshots" aria-labelledby="banks-title"><div class="section-intro"><p class="eyebrow teal">JAMAICA'S FISHING GROUNDS</p><h2 id="banks-title">Your bank. Your forecast.</h2><p>Select a location to view its latest pre-rendered marine forecast, with the live forecast always one click away.</p></div><div class="bank-snapshot-shell"><div class="bank-toolbar"><label for="bank-select">Fishing location<select id="bank-select" aria-label="Select fishing location"></select></label><label for="bank-period">Forecast window<select id="bank-period"><option value="current" selected>Current 6 hours</option><option value="tomorrow">Tomorrow · 07:00–17:00</option></select></label><a id="bank-live" class="bank-live" target="_blank" rel="noopener noreferrer">Open live forecast ↗</a></div><div class="bank-display"><div class="bank-photo"><div class="bank-photo-label">MARINE WEATHER <b>JAMAICA</b><span>PLAN · FISH · EXPLORE</span></div><div class="bank-photo-tag">SAME SEA. BRIGHTER DAYS.</div></div><div class="bank-content"><h3 id="bank-title">Select a fishing bank</h3><p id="bank-image-state" role="status" aria-live="polite">Checking latest published image…</p><a id="bank-image-link" href="#bank-hourly-dialog" aria-label="Expand forecast and view hourly conditions" hidden><img id="bank-image" alt="Published fishing bank marine forecast" loading="lazy"></a><p class="bank-note">Forecast images are refreshed on a three-hour schedule when valid data is available. Always check the timestamp and official advisories. Not for navigation.</p></div></div></div></section>
+<section class="hero mw-hero" aria-labelledby="hero-title">
+  <div class="hero-overlay"></div>
+  <div class="hero-content mw-hero-content">
+    <div class="hero-copy">
+      <p class="eyebrow">MADE FOR JAMAICA'S WATERS</p>
+      <h1 id="hero-title">A brighter day <em>on the water.</em></h1>
+      <p class="lead">Marine forecasts, fishing bank conditions and coastal insights in one place, built for the way Jamaica gets out on the sea.</p>
+    </div>
+
+    <section class="outlook" id="today-outlook" aria-labelledby="outlook-title">
+      <div class="outlook-head">
+        <h2 id="outlook-title">Marine outlook</h2>
+        <p id="outlook-updated" class="outlook-updated">Loading latest forecast…</p>
+      </div>
+      <div class="day-strip" id="seven-day-select" role="group" aria-label="Choose a forecast day"></div>
+      <div id="outlook-stale" class="outlook-banner stale" role="status" hidden></div>
+      <div id="outlook-offshore" class="outlook-banner" role="status" hidden></div>
+      <div class="area-grid" id="area-grid" aria-live="polite"></div>
+      <details class="outlook-more" id="outlook-more" hidden>
+        <summary>Tides, sun &amp; moon, currents and weather windows</summary>
+        <div class="more-grid" id="more-grid"></div>
+      </details>
+      <p class="outlook-foot" id="outlook-foot">07:00–17:00 Jamaica time · Days 4–7 are extended outlooks with greater uncertainty.</p>
+      <div id="poster-fallback" class="poster-fallback-wrap" hidden>
+        <p>The text forecast is temporarily unavailable. Showing the latest published forecast image:</p>
+        <img id="daily-poster" alt="Latest published daily Marine Weather Jamaica forecast for Kingston, Maiden Cay and fishing banks" loading="lazy">
+      </div>
+    </section>
+  </div>
+  <div class="hero-bottom"><span>JAMAICA <b>•</b> PLAN <b>•</b> FISH <b>•</b> EXPLORE</span><a href="#bank-snapshots">YOUR BANK ↓</a></div>
+</section>
+
+<section class="bank-snapshots section" id="bank-snapshots" aria-labelledby="banks-title">
+  <div class="section-intro">
+    <p class="eyebrow teal">JAMAICA'S FISHING GROUNDS</p>
+    <h2 id="banks-title">Your bank. Your forecast.</h2>
+    <p>Pick a bank on the map or from the list to see its hour-by-hour wind, gusts, seas and current.</p>
+  </div>
+
+  <div class="bank-shell">
+    <div class="bank-toolbar">
+      <label for="bank-select">Fishing location<select id="bank-select"></select></label>
+      <label for="bank-period">Forecast window<select id="bank-period"><option value="current" selected>Next 24 hours</option><option value="tomorrow">Tomorrow · 07:00–17:00</option></select></label>
+      <a id="bank-live" class="bank-live" target="_blank" rel="noopener noreferrer">Open live forecast ↗</a>
+    </div>
+
+    <div class="bank-layout">
+      <div class="bank-map-wrap">
+        <div id="bank-map" class="bank-map" role="region" aria-label="Map of fishing banks coloured by current rating"><p class="map-placeholder">Map loads when you scroll here…</p></div>
+        <ul class="map-legend" aria-label="Map legend">
+          <li><span class="dot green" aria-hidden="true"></span>Good</li>
+          <li><span class="dot amber" aria-hidden="true"></span>Caution</li>
+          <li><span class="dot red" aria-hidden="true"></span>Alert</li>
+          <li><span class="dot unknown" aria-hidden="true"></span>Not rated</li>
+        </ul>
+        <p id="map-note" class="map-note" hidden></p>
+      </div>
+
+      <article class="bank-card" id="bank-card" aria-labelledby="bank-title">
+        <header class="bank-card-head">
+          <div>
+            <h3 id="bank-title">Select a fishing bank</h3>
+            <p id="bank-updated" class="bank-updated"></p>
+          </div>
+          <div id="bank-rating" class="rating-pill unknown" hidden></div>
+        </header>
+        <p id="bank-state" class="bank-state" role="status" aria-live="polite">Loading bank forecast…</p>
+        <dl class="bank-stats" id="bank-stats" hidden></dl>
+        <div class="bank-charts" id="bank-charts" hidden>
+          <figure class="chart" id="chart-wind"></figure>
+          <figure class="chart" id="chart-seas"></figure>
+        </div>
+        <details class="bank-hours" id="bank-hours" hidden>
+          <summary>Hour-by-hour table</summary>
+          <div class="table-scroll"><table><thead><tr><th scope="col">Time</th><th scope="col">Wind kt</th><th scope="col">Gust kt</th><th scope="col">Seas ft</th><th scope="col">Period s</th><th scope="col">Current kt</th><th scope="col">Rain %</th></tr></thead><tbody id="bank-rows"></tbody></table></div>
+        </details>
+        <details class="bank-quicklook" id="bank-quicklook" hidden>
+          <summary>Full quick-look card (sky, weedline, fishing rating)</summary>
+          <a id="bank-image-link" target="_blank" rel="noopener"><img id="bank-image" alt="" width="760" decoding="async"></a>
+        </details>
+        <p class="bank-note">Forecast guidance only, refreshed about every three hours. Check the update time and <a href="https://metservice.gov.jm/" target="_blank" rel="noopener noreferrer">official marine advisories</a>. Not for navigation. <a href="how-to-read.html">How to read this forecast</a></p>
+      </article>
+    </div>
+  </div>
+</section>
+
 <div id="marine-shared-footer"></div>
+<p class="site-credit">Forecast data: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> (CC BY 4.0), with <a href="https://www.visualcrossing.com/" target="_blank" rel="noopener noreferrer">Visual Crossing</a> as a backup. · <a href="how-to-read.html">How to read this forecast</a></p>
 </main>
+
 <div id="marine-alert-modal" class="alert-backdrop" hidden role="presentation"><section id="marine-alert-card" class="alert-card" role="alertdialog" aria-modal="true" aria-labelledby="marine-alert-title" aria-describedby="marine-alert-message"><h2 id="marine-alert-title">⚠ Marine Alert in Effect</h2><p id="marine-alert-message"></p><p class="alert-meta" id="marine-alert-issued"></p><div class="alert-actions"><button type="button" id="marine-alert-ack">I Acknowledge</button><a href="https://metservice.gov.jm/" target="_blank" rel="noopener noreferrer">Check official advisories ↗</a></div></section></div>
-<dialog id="bank-hourly-dialog" class="bank-hourly-dialog" aria-labelledby="bank-hourly-heading"><div class="bank-hourly-head"><h2 id="bank-hourly-heading">Hourly marine forecast</h2><button id="bank-hourly-close" type="button" aria-label="Close expanded forecast">✕ Close</button></div><div class="bank-hourly-layout"><div><img id="bank-hourly-image" alt="Expanded fishing bank forecast"></div><div class="bank-hourly-data"><p id="bank-hourly-meta" role="status">Loading cached hourly forecast…</p><div class="bank-hourly-scroll"><table><thead><tr><th>Time</th><th>Wind kt</th><th>Gust kt</th><th>Seas ft</th><th>Period s</th><th>Current kt</th><th>Rain %</th></tr></thead><tbody id="bank-hourly-rows"></tbody></table></div><p class="bank-hourly-note">Times are Jamaica time · Published hourly snapshot · Forecast guidance only; verify official marine advisories · Not for navigation.</p></div></div></dialog>
+
 <div id="live-forecast-modal" class="live-forecast-modal" hidden role="dialog" aria-modal="true" aria-label="Live fishing bank forecast"><div class="live-forecast-panel"><div class="live-forecast-top"><strong id="live-forecast-title">Live marine forecast</strong><button id="live-forecast-close" type="button" aria-label="Close live forecast">×</button></div><div class="live-forecast-stage"><div id="live-forecast-loading" class="live-forecast-loading" role="status" aria-live="polite"><span class="live-forecast-spinner" aria-hidden="true"></span><strong>Loading live forecast…</strong><span>Please wait while your marine outlook opens.</span></div><iframe id="live-forecast-frame" title="Live fishing bank forecast" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe></div></div></div>
-<script src="assets/pwa.js?v=7.9.2" defer></script><script src="assets/landing.js?v=7day-nav-restore-3" defer></script><script src="assets/shared-footer.js" defer></script><script src="assets/banks.js?v=7.9.5" defer></script><script src="assets/marine-alert.js" defer></script></body></html>
+
+<script src="assets/pwa.js?v=8.0.0" defer></script>
+<script src="assets/mw-common.js?v=8.0.0" defer></script>
+<script src="assets/outlook.js?v=8.0.0" defer></script>
+<script src="assets/banks.js?v=8.0.0" defer></script>
+<script src="assets/shared-footer.js?v=8.0.0" defer></script>
+<script src="assets/marine-alert.js" defer></script>
+</body>
+</html>

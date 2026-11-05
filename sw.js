@@ -1,13 +1,14 @@
 /* Marine Weather Jamaica: versioned offline app shell; no background forecast requests. */
-const VERSION = 'mwja-pwa-v7.9.5';
+const VERSION = 'mwja-pwa-v8.0.0';
 const SHELL = VERSION + '-shell';
 const FORECAST = VERSION + '-forecasts';
 const CACHE_PREFIX = 'mwja-pwa-';
 const ASSETS = [
-  '/', '/index.html', '/assets/landing.css?v=7.9.3', '/assets/pwa.css?v=6.1',
-  '/assets/landing.js', '/assets/pwa.js', '/assets/shared-footer.js',
-  '/assets/shared-footer.css', '/assets/banks.js?v=7.9.5', '/assets/marine-alert.js',
-  '/banks/banks.json', '/assets/jamaica-sea-sunset.jpg',
+  '/', '/index.html', '/how-to-read.html',
+  '/assets/landing.css?v=8.0.0', '/assets/forecast.css?v=8.0.0', '/assets/pwa.css?v=6.1',
+  '/assets/pwa.js?v=8.0.0', '/assets/mw-common.js?v=8.0.0', '/assets/outlook.js?v=8.0.0',
+  '/assets/banks.js?v=8.0.0', '/assets/shared-footer.js?v=8.0.0', '/assets/shared-footer.css?v=5.9',
+  '/assets/marine-alert.js', '/banks/banks.json', '/assets/coastal/fishermen-nets.webp',
   '/icons/icon-192.png', '/icons/icon-512.png'
 ];
 

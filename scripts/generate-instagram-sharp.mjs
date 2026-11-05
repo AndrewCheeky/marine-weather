@@ -1,5 +1,6 @@
 import sharp from 'sharp';
 import {fishingFocus} from './fishing-focus.mjs';
+import {offshoreSummary,worstStatus} from './status-summary.mjs';
 import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
@@ -227,9 +228,9 @@ function makeSvg(p){
  <defs><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#03182b" stop-opacity=".18"/><stop offset=".65" stop-color="#01243a" stop-opacity=".40"/><stop offset="1" stop-color="#00344b" stop-opacity=".75"/></linearGradient><linearGradient id="bankShade" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#03253c" stop-opacity=".03"/><stop offset=".42" stop-color="#031b30" stop-opacity=".30"/><stop offset=".75" stop-color="#031a2c" stop-opacity=".87"/><stop offset="1" stop-color="#031827" stop-opacity=".96"/></linearGradient></defs>
  ${rr(0,0,W,H,'#087a9b',0)}${image(photo,0,0,1080,H)}${rr(0,0,W,H,'url(#shade)',0)}
  ${rr(28,18,1024,81,'#03233e',15)}${t(52,63,dateText,35,white,900)}${t(52,88,'07:00–17:00 JAMAICA TIME  ·  KINGSTON / MAIDEN CAY',17,'#ccefff',750)}${t(923,62,val(d,'freshness','N/A').toUpperCase(),17,'#b8ffda',850)}
- <g transform="translate(0,-276)">${panel(28,390,1024,301)}${t(48,434,'OVERALL MARINE CONDITIONS',34,white,950)}
+ <g transform="translate(0,-276)">${panel(28,390,1024,301)}${t(48,434,'INSHORE · KINGSTON / MAIDEN CAY',34,white,950)}
  ${rr(48,455,355,108,statusColor,16)}${icon('wave',67,481,57,white)}${d.rainIndicator?icon('rain',354,484,38,white):''}${t(149,519,statusWord,54,white,950)}${t(151,547,`COMFORT  ${val(d,'comfort')}`,23,white,850)}
- ${t(429,485,truncate(val(d,'condition'),40),25,white,750)}${t(429,521,'KINGSTON  ·  MAIDEN CAY',20,'#a5ecff',850)}
+ ${t(429,485,truncate(val(d,'condition'),40),25,white,750)}${(()=>{const o=offshoreSummary(d);if(!o.worse)return t(429,521,truncate(o.text,54),18,'#a5ecff',900);const bg=o.status==='RED'?'#c83c45':'#f5b942',fg=o.status==='RED'?'#ffffff':'#20384d';return rr(424,498,604,34,bg,9)+t(438,521,'⚠ '+truncate(o.text,52),18,fg,900);})()}
  ${line(48,581,976)}${info(52,630,'wind','WIND / GUSTS',val(d,'wind'),`Gusts ${val(d,'gust')}`)}
  ${info(269,630,'wave','SEAS',val(d,'seas'))}${info(479,630,'tide','WAVE PERIOD',val(d,'period'))}
  ${info(710,630,'rain','RAIN',val(d,'rain'))}${info(873,630,'sun','UV INDEX',val(d,'uv'))}
