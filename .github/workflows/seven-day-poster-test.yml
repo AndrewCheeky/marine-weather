@@ -1,4 +1,4 @@
-name: Seven-Day Poster TEST (isolated)
+name: Seven-Day MASTER Cache Poster TEST (isolated)
 on:
   workflow_dispatch:
 permissions:
@@ -17,7 +17,7 @@ jobs:
           node-version: '22'
       - name: Install renderer
         run: npm install --no-save --no-audit --no-fund sharp@0.34.4 suncalc@1.9.0
-      - name: Generate test posters
+      - name: Generate master-cache test posters
         env:
           SEVEN_DAY_DATA_URL: ${{ secrets.SEVEN_DAY_DATA_URL }}
         run: node scripts/generate-seven-day-poster.mjs
