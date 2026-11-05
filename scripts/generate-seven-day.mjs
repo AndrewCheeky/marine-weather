@@ -14,15 +14,27 @@ const fmt=(x,n=1)=>Number(x).toFixed(n);
 const txt=(x,y,s,size=25,color='#fff',weight=600)=>`<text x="${x}" y="${y}" font-family="Arial,sans-serif" font-size="${size}" font-weight="${weight}" fill="${color}">${esc(s)}</text>`;
 const box=(x,y,w,h,color)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="15" fill="${color}"/>`;
 const color=s=>({GREEN:'#16834b',YELLOW:'#bd8614',AMBER:'#bd8614',RED:'#b83b42'})[s];
+// Accept strict JSON or one matching JSONP callback, without evaluating remote JavaScript.
+export function parseMasterFeed(body, callback){
+ const source=String(body).replace(/^\uFEFF/,'').trim();
+ if(source.startsWith('{'))return JSON.parse(source);
+ const match=source.match(/^(?:\/\*[\s\S]*?\*\/\s*)?([A-Za-z_$][\w$]*)\s*\(\s*([\s\S]*?)\s*\)\s*;?\s*$/);
+ if(!match)throw Error('Feed is neither a JSON object nor a single JSONP callback');
+ if(match[1]!==callback)throw Error('JSONP callback mismatch');
+ return JSON.parse(match[2]);
+}
 async function getFeed(){
  const cb='mwInstagramCallback_'+Date.now()+'_1',url=new URL(endpoint);
  url.searchParams.set('action','marine7master');url.searchParams.set('callback',cb);
- const response=await fetch(url,{signal:AbortSignal.timeout(65000)});
+ const response=await fetch(url,{signal:AbortSignal.timeout(65000),headers:{Accept:'*/*'}});
+ const body=await response.text();
+ const source=body.replace(/^\uFEFF/,'').trim();
+ const format=source.startsWith('{')?'JSON':/^[A-Za-z_$][\w$]*\s*\(/.test(source)?'JSONP':/^<!doctype|^<html/i.test(source)?'HTML':'other';
+ console.log('MASTER CACHE RESPONSE:',JSON.stringify({status:response.status,format,contentType:(response.headers.get('content-type')||'unknown').split(';')[0],bytes:Buffer.byteLength(body)}));
  if(!response.ok)throw Error('Master-cache feed request failed: HTTP '+response.status);
- const body=(await response.text()).trim(),prefix=cb+'(';
- if(!body.startsWith(prefix)||!body.endsWith(');'))throw Error('Master-cache JSONP response invalid');
- return JSON.parse(body.slice(prefix.length,-2));
+ try{return parseMasterFeed(body,cb);}catch(e){throw Error('Master-cache feed parse failed: '+e.message+' (format='+format+')');}
 }
+
 function validate(feed){
  if(!feed?.ok||feed.source!=='Marine7DayCache'||feed.schemaVersion!=='marine7-cache-only-v4'||feed.timezone!==zone||feed.days?.length!==7)throw Error('Unexpected master-cache schema');
  const all=new Set(),sites=new Set(),now=Date.now(),maxAge=24*3600*1000;
