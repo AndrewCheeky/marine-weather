@@ -23,18 +23,36 @@ jobs:
         env:
           SEVEN_DAY_DATA_URL: ${{ secrets.SEVEN_DAY_DATA_URL }}
         run: node scripts/generate-seven-day.mjs
+      - name: Verify all seven dated PNG and JSON files
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile,stat} from 'node:fs/promises';
+          import {resolve} from 'node:path';
+          const root='instagram/generated';
+          const manifest=JSON.parse(await readFile(resolve(root,'seven-day-manifest.json'),'utf8'));
+          if(!Array.isArray(manifest.days)||manifest.days.length!==7) throw Error('Manifest must contain exactly seven days');
+          const dates=manifest.days.map(d=>d.date);
+          if(new Set(dates).size!==7 || dates.some(d=>!/^\d{4}-\d{2}-\d{2}$/.test(d))) throw Error('Invalid or duplicate dates');
+          for(const date of dates){
+            const base=resolve(root,`seven-day-${date}`);
+            const png=await readFile(`${base}.png`);
+            if(png.length<100 || !png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))) throw Error(`Missing/invalid PNG: ${date}`);
+            const json=JSON.parse(await readFile(`${base}.json`,'utf8'));
+            if(!json || typeof json!=='object') throw Error(`Invalid JSON: ${date}`);
+            console.log(`Verified ${date}: PNG ${png.length} bytes; JSON present`);
+          }
+          console.log('All seven dated PNG/JSON pairs verified.');
+          NODE
       - name: Publish seven-day posters
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          # Publish images, metadata and the manifest as one atomic commit.
           git add -f instagram/generated/seven-day-*.png instagram/generated/seven-day-*.json instagram/generated/seven-day-manifest.json
-          echo 'Staged seven-day assets:'
-          git diff --cached --name-status
-          test "$(git diff --cached --name-only -- 'instagram/generated/*.png' | wc -l)" -ge 7 || { echo 'Expected seven updated PNGs'; exit 1; }
-          git diff --cached --name-only | grep -q 'seven-day-manifest.json' || { echo 'Manifest not updated'; exit 1; }
-          if git diff --cached --quiet; then exit 0; fi
+          if git diff --cached --quiet; then
+            echo 'All seven pairs verified; generated assets are identical to committed versions.'
+            exit 0
+          fi
           git commit -m 'Update seven-day marine outlook'
           git pull --rebase origin main
           git push origin HEAD:main
