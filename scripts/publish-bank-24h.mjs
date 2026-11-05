@@ -55,6 +55,10 @@ try{
   if(k<0||la<0||lo<0)throw Error('expected key, lat and lon columns');
   const locations=rows.map(row=>({key:String(row[k]||'').trim().toLowerCase(),lat:Number(row[la]),lon:Number(row[lo])}))
     .filter(l=>keys.has(l.key)&&Number.isFinite(l.lat)&&Number.isFinite(l.lon)&&Math.abs(l.lat)<=90&&Math.abs(l.lon)<=180);
+  // If a bank appears more than once in the sheet, keep only its last row.
+  const unique=[...new Map(locations.map(l=>[l.key,l])).values()];
+  if(unique.length<locations.length)console.warn('Ignored '+(locations.length-unique.length)+' duplicate row(s) in the banks tab');
+  locations.length=0;locations.push(...unique);
   if(!locations.length)throw Error('no matching rows');
   await writeFile('banks/locations.json',JSON.stringify(locations,null,2)+'\n');
   console.log('Bank locations published for map: '+locations.length+' of '+keys.size);
