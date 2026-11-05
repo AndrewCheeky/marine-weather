@@ -415,6 +415,13 @@ function toPoster(day){
       maxGustTime:peak?hourFmt(peak.hour):null,
       assessment:w?w.assessment:'No suitable two-hour period identified using available inputs'};
   });
+  // Current, sea temperature and swell for each bank, using the same rules as the inshore values.
+  const sea=(site,n)=>({
+    [`bank${n}current`]:site.currentUnitVerified&&Number.isFinite(site.currentKn)?fmt(site.currentKn,'kt'):'Not available',
+    [`bank${n}currentDir`]:site.currentUnitVerified?compass(site.currentDirectionDeg):'',
+    [`bank${n}sst`]:fmt(Number.isFinite(site.sstC)?site.sstC*9/5+32:null,'°F'),
+    [`bank${n}swell`]:Number.isFinite(site.swellM)?`${fmt(site.swellM*3.28084,'ft')} ${compass(site.swellDirectionDeg)}`.trim():'Not available'
+  });
   const poster={
     status:primary.condition,condition:'Marine conditions',comfort:`${primary.score}/5`,
     overallReason:conditionReason(maiden,primary.condition),
@@ -430,6 +437,7 @@ function toPoster(day){
     current:maiden.currentUnitVerified&&Number.isFinite(maiden.currentKn)?fmt(maiden.currentKn,'kt'):'Not available (units unverified)',
     currentDir:maiden.currentUnitVerified?compass(maiden.currentDirectionDeg):'',
     sst:fmt(Number.isFinite(maiden.sstC)?maiden.sstC*9/5+32:null,'°F'),swell:`${fmt(Number.isFinite(maiden.swellM)?maiden.swellM*3.28084:null,'ft')} ${compass(maiden.swellDirectionDeg)}`, 
+    ...sea(bow,1),...sea(cal,2),
     travelWindows:windows
   };
   return {day:day.date,poster,extended:day.dayOffset>=3};
