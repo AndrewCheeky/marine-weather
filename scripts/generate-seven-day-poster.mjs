@@ -309,9 +309,9 @@ function toPoster(day){
  }
  const f=(v,u='',dp=1)=>Number.isFinite(v)?`${v.toFixed(dp)}${u?' '+u:''}`:'Not available';
  const status=s=>s.comfortStatus;
- const conditions=s=>`${f(s.avgWindKn,'kn')} wind · ${f(s.avgWaveM,'m')} seas · ${f(s.avgWavePeriodS,'s')} period`;
+ const conditions=s=>`${f(s.avgWindKn,'kn')} wind · ${f(s.avgWaveM,'m')} seas`;
  const rain=s=>`${f(s.rainMm,'mm')} rain · peak ${f(s.peakWaveM,'m')} waves`;
- const windows=sites.map((s,i)=>({destination:['Maiden Cay','Mackerel Bank','California Bank'][i],departure:'NOT VERIFIED',return:'NOT VERIFIED',maxGustKn:s.peakGustKn,maxGustTime:s.peakGustLocal||null,assessment:'Departure and return not assessed'}));
+ const windows=sites.map((s,i)=>({destination:['Maiden Cay','Mackerel Bank','California Bank'][i],departure:'NOT VERIFIED',return:'NOT VERIFIED',maxGustKn:s.peakGustKn,maxGustTime:/^\d{2}:\d{2}$/.test(s.peakGustLocal||'')?s.peakGustLocal:null,assessment:'Departure and return not assessed'}));
  return {day:day.date,extended:day.offset>=3,poster:{
   status:status(maiden),condition:'Standardized master-cache comfort',comfort:`${f(maiden.comfortScore,'',1)}/5`,freshness:'TEST',
   wind:f(maiden.avgWindKn,'kn'),gust:f(maiden.peakGustKn,'kn'),seas:f(maiden.avgWaveM,'m'),period:f(maiden.avgWavePeriodS,'s'),
@@ -319,7 +319,7 @@ function toPoster(day){
   bank1:'Mackerel (Bowditch)',bank1status:status(bow),bank1comfort:`${f(bow.comfortScore,'',1)}/5`,bank1detail:conditions(bow),bank1rain:rain(bow),
   bank2:'California Bank',bank2status:status(cal),bank2comfort:`${f(cal.comfortScore,'',1)}/5`,bank2detail:conditions(cal),bank2rain:rain(cal),
   bank1focus:'mixed',bank2focus:'mixed',bank1focusVerified:false,bank2focusVerified:false,
-  highTides:'Not verified',lowTides:'Not verified',sunrise:'Not available',sunset:'Not available',moonrise:'Not available',moonset:'Not available',moonPhase:'Not available',moonIllum:'Not available',
+  highTides:maiden.highTides||'Not available',lowTides:maiden.lowTides||'Not available',sunrise:maiden.sunriseLocal||'Not available',sunset:maiden.sunsetLocal||'Not available',moonrise:maiden.moonriseLocal||'Not available',moonset:maiden.moonsetLocal||'Not available',moonPhase:maiden.moonPhase||'Not available',moonIllum:Number.isFinite(maiden.moonIlluminationPct)?`${maiden.moonIlluminationPct.toFixed(1)}%`:'Not available',
   current:f(maiden.avgCurrentKn,'kn'),currentDir:compass(maiden.currentDirectionDeg),sst:f(maiden.sstC,'°C'),
   swell:Number.isFinite(maiden.swellHeightM)?`${f(maiden.swellHeightM,'m')} ${compass(maiden.swellDirectionDeg)}${Number.isFinite(maiden.swellPeriodS)?' · '+f(maiden.swellPeriodS,'s'):''}`:'Not available',travelWindows:windows,
   rainIndicator:maiden.rainMm>3.5,peakWave:f(maiden.peakWaveM,'m')+(maiden.peakWaveLocal?` (${maiden.peakWaveLocal})`:' (time unavailable)')
