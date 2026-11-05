@@ -28,7 +28,12 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add instagram/generated/seven-day-*.png instagram/generated/seven-day-*.json
+          # Publish images, metadata and the manifest as one atomic commit.
+          git add -f instagram/generated/seven-day-*.png instagram/generated/seven-day-*.json instagram/generated/seven-day-manifest.json
+          echo 'Staged seven-day assets:'
+          git diff --cached --name-status
+          test "$(git diff --cached --name-only -- 'instagram/generated/*.png' | wc -l)" -ge 7 || { echo 'Expected seven updated PNGs'; exit 1; }
+          git diff --cached --name-only | grep -q 'seven-day-manifest.json' || { echo 'Manifest not updated'; exit 1; }
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'Update seven-day marine outlook'
           git pull --rebase origin main
