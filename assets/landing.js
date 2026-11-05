@@ -1,19 +1,6 @@
-// The image is versioned by the latest successful image build, not by the browser clock.
-const poster=document.getElementById("daily-poster");
-poster.src="instagram/generated/today.png?v="+Date.now();
-poster.addEventListener("error",()=>{document.getElementById("poster-fallback").hidden=false;poster.hidden=true;});
-
-// Bust browser and service-worker caches when a new Jamaica-day image is published.
-(function(){
-  const img=document.getElementById('daily-poster');
-  if(!img)return;
-  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Jamaica',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
-  const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));
-  const day=`${p.year}-${p.month}-${p.day}`;
-  img.src=`instagram/generated/today.png?day=${day}&design=v6.4&refresh=${Math.floor(Date.now()/600000)}`;
-  const full=document.querySelector('.poster-caption a[href*="today.png"]');
-  if(full)full.href=img.src;
-})();
+// Daily image remains a fallback only if the seven-day manifest is unavailable.
+const poster=document.getElementById('daily-poster');
+poster.addEventListener('error',()=>{document.getElementById('poster-fallback').hidden=false;poster.hidden=true;});
 
 // Seven-day posters are optional. Existing daily poster remains the fallback.
 (async function initSevenDay(){
@@ -27,12 +14,15 @@ poster.addEventListener("error",()=>{document.getElementById("poster-fallback").
   const res=await fetch(`instagram/generated/seven-day-manifest.json?v=${Date.now()}`,{cache:'no-store'});
   if(!res.ok) return;
   const manifest=await res.json();
-  if(!Array.isArray(manifest.days)||manifest.days.length!==7||manifest.days[0].date!==jaDate()||!Number.isFinite(Date.parse(manifest.generatedAt))||Date.now()-Date.parse(manifest.generatedAt)>24*3600000)return;
+  if(!Array.isArray(manifest.days)||manifest.days.length!==7||!manifest.days.every(d=>/^\d{4}-\d{2}-\d{2}$/.test(d.date)&&/^instagram\/generated\/seven-day-\d{4}-\d{2}-\d{2}\.png$/.test(d.image)&&d.image.endsWith(d.date+'.png')))return;
+  const currentDay=jaDate();
+  const firstAvailable=manifest.days.findIndex(d=>d.date>=currentDay);
+  const initialIndex=firstAvailable>=0?firstAvailable:0;
   let selected=-1;
   function choose(index){
    const item=manifest.days[index];if(!item)return;
    selected=index;
-   const url=item.image+`?date=${item.date}&v=${encodeURIComponent(manifest.generatedAt)}`;
+   const url=item.image+`?date=${item.date}&v=${encodeURIComponent(manifest.generatedAt||item.date)}`;
    img.hidden=false;fallback.hidden=true;
    img.src=url;
    img.alt=`Jamaica marine ${item.outlook==='extended'?'extended outlook':'short-range forecast'} for ${item.date}, 7 AM to 5 PM`;
@@ -49,9 +39,9 @@ poster.addEventListener("error",()=>{document.getElementById("poster-fallback").
    const day=new Date(item.date+'T12:00:00Z');
    const name=new Intl.DateTimeFormat('en-US',{weekday:'short',timeZone:'UTC'}).format(day);
    b.textContent=`${name} ${day.getUTCDate()}`;
-   b.title=(item.status||'Unrated')+' · '+(i<3?'Short-range forecast':'Extended outlook, greater uncertainty')+' · provisional';
+   b.title=(item.status||'Unrated')+' · '+(item.outlook==='extended'?'Extended outlook, greater uncertainty':'Short-range forecast');
    b.setAttribute('aria-pressed','false');b.addEventListener('click',()=>choose(i));nav.appendChild(b);
   });
-  nav.hidden=false;choose(0);
+  nav.hidden=false;choose(initialIndex);
  }catch(e){console.warn('Seven-day outlook unavailable; current daily poster preserved.');}
 })();
