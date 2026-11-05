@@ -1,0 +1,62 @@
+{
+  "generatedAt": "2026-11-05T19:01:19.937Z-3677fcb3-9437-449c-887a-7bde55342453",
+  "mode": "PRODUCTION",
+  "days": [
+    {
+      "date": "2026-11-05",
+      "category": "short-range",
+      "status": "GREEN",
+      "comfort": "4.4/5",
+      "image": "seven-day-2026-11-05.png",
+      "sha256": "baf61f69aa4b66ec2033ef0a5eadac0d820579e1e71f5c14e27013495b714779"
+    },
+    {
+      "date": "2026-11-06",
+      "category": "short-range",
+      "status": "GREEN",
+      "comfort": "4.8/5",
+      "image": "seven-day-2026-11-06.png",
+      "sha256": "3f530edd2bc9ff020567d34c803827a47915c6a736d802d4957e36936ee8c9c6"
+    },
+    {
+      "date": "2026-11-07",
+      "category": "short-range",
+      "status": "GREEN",
+      "comfort": "4.8/5",
+      "image": "seven-day-2026-11-07.png",
+      "sha256": "bff5ba0602e762f0da07a4b954c33d3ce4779d0704bcee6f335855145de49e73"
+    },
+    {
+      "date": "2026-11-08",
+      "category": "extended",
+      "status": "GREEN",
+      "comfort": "4.8/5",
+      "image": "seven-day-2026-11-08.png",
+      "sha256": "40c4a5ac2a4b24ff8319c64cc3a324f80080d756435ba556b1ac4e7a94afb7a1"
+    },
+    {
+      "date": "2026-11-09",
+      "category": "extended",
+      "status": "GREEN",
+      "comfort": "3/5",
+      "image": "seven-day-2026-11-09.png",
+      "sha256": "b9d6310546b9de34c207061d531f44f76c846b7159b5548d3a068ef2af429c69"
+    },
+    {
+      "date": "2026-11-10",
+      "category": "extended",
+      "status": "GREEN",
+      "comfort": "3/5",
+      "image": "seven-day-2026-11-10.png",
+      "sha256": "54b56b117876e316d95e74c7364e967a91ae363afb965a09fe384995f3256e49"
+    },
+    {
+      "date": "2026-11-11",
+      "category": "extended",
+      "status": "GREEN",
+      "comfort": "3/5",
+      "image": "seven-day-2026-11-11.png",
+      "sha256": "ed8c94028aee4a4aff818d68e755d6211d4becdad10773e9711a9db5e39277a5"
+    }
+  ]
+}
