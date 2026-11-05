@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-05T15:21:39.103Z-2a711c3f-2fe3-4bef-8cfe-92ee11166253",
+  "generatedAt": "2026-11-05T19:01:19.937Z-3677fcb3-9437-449c-887a-7bde55342453",
   "mode": "PRODUCTION",
   "days": [
     {
@@ -8,15 +8,15 @@
       "status": "GREEN",
       "comfort": "4.4/5",
       "image": "seven-day-2026-11-05.png",
-      "sha256": "661e52d8e551959204e08bdda928bc049abd1fbdacef07934be5b21e207a4c26"
+      "sha256": "baf61f69aa4b66ec2033ef0a5eadac0d820579e1e71f5c14e27013495b714779"
     },
     {
       "date": "2026-11-06",
       "category": "short-range",
       "status": "GREEN",
-      "comfort": "4.7/5",
+      "comfort": "4.8/5",
       "image": "seven-day-2026-11-06.png",
-      "sha256": "4aba011fecef4d29c52fcd5e494e9dbd60340cd0f76f27777654e7bd57ba2dde"
+      "sha256": "3f530edd2bc9ff020567d34c803827a47915c6a736d802d4957e36936ee8c9c6"
     },
     {
       "date": "2026-11-07",
@@ -24,7 +24,7 @@
       "status": "GREEN",
       "comfort": "4.8/5",
       "image": "seven-day-2026-11-07.png",
-      "sha256": "b5c9af60cc2a075c6eb567d341d1988ba17a2222de59ea925b0870c18fab574f"
+      "sha256": "bff5ba0602e762f0da07a4b954c33d3ce4779d0704bcee6f335855145de49e73"
     },
     {
       "date": "2026-11-08",
@@ -32,7 +32,7 @@
       "status": "GREEN",
       "comfort": "4.8/5",
       "image": "seven-day-2026-11-08.png",
-      "sha256": "042df349363a1d97c782f2dd309593b3153c403d92d242e4c198e83895183dab"
+      "sha256": "40c4a5ac2a4b24ff8319c64cc3a324f80080d756435ba556b1ac4e7a94afb7a1"
     },
     {
       "date": "2026-11-09",
@@ -40,7 +40,7 @@
       "status": "GREEN",
       "comfort": "3/5",
       "image": "seven-day-2026-11-09.png",
-      "sha256": "e1cea39b48fe0ced31342f01fa9e7a5cf7f479606842c67d6231016377dcc7de"
+      "sha256": "b9d6310546b9de34c207061d531f44f76c846b7159b5548d3a068ef2af429c69"
     },
     {
       "date": "2026-11-10",
@@ -48,7 +48,7 @@
       "status": "GREEN",
       "comfort": "3/5",
       "image": "seven-day-2026-11-10.png",
-      "sha256": "204848e6c4fc8bade817505731d1f165c4fa6daa16353792312b8ea5a71c5748"
+      "sha256": "54b56b117876e316d95e74c7364e967a91ae363afb965a09fe384995f3256e49"
     },
     {
       "date": "2026-11-11",
@@ -56,7 +56,7 @@
       "status": "GREEN",
       "comfort": "3/5",
       "image": "seven-day-2026-11-11.png",
-      "sha256": "331deddd2ec0a5803427836cd9fce03e10489f2f67aae7ade721d576f9065b62"
+      "sha256": "ed8c94028aee4a4aff818d68e755d6211d4becdad10773e9711a9db5e39277a5"
     }
   ]
 }
