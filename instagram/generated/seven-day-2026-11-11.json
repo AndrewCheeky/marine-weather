@@ -1,0 +1,72 @@
+{
+  "date": "2026-11-11",
+  "generatedAt": "2026-11-05T13:20:37.033Z",
+  "poster": {
+    "status": "GREEN",
+    "condition": "Marine conditions",
+    "comfort": "3/5",
+    "freshness": "CURRENT",
+    "wind": "2.9 kt",
+    "gust": "7.7 kt",
+    "seas": "2.5 ft",
+    "period": "5.4 s",
+    "rain": "0.11 in",
+    "uv": "4",
+    "bank1": "Mackerel (Bowditch)",
+    "bank1status": "YELLOW",
+    "bank1comfort": "1/5",
+    "bank1detail": "16.6 kt wind · 3.2 ft seas · 5.1 s period",
+    "bank1windLine": "Wind 16.6 kt (Gust 21.1 kt)",
+    "bank1seaLine": "Seas 3.2 ft · Period 5.1 s",
+    "bank1rain": "0.07 in · peak chance 77 %",
+    "bank2": "California Bank",
+    "bank2status": "YELLOW",
+    "bank2comfort": "2/5",
+    "bank2detail": "14.9 kt wind · 2.8 ft seas · 5.2 s period",
+    "bank2windLine": "Wind 14.9 kt (Gust 20.6 kt)",
+    "bank2seaLine": "Seas 2.8 ft · Period 5.2 s",
+    "bank2rain": "0.08 in · peak chance 77 %",
+    "bank1focus": "mixed",
+    "bank2focus": "mixed",
+    "bank1focusVerified": false,
+    "bank2focusVerified": false,
+    "highTides": "Not available",
+    "lowTides": "Not available",
+    "sunrise": "6:11 AM",
+    "sunset": "5:31 PM",
+    "moonrise": "08:19",
+    "moonset": "19:22",
+    "moonPhase": "Waxing Crescent",
+    "moonIllum": "2%",
+    "current": "0.2 kt",
+    "currentDir": "WSW",
+    "sst": "85.6 °F",
+    "swell": "2.4 ft SE",
+    "travelWindows": [
+      {
+        "destination": "Maiden Cay",
+        "departure": "07:00–14:00",
+        "return": "07:00–14:00",
+        "maxGustKn": 7.721382282900001,
+        "maxGustTime": "14:00",
+        "assessment": "Conditional weather window only, not route or vessel clearance"
+      },
+      {
+        "destination": "Mackerel Bank",
+        "departure": "None identified",
+        "return": "None identified",
+        "maxGustKn": 21.058315317,
+        "maxGustTime": "12:00",
+        "assessment": "No suitable two-hour period identified using available inputs"
+      },
+      {
+        "destination": "California Bank",
+        "departure": "None identified",
+        "return": "None identified",
+        "maxGustKn": 20.626349874600002,
+        "maxGustTime": "13:00",
+        "assessment": "No suitable two-hour period identified using available inputs"
+      }
+    ]
+  }
+}
