@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-11-05T01:10:50.198Z",
+  "generatedAt": "2026-11-05T01:21:56.422Z",
   "mode": "TEST",
   "days": [
     {
       "date": "2026-11-04",
       "category": "short-range",
       "status": "GREEN",
-      "comfort": "4.3/5",
+      "comfort": "3.9/5",
       "image": "2026-11-04.png",
       "source": "Marine7DayCache",
-      "summary": "Wind 3.4 kn; gust 7.3 kn; seas 0.8 m; peak wave 0.9 m (time unavailable); rain 3.8 mm",
-      "sha256": "267eed9076eef01e7c4cf81f74edefcae4d17265605e5967f75e3356ed499cc1"
+      "summary": "Wind 8.6 kn; gust 6.2 kn; seas 0.8 m; peak wave 0.9 m (time unavailable); rain 2.1 mm",
+      "sha256": "c155ac371182abef0d2344b9756fa6d0eb6c8028f6c28db5a8715270aef2ccef"
     },
     {
       "date": "2026-11-05",
@@ -19,8 +19,8 @@
       "comfort": "4.5/5",
       "image": "2026-11-05.png",
       "source": "Marine7DayCache",
-      "summary": "Wind 2.9 kn; gust 6.5 kn; seas 0.6 m; peak wave 0.7 m (time unavailable); rain 6.0 mm",
-      "sha256": "254749e40dc05345ff9ef8828521696fc9d7824547f32583b755c94d42686f7b"
+      "summary": "Wind 3.3 kn; gust 7.2 kn; seas 0.6 m; peak wave 0.7 m (time unavailable); rain 2.6 mm",
+      "sha256": "c571d032ed75d06ec7cc147f94b1ab7d071f73dba1c0cf37c8730930b1147566"
     },
     {
       "date": "2026-11-06",
@@ -29,18 +29,18 @@
       "comfort": "4.7/5",
       "image": "2026-11-06.png",
       "source": "Marine7DayCache",
-      "summary": "Wind 2.8 kn; gust 7.0 kn; seas 0.4 m; peak wave 0.4 m (time unavailable); rain 5.2 mm",
-      "sha256": "7a6f2f341b16de32532d52bec37c7e5bad1f3572c795dd581a6573e76b7c4ee6"
+      "summary": "Wind 3.0 kn; gust 7.1 kn; seas 0.4 m; peak wave 0.4 m (time unavailable); rain 3.3 mm",
+      "sha256": "712a3cec20b904bdee9650a832ff1ccf8d11d02962b54513b707c33a241bd9d0"
     },
     {
       "date": "2026-11-07",
       "category": "extended",
       "status": "GREEN",
-      "comfort": "4.9/5",
+      "comfort": "4.8/5",
       "image": "2026-11-07.png",
       "source": "Marine7DayCache",
-      "summary": "Wind 2.7 kn; gust 6.2 kn; seas 0.3 m; peak wave 0.3 m (time unavailable); rain 0.9 mm",
-      "sha256": "804bdb123aa827483c96b5358b6fed677dac1b36812f4ef88a18f2b1ab0d4f4f"
+      "summary": "Wind 3.1 kn; gust 7.3 kn; seas 0.3 m; peak wave 0.3 m (time unavailable); rain 0.6 mm",
+      "sha256": "853bcd34fb17c291d368bfb1796b26bbd874c37c9b3cf985421d27a5c11d22bd"
     },
     {
       "date": "2026-11-08",
@@ -49,8 +49,8 @@
       "comfort": "4.9/5",
       "image": "2026-11-08.png",
       "source": "Marine7DayCache",
-      "summary": "Wind 3.4 kn; gust 7.1 kn; seas 0.2 m; peak wave 0.2 m (time unavailable); rain 0.0 mm",
-      "sha256": "f1e103d8ce2bd468af15c8738ede1115a8ba43b68fdb48c59f3ba59904602c7f"
+      "summary": "Wind 3.6 kn; gust 6.1 kn; seas 0.2 m; peak wave 0.2 m (time unavailable); rain 0.0 mm",
+      "sha256": "402608bef4c6de127898a8877716ae5f8d9f9e2f0df6420b668c438132128b37"
     },
     {
       "date": "2026-11-09",
@@ -59,8 +59,8 @@
       "comfort": "4.8/5",
       "image": "2026-11-09.png",
       "source": "Marine7DayCache",
-      "summary": "Wind 3.7 kn; gust 7.5 kn; seas 0.3 m; peak wave 0.4 m (time unavailable); rain 2.0 mm",
-      "sha256": "5ac16d19bc9b8606e8e04e7973ba6de95dbf2f59d181eb60bd8804ada33bb08c"
+      "summary": "Wind 3.6 kn; gust 9.5 kn; seas 0.3 m; peak wave 0.4 m (time unavailable); rain 1.8 mm",
+      "sha256": "8dfa69549679838df6065a53d100bc277c518bd0a613aa2f44b630e3daaea3e9"
     },
     {
       "date": "2026-11-10",
@@ -69,8 +69,8 @@
       "comfort": "4.6/5",
       "image": "2026-11-10.png",
       "source": "Marine7DayCache",
-      "summary": "Wind 4.3 kn; gust 10.5 kn; seas 0.5 m; peak wave 0.6 m (time unavailable); rain 2.8 mm",
-      "sha256": "97be85309f07c2cdb9262dd957249560c5c43963f07212e5c3796674ecf9d760"
+      "summary": "Wind 4.3 kn; gust 10.2 kn; seas 0.5 m; peak wave 0.6 m (time unavailable); rain 3.0 mm",
+      "sha256": "562e8dcbc1decb390e5154e0927b09b4cbc59abc3a810e9c0585316caa243123"
     }
   ]
 }
