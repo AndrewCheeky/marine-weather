@@ -6,7 +6,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: seven-day-live-publish
+  group: seven-day-outlook
   cancel-in-progress: false
 jobs:
   generate:
@@ -19,20 +19,17 @@ jobs:
           node-version: '22'
       - name: Install Sharp
         run: npm install --no-save --no-audit --no-fund sharp@0.34.4
-      - name: Render isolated seven-day posters from master cache
+      - name: Render seven days from standardized master cache
         env:
           SEVEN_DAY_DATA_URL: ${{ secrets.SEVEN_DAY_DATA_URL }}
-          MARINE7_TEST: '1'
         run: node scripts/generate-seven-day.mjs
-      - name: Validate and promote test posters to live
-        run: node scripts/promote-seven-day-test.mjs
-      - name: Publish test and live seven-day posters
+      - name: Publish seven-day posters
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add instagram/seven-day-test/ instagram/generated/seven-day-*.png instagram/generated/seven-day-*.json instagram/generated/seven-day-manifest.json
+          git add instagram/generated/seven-day-*.png instagram/generated/seven-day-*.json instagram/generated/seven-day-manifest.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Promote validated seven-day test outlook to live'
+          git commit -m 'Update seven-day marine outlook'
           git pull --rebase origin main
           git push origin HEAD:main
