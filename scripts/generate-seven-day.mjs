@@ -1,9 +1,10 @@
 import sharp from 'sharp';
 // Astronomy is supplied by the existing production Google Apps Script functions.
 import {fishingFocus} from './fishing-focus.mjs';
-import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,rename,rm,stat} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
+import {randomUUID} from 'node:crypto';
 
 // Isolated TEST generator. Derived from the live Sharp poster layout.
 // Does not import, execute, or write to the live today/tomorrow generator.
@@ -429,44 +430,80 @@ function toPoster(day){
   };
   return {day:day.date,poster,extended:day.dayOffset>=3};
 }
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function loadFeed(){
  if(!endpoint)throw Error('SEVEN_DAY_DATA_URL secret is missing');
- const callback=`mwInstagramCallback_${Date.now()}_1`;
- const url=new URL(endpoint);url.searchParams.set('action','sevenDayData');url.searchParams.set('callback',callback);
- const ac=new AbortController();const timeout=setTimeout(()=>ac.abort(),65000);
- try{
-  const response=await fetch(url,{signal:ac.signal});
-  if(!response.ok)throw Error(`Seven-day endpoint returned HTTP ${response.status}`);
-  const body=(await response.text()).trim();
-  let data;
-  if(body.startsWith('{'))data=JSON.parse(body);
-  else{
+ const maxAttempts=3, timeoutMs=120000;
+ for(let attempt=1;attempt<=maxAttempts;attempt++){
+  const callback=`mwInstagramCallback_${Date.now()}_${attempt}`;
+  const url=new URL(endpoint);url.searchParams.set('action','sevenDayData');url.searchParams.set('callback',callback);
+  const ac=new AbortController();const timeout=setTimeout(()=>ac.abort(),timeoutMs);
+  try{
+   console.log(`FORECAST RETRIEVAL: attempt ${attempt}/${maxAttempts}, timeout ${timeoutMs/1000}s`);
+   const response=await fetch(url,{signal:ac.signal,headers:{Accept:'*/*'}});
+   if(!response.ok)throw Error(`Forecast request returned status ${response.status}`);
+   const body=(await response.text()).trim();
+   let data;
+   if(body.startsWith('{'))data=JSON.parse(body);
+   else{
     const match=body.match(/^([A-Za-z_$][\w$]*)\s*\(\s*([\s\S]*?)\s*\)\s*;?$/);
     if(!match||match[1]!==callback)throw Error('Unexpected endpoint response format or callback');
     data=JSON.parse(match[2]);
-  }
-  if(!data?.ok||!Array.isArray(data.days)||data.days.length!==7)throw Error('Seven-day feed is incomplete');
-  if(data.timezone!=='America/Jamaica'||data.days[0].date!==jamaicaDay())throw Error('Seven-day dates or timezone mismatch');
-  return data;
- }finally{clearTimeout(timeout);}
+   }
+   if(!data?.ok||!Array.isArray(data.days)||data.days.length!==7)throw Error('Seven-day feed is incomplete');
+   if(data.timezone!=='America/Jamaica'||data.days[0].date!==jamaicaDay())throw Error('Seven-day dates or timezone mismatch');
+   console.log(`FORECAST RETRIEVAL: success on attempt ${attempt}; ${data.days.length} days`);
+   return data;
+  }catch(error){
+   console.error(`FORECAST RETRIEVAL: attempt ${attempt}/${maxAttempts} failed: ${error.name==='AbortError'?'request timed out':error.message}`);
+   if(attempt===maxAttempts)throw Error(`Seven-day retrieval failed after ${maxAttempts} attempts: ${error.message}`);
+  }finally{clearTimeout(timeout);}
+  console.log('FORECAST RETRIEVAL: retrying after 10 seconds');
+  await sleep(10000);
+ }
 }
+// Render and validate the entire set in a staging folder before touching published files.
 await mkdir(out,{recursive:true});
 const feed=await loadFeed();
-const manifest=[];const failures=[];
-for(const day of feed.days){
- try{
-  if(day.dayOffset!==manifest.length||day.date!==jamaicaDay(day.dayOffset))throw Error('Unexpected date sequence');
+const generationId=new Date().toISOString()+'-'+randomUUID();
+const staging=resolve(out,`.seven-day-staging-${process.pid}`);
+await mkdir(staging,{recursive:true});
+const manifest=[];
+try{
+ for(const [index,day] of feed.days.entries()){
+  if(day.dayOffset!==index||day.date!==jamaicaDay(index))throw Error(`Unexpected date sequence at day ${index+1}`);
   const payload=toPoster(day);
   const png=await sharp(Buffer.from(makeSvg(payload))).png({compressionLevel:8}).toBuffer();
   const meta=await sharp(png).metadata();
-  if(meta.width!==1080||meta.height!==1390||png.length<20000)throw Error('Poster image validation failed');
-  const name=`seven-day-${day.date}.png`;const tmp=resolve(out,`.seven-day-${day.date}.tmp`);
-  await writeFile(tmp,png);await rename(tmp,resolve(out,name));
-  await writeFile(resolve(out,`seven-day-${day.date}.json`),JSON.stringify({date:day.date,generatedAt:new Date().toISOString(),poster:payload.poster},null,2)+'\n');
-  manifest.push({date:day.date,category:day.dayOffset>=3?'extended':'short-range',status:payload.poster.status,comfort:payload.poster.comfort,image:name,
-    sha256:createHash('sha256').update(png).digest('hex')});
-  console.log(`PRODUCTION POSTER: ${day.date} generated, ${png.length} bytes`);
- }catch(e){failures.push(day.date);console.error(`PRODUCTION POSTER FAILED: ${day.date}: ${e.message}`);}
+  if(meta.width!==1080||meta.height!==1390||png.length<20000)throw Error(`Poster image validation failed: ${day.date}`);
+  const name=`seven-day-${day.date}.png`;
+  // The generation ID is embedded in PNG metadata so all seven dated images
+  // are recognizably new to Git even if the weather measurements are identical.
+  const refreshed=await sharp(png).withMetadata({exif:{IFD0:{ImageDescription:`Marine seven-day forecast ${day.date}; generated ${generationId}`}}}).png().toBuffer();
+  const checksum=createHash('sha256').update(refreshed).digest('hex');
+  await writeFile(resolve(staging,name),refreshed);
+  await writeFile(resolve(staging,`seven-day-${day.date}.json`),JSON.stringify({date:day.date,generatedAt:generationId,poster:payload.poster},null,2)+'\n');
+  manifest.push({date:day.date,category:day.dayOffset>=3?'extended':'short-range',status:payload.poster.status,comfort:payload.poster.comfort,image:name,sha256:checksum});
+  console.log(`RENDERED: ${day.date}; PNG ${refreshed.length} bytes; SHA256 ${checksum.slice(0,16)}`);
+ }
+ if(manifest.length!==7)throw Error(`Expected seven rendered posters; received ${manifest.length}`);
+ await writeFile(resolve(staging,'seven-day-manifest.json'),JSON.stringify({generatedAt:generationId,mode:'PRODUCTION',days:manifest},null,2)+'\n');
+ for(const entry of manifest){
+  for(const extension of ['png','json']){
+   const file=`seven-day-${entry.date}.${extension}`;
+   if((await stat(resolve(staging,file))).size<100)throw Error(`Invalid staged output: ${file}`);
+  }
+ }
+ console.log('VALIDATION: seven PNGs, seven JSONs and manifest complete');
+ // Overwrite date-specific published assets only after every poster succeeds.
+ for(const entry of manifest){
+  for(const extension of ['png','json']){
+   const name=`seven-day-${entry.date}.${extension}`;
+   await rename(resolve(staging,name),resolve(out,name));
+  }
+ }
+ await rename(resolve(staging,'seven-day-manifest.json'),resolve(out,'seven-day-manifest.json'));
+ console.log(`PUBLISH READY: seven dates replaced, generation ${generationId}`);
+}finally{
+ await rm(staging,{recursive:true,force:true});
 }
-if(failures.length)throw Error(`Production incomplete: ${failures.join(', ')}. Publishing skipped.`);
-await writeFile(resolve(out,'seven-day-manifest.json'),JSON.stringify({generatedAt:new Date().toISOString(),mode:'PRODUCTION',days:manifest},null,2)+'\n');
