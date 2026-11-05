@@ -36,13 +36,13 @@ async function getFeed(){
 }
 
 function validate(feed){
- if(!feed?.ok||feed.source!=='Marine7DayCache'||feed.schemaVersion!=='marine7-cache-only-v3'||feed.comfortScoreVersion!=='v3'||feed.timezone!==zone||feed.days?.length!==7)throw Error('Unexpected master-cache schema');
+ if(!feed?.ok||feed.source!=='Marine7DayCache'||!['marine7-cache-only-v3','marine7-cache-only-v4'].includes(feed.schemaVersion)||!['v3','v4'].includes(feed.comfortScoreVersion)||feed.timezone!==zone||feed.days?.length!==7)throw Error('Unexpected master-cache schema');
  const all=new Set(),sites=new Set(),now=Date.now(),maxAge=24*3600*1000;
  feed.days.forEach((d,i)=>{
   if(d.date!==plus(today(),i)||d.dayOffset!==i||!d.ready||d.locations?.length!==14)throw Error('Missing/old forecast day '+i);
   d.locations.forEach(s=>{
    const id=d.date+'|'+s.id;if(all.has(id))throw Error('Duplicate '+id);all.add(id);sites.add(s.id);
-   if(!s.ready||s.stale||s.scoreVersion!=='v3'||!['GREEN','YELLOW','AMBER','RED'].includes(s.status)||!s.conditionLabel?.trim()||!Number.isFinite(s.score))throw Error('Missing cached v3 status '+id);
+   if(!s.ready||s.stale||s.scoreVersion!==feed.comfortScoreVersion||!['GREEN','YELLOW','AMBER','RED'].includes(s.status)||!s.conditionLabel?.trim()||!Number.isFinite(s.score))throw Error('Missing cached v3 status '+id);
    for(const k of ['windKn','gustKn','waveM','peakWaveM','wavePeriodS','rainMm','rainProbabilityPct'])if(!Number.isFinite(s[k]))throw Error('Missing '+k+' '+id);
    if(s.rainProbabilityPct<0||s.rainProbabilityPct>100)throw Error('Invalid rainfall probability '+id);
    for(const k of ['updatedAt','cacheBuiltAt']){const t=Date.parse(s[k]);if(!Number.isFinite(t)||t>now+300000||now-t>maxAge)throw Error('Stale '+k+' '+id);}
