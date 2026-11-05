@@ -1,33 +1,63 @@
-name: Seven-Day MASTER Cache Poster TEST (isolated)
+name: Marine7 Master Cache TEST (isolated, read-only)
+
 on:
   workflow_dispatch:
+
 permissions:
-  contents: write
+  contents: read
+
 concurrency:
-  group: seven-day-poster-test
+  group: marine7-master-cache-validation
   cancel-in-progress: false
+
 jobs:
-  render:
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Install renderer
-        run: npm install --no-save --no-audit --no-fund sharp@0.34.4 suncalc@1.9.0
-      - name: Generate master-cache test posters
-        env:
-          SEVEN_DAY_DATA_URL: ${{ secrets.SEVEN_DAY_DATA_URL }}
-        run: node scripts/generate-seven-day-poster.mjs
-      - name: Publish test images only
+      - name: Checkout staging snapshot
+        uses: actions/checkout@v4
+
+      - name: Validate isolated Marine7DayCache export
+        shell: bash
         run: |
           set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add instagram/seven-day-test/
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Generate isolated seven-day test posters'
-          git pull --rebase origin main
-          git push origin HEAD:main
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const file='instagram/seven-day-test/marine7-test-data.json';
+          const fail=msg=>{console.error('MARINE7 VALIDATION FAILED: '+msg);process.exitCode=1;};
+          let data;
+          try { data=JSON.parse(readFileSync(file,'utf8')); }
+          catch(e){fail(`Cannot read ${file}: ${e.message}`);process.exit();}
+          const rows=Array.isArray(data)?data:Array.isArray(data?.rows)?data.rows:null;
+          if(!rows){fail('Expected a JSON array or {rows:[...]}');process.exit();}
+          if(rows.length!==98)fail(`Expected 98 rows, found ${rows.length}`);
+          const sites=new Set(),dates=new Set(),pairs=new Set();
+          const pick=(r,...keys)=>keys.map(k=>r[k]).find(v=>v!==null&&v!==undefined&&String(v).trim()!=='');
+          for(const [i,r] of rows.entries()){
+            if(!r||typeof r!=='object'||Array.isArray(r)){fail(`Row ${i+1}: invalid object`);continue;}
+            const site=pick(r,'locationKey','siteKey','location');
+            const date=pick(r,'forecastDate','date');
+            if(!site||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(String(date??''))){fail(`Row ${i+1}: missing site/date`);continue;}
+            const key=`${site}|${date}`;
+            if(pairs.has(key))fail(`Duplicate site/date: ${key}`);
+            pairs.add(key);sites.add(String(site));dates.add(String(date));
+            const score=pick(r,'comfortV4','comfortScore');
+            if(score===undefined||!Number.isFinite(Number(score))||Number(score)<0||Number(score)>5)fail(`Row ${i+1}: missing/invalid v4 comfort score`);
+            const status=String(pick(r,'comfortStatusV4','comfortStatus')??'').toUpperCase();
+            if(!['GREEN','YELLOW','RED'].includes(status))fail(`Row ${i+1}: missing/invalid v4 status`);
+            if(pick(r,'comfortV3','comfortStatusV3')!==undefined)fail(`Row ${i+1}: legacy v3 field present`);
+            const safety=String(pick(r,'safetyStatus')??'');
+            const trip=String(pick(r,'tripValidation','windowStatus')??'');
+            if(!safety)fail(`Row ${i+1}: missing safety status`);
+            if(!trip)fail(`Row ${i+1}: missing trip verification`);
+            // The staging export must never claim independently verified marine safety.
+            if(safety==='VERIFIED'||trip==='VERIFIED')fail(`Row ${i+1}: unsupported VERIFIED claim`);
+          }
+          if(sites.size!==14)fail(`Expected 14 sites, found ${sites.size}`);
+          if(dates.size!==7)fail(`Expected 7 dates, found ${dates.size}`);
+          for(const site of sites)for(const date of dates)if(!pairs.has(`${site}|${date}`))fail(`Missing ${site} on ${date}`);
+          console.log(`Marine7 snapshot checked: ${rows.length} records, ${sites.size} sites, ${dates.size} days`);
+          if(process.exitCode)process.exit(process.exitCode);
+          console.log('PASS: v4-only scoring; no live services or external weather endpoints called.');
+          NODE
