@@ -182,12 +182,23 @@ async function buildMap(){
     const L=await loadLeaflet();
     mapBox.replaceChildren();
     map=L.map(mapBox,{scrollWheelZoom:false,attributionControl:true}).setView([18.0,-77.2],7);
-    // CARTO basemap (free with attribution). openstreetmap.org's own tile servers block third-party sites.
-    let tileErrors=0;
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
+    // GEBCO depth map (free, no key): sea coloured by depth so the banks stand out from deep water.
+    // If GEBCO's server can't be reached, fall back to the CARTO street map automatically.
+    const GEBCO_CREDIT='Imagery reproduced from the <a href="https://www.gebco.net/" target="_blank" rel="noopener">GEBCO_2026 Grid</a>, GEBCO Compilation Group (2026)';
+    const gebco=L.tileLayer.wms('https://wms.gebco.net/mapserv?',{
+      layers:'gebco_latest_2',format:'image/png',transparent:false,version:'1.1.1',maxZoom:11,attribution:GEBCO_CREDIT
+    });
+    const carto=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
       subdomains:'abcd',maxZoom:12,
       attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
-    }).on('tileerror',()=>{if(++tileErrors===6){mapNote.textContent='Map background could not load; bank dots still work.';mapNote.hidden=false;}}).addTo(map);
+    });
+    let gebcoErrors=0,gebcoLoaded=0;
+    gebco.on('tileload',()=>{gebcoLoaded++;});
+    gebco.on('tileerror',()=>{
+      if(++gebcoErrors===4&&gebcoLoaded===0){map.removeLayer(gebco);carto.addTo(map);
+        mapNote.textContent=('Depth map unavailable right now; showing the standard map instead. '+(mapNote.hidden?'':mapNote.textContent)).trim();mapNote.hidden=false;}
+    });
+    gebco.addTo(map);
     const ratings=await Promise.all(placed.map(b=>bankRating(b.key,'current')));
     placed.forEach((b,i)=>{
       const c=M.cls(ratings[i].status);
