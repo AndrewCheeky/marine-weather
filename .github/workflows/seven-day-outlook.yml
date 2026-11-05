@@ -19,7 +19,7 @@ jobs:
           node-version: '22'
       - name: Install Sharp
         run: npm install --no-save --no-audit --no-fund sharp@0.34.4
-      - name: Render seven days from validated feed
+      - name: Render seven days from standardized master cache
         env:
           SEVEN_DAY_DATA_URL: ${{ secrets.SEVEN_DAY_DATA_URL }}
         run: node scripts/generate-seven-day.mjs
