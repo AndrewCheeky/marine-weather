@@ -11,7 +11,7 @@ concurrency:
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,20 +19,51 @@ jobs:
           node-version: '22'
       - name: Install Sharp
         run: npm install --no-save --no-audit --no-fund sharp@0.34.4
-      - name: Render seven days from standardized master cache
+      - name: Render all seven graphical posters
         env:
           SEVEN_DAY_DATA_URL: ${{ secrets.SEVEN_DAY_DATA_URL }}
         run: node scripts/generate-seven-day.mjs
-      - name: Publish all seven newly rendered posters
+      - name: Validate seven complete date-specific PNG and JSON files
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          folder=pathlib.Path('instagram/generated')
+          manifest=json.loads((folder/'seven-day-manifest.json').read_text())
+          days=manifest['days']
+          assert len(days)==7 and len({d['date'] for d in days})==7, 'Expected seven unique days'
+          for day in days:
+              date=day['date']
+              assert day['image']==f'seven-day-{date}.png', f'Unexpected PNG for {date}'
+              for ext in ('png','json'):
+                  path=folder/f'seven-day-{date}.{ext}'
+                  assert path.is_file() and path.stat().st_size>100, f'Missing or empty {path}'
+              print(f'VALIDATED: {date}: PNG {(folder/day["image"]).stat().st_size} bytes')
+          print('VALIDATED: 7 PNG, 7 JSON, 1 manifest')
+          PY
+      - name: Remove expired date-specific assets and publish complete set
         run: |
           set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib, re
+          folder=pathlib.Path('instagram/generated')
+          days=json.loads((folder/'seven-day-manifest.json').read_text())['days']
+          keep={d['date'] for d in days}
+          pattern=re.compile(r'^seven-day-(\d{4}-\d{2}-\d{2})\.(?:png|json)$')
+          for file in folder.iterdir():
+              match=pattern.fullmatch(file.name)
+              if match and match.group(1) not in keep:
+                  file.unlink()
+                  print('REMOVED EXPIRED:',file.name)
+          PY
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -f instagram/generated/seven-day-*.png instagram/generated/seven-day-*.json instagram/generated/seven-day-manifest.json
+          git add -A -f instagram/generated/
+          echo 'PUBLISH STAGED FILES:'
+          git diff --cached --name-status -- instagram/generated/
           if git diff --cached --quiet; then
-            echo 'Rendered assets are identical to committed versions; nothing new to commit.'
+            echo 'Files regenerated; content identical; no commit required.'
             exit 0
           fi
-          git commit -m 'Update seven-day marine outlook'
+          git commit -m 'Refresh all seven marine outlook PNGs and JSON files'
           git pull --rebase origin main
           git push origin HEAD:main
