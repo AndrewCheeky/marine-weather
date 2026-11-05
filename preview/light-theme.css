@@ -1,0 +1,31 @@
+/* Isolated light colour treatment for the live homepage. No markup or data changes. */
+:root{--navy:#0b3d91;--deep:#082e68;--cyan:#00a8dc;--yellow:#ffc107;--ink:#102a4a;--green:#16a765}
+html{background:#f3f8f9}
+body{background:linear-gradient(180deg,#e7f7ff 0%,#f6fbff 500px,#f3f8f9 100%);color:#102a4a}
+.theme-preview-banner{position:relative;z-index:20;background:#e9f9ff;color:#064f78;text-align:center;padding:9px 15px;font:800 12px/1.5 system-ui,sans-serif;letter-spacing:.04em;border-bottom:1px solid #b6e5f6}
+.theme-preview-banner a{color:#075eb1;margin-left:12px;text-decoration:underline;text-underline-offset:3px}
+.site-header{position:relative;background:#fff;color:#0b3d91;box-shadow:0 4px 18px #0b3d9114;border-bottom:1px solid #cfe7f2;padding-top:18px;padding-bottom:18px}
+.brand-wave{color:#009fe3}.brand small{color:#0072bc}
+.nav-cta{background:#0875d1;color:#fff;box-shadow:0 3px 12px #0b3d9120}
+.site-header .header-actions .catch-log-cta{background:#00a9a4;color:#fff;box-shadow:0 4px 14px #00a9a420}
+.site-header .header-actions .catch-log-cta:hover{background:#008f8a}
+.hero{background:#e9f7ff url('/assets/jamaica-sea-sunset.jpg') center 44%/cover no-repeat;color:#092b4e;min-height:690px}
+.hero-overlay{background:linear-gradient(90deg,rgba(245,252,255,.95),rgba(245,252,255,.87) 46%,rgba(245,252,255,.58)),linear-gradient(0deg,rgba(233,248,255,.9),transparent 45%)}
+.hero-content{padding-top:72px;padding-bottom:105px}
+.eyebrow,.hero h1 em{color:#0077c9}.hero h1{color:#0a3268}.lead{color:#2c536d}
+.poster-panel{background:#fff;border:1px solid #b7ddec;box-shadow:0 15px 42px #174f761f}
+.poster-caption{color:#48677c}.poster-caption a{color:#006fc7}.poster-fallback{color:#294b60}
+.hero-bottom{color:#234c67}.hero-bottom b{color:#00a3ca}.hero-bottom a{color:#0069bd}
+.bank-snapshots{background:linear-gradient(180deg,#f8fcff,#e9f7ff)}
+.section-intro h2{color:#0a3268}.section-intro p:not(.eyebrow){color:#4d6c80}
+.bank-snapshot-shell,.forecast-shell{background:#fff;border-color:#c7e2ee;box-shadow:0 14px 36px #0a3b6112}
+.bank-toolbar,.bank-content,.bank-display{color:#143b56}
+.bank-toolbar select,.bank-toolbar label,.bank-live{color:#0b4c7b}
+.bank-note{color:#527083}
+.seven-day-select{color:#102a4a}
+.seven-day-explanation{color:#35576b!important}
+.poster-panel .seven-day-select button{color:#123b60}
+.poster-panel .seven-day-select button[aria-pressed="true"],.poster-panel .seven-day-select button[aria-selected="true"]{background:#0875d1;color:#fff}
+#marine-shared-footer{background:#f3f8f9}
+button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid #0077c9;outline-offset:3px}
+@media(max-width:700px){.theme-preview-banner{font-size:10px}.theme-preview-banner a{display:inline-block;margin-left:5px}.hero-content{padding:38px 18px 92px}.hero h1{font-size:clamp(38px,10vw,60px)}.poster-panel{justify-self:stretch;max-width:100%}.site-header{padding:18px 16px}}
