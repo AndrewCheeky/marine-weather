@@ -1,0 +1,10 @@
+
+/* Seven-day navigation and explanation: always visible when populated. */
+.seven-day-explanation{margin:0 4px 12px;color:#d6ebf3;font-size:12px;line-height:1.5}
+.seven-day-unavailable{color:#f4e5b0;font-size:12px;line-height:1.5;margin:0 0 10px}
+#seven-day-select{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-bottom:12px}
+#seven-day-select .seven-day-button{min-width:0;padding:8px 2px;border-radius:7px;border:1px solid #5f93a7;background:#153f55;color:white;font-size:11px;font-weight:750}
+#seven-day-select .seven-day-button[aria-pressed="true"]{outline:2px solid #ffd846;outline-offset:1px}
+#seven-day-select .seven-day-green{border-bottom:3px solid #12b56e}
+#seven-day-select .seven-day-yellow,#seven-day-select .seven-day-amber{border-bottom:3px solid #efb82d}
+#seven-day-select .seven-day-red{border-bottom:3px solid #e55d5d}
