@@ -1,63 +1,62 @@
 {
-  "generatedAt": "2026-11-05T04:13:34.291Z",
-  "source": "Marine7DayCache",
-  "timezone": "America/Jamaica",
+  "generatedAt": "2026-11-05T04:19:44.203Z",
+  "mode": "PRODUCTION",
   "days": [
     {
       "date": "2026-11-04",
-      "offset": 0,
-      "outlook": "short-range",
-      "image": "instagram/generated/seven-day-2026-11-04.png",
-      "status": "GREEN",
-      "conditionLabel": "Generally comfortable"
+      "category": "short-range",
+      "status": "RED",
+      "comfort": "3.8/5",
+      "image": "seven-day-2026-11-04.png",
+      "sha256": "ce373bc27904ec8cfb31ee3a3c73874ff576b0bb77d0aa2fd65f3953563f8c33"
     },
     {
       "date": "2026-11-05",
-      "offset": 1,
-      "outlook": "short-range",
-      "image": "instagram/generated/seven-day-2026-11-05.png",
+      "category": "short-range",
       "status": "GREEN",
-      "conditionLabel": "Very comfortable"
+      "comfort": "4.4/5",
+      "image": "seven-day-2026-11-05.png",
+      "sha256": "660e7f21b3bf96f38744f87dacb6f2f8420fb5b169236194a45455e277d6859b"
     },
     {
       "date": "2026-11-06",
-      "offset": 2,
-      "outlook": "short-range",
-      "image": "instagram/generated/seven-day-2026-11-06.png",
+      "category": "short-range",
       "status": "GREEN",
-      "conditionLabel": "Very comfortable"
+      "comfort": "4/5",
+      "image": "seven-day-2026-11-06.png",
+      "sha256": "a6557b75b025f545ecaffe3bc43b39a161b54e3ad010c3e08f318fa2993e0247"
     },
     {
       "date": "2026-11-07",
-      "offset": 3,
-      "outlook": "extended",
-      "image": "instagram/generated/seven-day-2026-11-07.png",
+      "category": "extended",
       "status": "GREEN",
-      "conditionLabel": "Very comfortable"
+      "comfort": "4.8/5",
+      "image": "seven-day-2026-11-07.png",
+      "sha256": "1c654cee8ea0fa9ba607d3098bbe37e3b663ef8dde436fd3c7cacfaa5ac5c8f3"
     },
     {
       "date": "2026-11-08",
-      "offset": 4,
-      "outlook": "extended",
-      "image": "instagram/generated/seven-day-2026-11-08.png",
+      "category": "extended",
       "status": "GREEN",
-      "conditionLabel": "Very comfortable"
+      "comfort": "4.9/5",
+      "image": "seven-day-2026-11-08.png",
+      "sha256": "3fdffb2d0b793c91903cbc2eae82053513f024ab70cd920882253a697ae9d27a"
     },
     {
       "date": "2026-11-09",
-      "offset": 5,
-      "outlook": "extended",
-      "image": "instagram/generated/seven-day-2026-11-09.png",
+      "category": "extended",
       "status": "GREEN",
-      "conditionLabel": "Very comfortable"
+      "comfort": "3/5",
+      "image": "seven-day-2026-11-09.png",
+      "sha256": "ae9c0389f22e819cf1e3477e476a833ae507f3a2bd88480d13f819b899532b45"
     },
     {
       "date": "2026-11-10",
-      "offset": 6,
-      "outlook": "extended",
-      "image": "instagram/generated/seven-day-2026-11-10.png",
+      "category": "extended",
       "status": "GREEN",
-      "conditionLabel": "Very comfortable"
+      "comfort": "3/5",
+      "image": "seven-day-2026-11-10.png",
+      "sha256": "b15e91121669c35ed3052725e268dee6afa6b362a49baae3ffacf0d48cf11dc7"
     }
   ]
 }

@@ -1,52 +1,68 @@
 {
   "date": "2026-11-08",
-  "offset": 4,
-  "outlook": "extended",
-  "source": "Marine7DayCache",
-  "generatedAt": "2026-11-05T04:13:33.876Z",
-  "locations": [
-    {
-      "id": "maiden",
-      "status": "GREEN",
-      "score": 4.9,
-      "conditionLabel": "Very comfortable",
-      "windKn": 3.563714899800001,
-      "gustKn": 6.101511873900001,
-      "waveM": 0.19999999999999998,
-      "peakWaveM": 0.2,
-      "wavePeriodS": 5.82,
-      "rainMm": 0,
-      "rainProbabilityPct": 58,
-      "updatedAt": "2026-11-04T20:36:18.291Z"
-    },
-    {
-      "id": "bowditch",
-      "status": "GREEN",
-      "score": 4.4,
-      "conditionLabel": "Generally comfortable",
-      "windKn": 11.490280767840002,
-      "gustKn": 14.038876878000002,
-      "waveM": 0.30599999999999994,
-      "peakWaveM": 0.34,
-      "wavePeriodS": 4.59,
-      "rainMm": 2.8,
-      "rainProbabilityPct": 42,
-      "updatedAt": "2026-11-04T20:36:18.291Z"
-    },
-    {
-      "id": "california",
-      "status": "GREEN",
-      "score": 4.7,
-      "conditionLabel": "Very comfortable",
-      "windKn": 7.845572347590002,
-      "gustKn": 11.501079903900001,
-      "waveM": 0.23399999999999999,
-      "peakWaveM": 0.26,
-      "wavePeriodS": 5.604999999999999,
-      "rainMm": 0.1,
-      "rainProbabilityPct": 42,
-      "updatedAt": "2026-11-04T20:36:18.291Z"
-    }
-  ],
-  "sha256": "44bb23f001b7937eb9ea70b90a8c728d28149b737bed229b5f97c903e5501e8f"
+  "generatedAt": "2026-11-05T04:19:43.613Z",
+  "poster": {
+    "status": "GREEN",
+    "condition": "Production score snapshot",
+    "comfort": "4.9/5",
+    "freshness": "CURRENT",
+    "wind": "3.6 kn",
+    "gust": "6.1 kn",
+    "seas": "0.2 m",
+    "period": "6.0 s",
+    "rain": "0.0 mm",
+    "uv": "8",
+    "bank1": "Mackerel (Bowditch)",
+    "bank1status": "GREEN",
+    "bank1comfort": "4.3/5",
+    "bank1detail": "11.5 kn wind · 0.3 m seas · 5.1 s period",
+    "bank1rain": "2.8 mm · peak rain chance 42 %",
+    "bank2": "California Bank",
+    "bank2status": "GREEN",
+    "bank2comfort": "4.7/5",
+    "bank2detail": "7.8 kn wind · 0.2 m seas · 5.9 s period",
+    "bank2rain": "0.1 mm · peak rain chance 42 %",
+    "bank1focus": "mixed",
+    "bank2focus": "mixed",
+    "bank1focusVerified": false,
+    "bank2focusVerified": false,
+    "highTides": "09:00 (1.6 ft) · 09:30 (1.6 ft)",
+    "lowTides": "01:00 (0.8 ft) · 17:30 (0.9 ft)",
+    "sunrise": "6:09 AM",
+    "sunset": "5:32 PM",
+    "moonrise": "05:37",
+    "moonset": "17:05",
+    "moonPhase": "Waning Crescent",
+    "moonIllum": "3%",
+    "current": "0.1 kn",
+    "currentDir": "SSE",
+    "sst": "29.9 °C",
+    "swell": "0.2 m ESE",
+    "travelWindows": [
+      {
+        "destination": "Maiden Cay",
+        "departure": "07:00–17:00",
+        "return": "07:00–17:00",
+        "maxGustKn": 6.101511873900001,
+        "maxGustTime": "14:00",
+        "assessment": "Conditional weather window only, not route or vessel clearance"
+      },
+      {
+        "destination": "Mackerel Bank",
+        "departure": "07:00–11:00",
+        "return": "07:00–11:00",
+        "maxGustKn": 14.038876878000002,
+        "maxGustTime": "12:00",
+        "assessment": "Conditional weather window only, not route or vessel clearance"
+      },
+      {
+        "destination": "California Bank",
+        "departure": "07:00–17:00",
+        "return": "07:00–17:00",
+        "maxGustKn": 11.501079903900001,
+        "maxGustTime": "16:00",
+        "assessment": "Conditional weather window only, not route or vessel clearance"
+      }
+    ]
+  }
 }
