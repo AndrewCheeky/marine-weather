@@ -18,7 +18,7 @@ const fallback=document.getElementById('poster-fallback');
 const fallbackImg=document.getElementById('daily-poster');
 if(!strip||!grid)return;
 
-const ok=v=>v!==null&&v!==undefined&&String(v).trim()!==''&&!/^(—|-|n\/a|not available|unavailable|none identified)$/i.test(String(v).trim());
+const ok=v=>v!==null&&v!==undefined&&String(v).trim()!==''&&!/^(—|-|n\/a|not available|unavailable|none identified)\b/i.test(String(v).trim());
 const short=name=>String(name||'').replace(/\s+bank$/i,'');
 
 function stat(label,value,sub){
@@ -32,6 +32,13 @@ function splitStat(label,raw,prefix,subPattern,subLabel){
   const m=text.match(subPattern);
   if(!m)return stat(label,text);
   return stat(label,text.replace(subPattern,'').trim(),subLabel+m[1].replace(/\s+%/,'%').trim());
+}
+
+// Current, sea temperature and swell for one area; prefix '' = inshore, 'bank1' / 'bank2' = offshore.
+function seaStats(p,prefix){
+  const k=f=>prefix+f;
+  const cur=p[k('current')],dir=p[k('currentDir')];
+  return [stat('Surface current',ok(cur)?cur+(ok(dir)?' '+dir:''):''),stat('Sea temperature',p[k('sst')]),stat('Swell',p[k('swell')])];
 }
 
 function areaCard({title,where,status,comfort,reason,stats,highlight}){
@@ -169,14 +176,14 @@ function render(day){
 
   const cards=[areaCard({
     title:'Kingston / Maiden Cay',where:'Inshore',status:inshore,comfort:p.comfort,reason:inshore!=='GREEN'?p.overallReason:'',
-    stats:[stat('Wind',p.wind,ok(p.gust)?'gusts '+p.gust:''),stat('Seas',p.seas,ok(p.period)?'period '+p.period:''),stat('Rain',p.rain),stat('UV index',p.uv)]
+    stats:[stat('Wind',p.wind,ok(p.gust)?'gusts '+p.gust:''),stat('Seas',p.seas,ok(p.period)?'period '+p.period:''),stat('Rain',p.rain),stat('UV index',p.uv),...seaStats(p,'')]
   })];
   for(const b of banks){
     const k='bank'+b.n;
     cards.push(areaCard({
       title:short(b.name),where:'Offshore bank',status:b.status,comfort:p[k+'comfort'],reason:b.status!=='GREEN'?p[k+'reason']:'',
       highlight:b.status&&b.status===offWorst&&offWorst!=='GREEN',
-      stats:[splitStat('Wind',p[k+'windLine'],/^Wind\s*/i,/\s*\(Gust\s*([^)]+)\)/i,'gusts '),splitStat('Seas',p[k+'seaLine'],/^Seas\s*/i,/\s*·\s*Period\s*(.+)$/i,'period '),splitStat('Rain',p[k+'rain'],null,/\s*·\s*(peak chance.*)$/i,'')]
+      stats:[splitStat('Wind',p[k+'windLine'],/^Wind\s*/i,/\s*\(Gust\s*([^)]+)\)/i,'gusts '),splitStat('Seas',p[k+'seaLine'],/^Seas\s*/i,/\s*·\s*Period\s*(.+)$/i,'period '),splitStat('Rain',p[k+'rain'],null,/\s*·\s*(peak chance.*)$/i,''),...seaStats(p,k)]
     }));
   }
   grid.replaceChildren(...cards);
@@ -184,18 +191,10 @@ function render(day){
   // Secondary details live behind a disclosure so the headline stays short on phones.
   const blocks=[];
   const tides=[stat('High tide',p.highTides),stat('Low tide',p.lowTides)].filter(Boolean);
-  if(tides.length)blocks.push(el('div',{class:'more-block'},el('h4',{},'Tides · Kingston (model)'),el('dl',{},tides)));
+  if(tides.length)blocks.push(el('div',{class:'more-block wide'},el('h4',{},'Tides · Kingston (model)'),el('dl',{},tides)));
   const sky=[stat('Sunrise',p.sunrise),stat('Sunset',p.sunset),stat('Moon',p.moonPhase,ok(p.moonIllum)?p.moonIllum+' lit':''),stat('Moonrise / set',ok(p.moonrise)||ok(p.moonset)?(p.moonrise||'—')+' / '+(p.moonset||'—'):'')].filter(Boolean);
   const moonView=moonBlock(p,day.date);
   if(sky.length||moonView)blocks.push(el('div',{class:'more-block wide sky-block'},el('h4',{},'Sun & moon'),moonView,sky.length?el('dl',{class:'sky-stats'},sky):null));
-  const sea=[stat('Surface current',ok(p.current)?p.current+(ok(p.currentDir)?' '+p.currentDir:''):''),stat('Sea temperature',p.sst),stat('Swell',p.swell)].filter(Boolean);
-  if(sea.length)blocks.push(el('div',{class:'more-block'},el('h4',{},'Other conditions'),el('dl',{},sea)));
-  const windows=(Array.isArray(p.travelWindows)?p.travelWindows:[]).filter(w=>ok(w.destination));
-  if(windows.length)blocks.push(el('div',{class:'more-block wide'},el('h4',{},'Weather windows (07:00–17:00)'),
-    el('ul',{class:'windows'},windows.map(w=>el('li',{},el('strong',{},w.destination+': '),
-      ok(w.departure)?'out '+w.departure+(ok(w.return)?', back '+w.return:''):'no suitable two-hour window found',
-      M.num(w.maxGustKn)!==null?' · peak gust '+M.fmt(w.maxGustKn)+' kt'+(ok(w.maxGustTime)?' at '+w.maxGustTime:''):''))),
-    el('p',{class:'fine'},'Weather windows are guidance only, not route or vessel clearance.')));
   moreGrid.replaceChildren(...blocks);
   more.hidden=!blocks.length;
 }
