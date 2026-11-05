@@ -1,10 +1,13 @@
 {
   "date": "2026-11-06",
-  "generatedAt": "2026-11-05T13:20:35.885Z",
+  "generatedAt": "2026-11-05T13:32:54.934Z",
   "poster": {
     "status": "GREEN",
     "condition": "Marine conditions",
     "comfort": "4.7/5",
+    "overallReason": "",
+    "bank1reason": "Rain chance 77%",
+    "bank2reason": "",
     "freshness": "CURRENT",
     "wind": "2.9 kt",
     "gust": "6.4 kt",
