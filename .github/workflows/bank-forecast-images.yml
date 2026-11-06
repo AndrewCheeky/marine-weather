@@ -1,7 +1,8 @@
 name: Cached Bank Forecast Images
 on:
   schedule:
-    - cron: '0 2,5,8,11,14,17,20,23 * * *'
+    # Every 3 hours at :17 past (Jamaica 21:17, 00:17, 03:17, 06:17, 09:17, 12:17, 15:17, 18:17).
+    - cron: '17 2,5,8,11,14,17,20,23 * * *'
   workflow_dispatch:
 permissions:
   contents: write

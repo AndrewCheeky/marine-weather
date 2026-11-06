@@ -1,8 +1,10 @@
 name: Daily Marine Forecast PNG
 on:
   schedule:
-    - cron: '30 5 * * *' # 05:30 Jamaica (UTC-5), primary
-    - cron: '30 11 * * *' # 06:30 Jamaica (UTC-5), retry if missing/stale
+    # Times are UTC; Jamaica is UTC-5 all year. Odd minutes avoid GitHub's busiest
+    # moments (on the hour / half hour), when scheduled runs are delayed or dropped.
+    - cron: '37 10 * * *' # 05:37 Jamaica, primary
+    - cron: '37 11 * * *' # 06:37 Jamaica, retry if missing/stale
   workflow_dispatch:
 permissions:
   contents: write
@@ -35,7 +37,7 @@ jobs:
           # At 05:30 always refresh both. At 06:30 retry only missing/invalid images.
           # Manual dispatch refreshes both to make verification straightforward.
           RETRY=false
-          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "30 11 * * *" ]; then RETRY=true; fi
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "37 11 * * *" ]; then RETRY=true; fi
           for DAY_KIND in today tomorrow; do
             if [ "$DAY_KIND" = today ]; then EXPECTED="$TODAY"; else EXPECTED="$TOMORROW"; fi
             NEEDED=true
