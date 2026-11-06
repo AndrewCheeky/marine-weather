@@ -498,6 +498,33 @@ async function loadFeed(){
 // Render and validate the entire set in a staging folder before touching published files.
 await mkdir(out,{recursive:true});
 const feed=await loadFeed();
+// Rain chance: use the LOWER of the 7-day feed's figure and the Forecast24h sheet's figure
+// (banks/hourly/<key>-24h.json, restored from the data branch) for the 07:00–17:00 window.
+// The sheet only covers about the next 24 hours, so later days keep the feed's figure.
+// A sheet figure is only used when it covers the rest of that day's window without gaps
+// (e.g. 08:00–16:00 on a mid-morning run), never just a few hours of it.
+async function sheetRainMax(key,date){
+  try{
+    const rows=JSON.parse(await readFile(`banks/hourly/${key}-24h.json`,'utf8')).hours||[];
+    const byHour=[];
+    for(let h=7;h<17;h++){
+      const r=rows.find(x=>x.stamp===`${date}T${String(h).padStart(2,'0')}:00`);
+      const v=r&&r.metrics?Number(r.metrics.rainProbabilityPct):NaN;
+      byHour.push(Number.isFinite(v)?v:null);
+    }
+    const first=byHour.findIndex(v=>v!==null);
+    if(first<0||byHour.slice(first).some(v=>v===null))return null;
+    return Math.max(...byHour.slice(first));
+  }catch{return null;}
+}
+for(const day of feed.days||[])for(const loc of day.locations||[]){
+  const feedPct=Number(loc&&loc.rainProbabilityPct);
+  const sheetPct=loc&&loc.id?await sheetRainMax(String(loc.id).toLowerCase(),day.date):null;
+  if(sheetPct!==null&&(!Number.isFinite(feedPct)||loc.rainProbabilityPct===null||sheetPct<feedPct)){
+    console.log(`RAIN ${day.date} ${loc.id}: feed ${Number.isFinite(feedPct)?feedPct:'—'}% -> sheet ${sheetPct}% (lower)`);
+    loc.rainProbabilityPct=sheetPct;
+  }
+}
 const generationId=new Date().toISOString()+'-'+randomUUID();
 const staging=resolve(out,`.seven-day-staging-${process.pid}`);
 await mkdir(staging,{recursive:true});
