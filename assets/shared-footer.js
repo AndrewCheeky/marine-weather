@@ -13,6 +13,9 @@
   link.rel='stylesheet';
   link.href=BASE+'assets/shared-footer.css?v=5.9';
   shadow.appendChild(link);
+  // A host page can opt in to a matching footer theme, e.g. <div id="marine-shared-footer" data-theme="chart">.
+  const theme=(root.dataset.theme||'').replace(/[^a-z0-9-]/gi,'');
+  if(theme){const t=document.createElement('link');t.rel='stylesheet';t.href=BASE+'assets/shared-footer-'+theme+'.css?v=9.0.0';shadow.appendChild(t);}
   const shell=document.createElement('div');
   shell.innerHTML=HTML;
   shadow.appendChild(shell);
