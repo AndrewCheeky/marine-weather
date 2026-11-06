@@ -133,10 +133,10 @@ async function update(){
     statsEl.hidden=false;
     const labels=rows.map(x=>x.stamp);
     drawChart($('chart-wind'),{heading:'Wind and gusts',unit:'kt',labels,series:[
-      {name:'Wind',color:'#0877a8',values:rows.map(x=>num(x.avgWindKn))},
-      {name:'Gusts',color:'#c2410c',dash:'5 4',values:rows.map(x=>num(x.peakGustKn))}]});
+      {name:'Wind',color:'#1F5A7A',values:rows.map(x=>num(x.avgWindKn))},
+      {name:'Gusts',color:'#C8402F',dash:'5 4',values:rows.map(x=>num(x.peakGustKn))}]});
     drawChart($('chart-seas'),{heading:'Seas',unit:'ft',labels,bars:true,series:[
-      {name:'Seas',color:'#0877a8',values:rows.map(x=>{const v=num(x.avgWaveM);return v===null?null:v*M.M_TO_FT;})}]});
+      {name:'Seas',color:'#5E93AB',values:rows.map(x=>{const v=num(x.avgWaveM);return v===null?null:v*M.M_TO_FT;})}]});
     charts.hidden=false;
     rowsEl.replaceChildren(...rows.map(x=>{
       const dir=M.compass(x.windDirMeanDeg);
@@ -165,7 +165,7 @@ quick.addEventListener('toggle',()=>{
 /* ---------- map (Leaflet, loaded only when the section scrolls into view) ---------- */
 const mapBox=$('bank-map'),mapNote=$('map-note');
 let markers=new Map(),map=null;
-const COLORS={green:'#17834a',amber:'#f5b942',red:'#c83c45',unknown:'#7a8c99'};
+const COLORS={green:'#2E7D4F',amber:'#D99A1E',red:'#C8402F',unknown:'#8C918E'};
 function loadLeaflet(){
   if(window.L)return Promise.resolve(window.L);
   return new Promise((resolve,reject)=>{
@@ -198,7 +198,7 @@ async function buildMap(){
     const ratings=await Promise.all(placed.map(b=>bankRating(b.key,'current')));
     placed.forEach((b,i)=>{
       const c=M.cls(ratings[i].status);
-      const m=L.circleMarker([b.lat,b.lon],{radius:9,weight:2,color:'#ffffff',fillColor:COLORS[c],fillOpacity:1})
+      const m=L.circleMarker([b.lat,b.lon],{radius:9,weight:2,color:'#1D2B3A',fillColor:COLORS[c],fillOpacity:1})
         .addTo(map).bindTooltip(`${b.name}: ${M.word(ratings[i].status)}`,{direction:'top'});
       m.on('click',()=>{bankSel.value=b.key;update();$('bank-card').scrollIntoView({behavior:'smooth',block:'start'});});
       markers.set(b.key,m);
@@ -210,7 +210,7 @@ async function buildMap(){
   if(missing>0){mapNote.textContent=`${missing} of ${banks.length} locations are not on the map yet (no coordinates published). Pick them from the list.`;mapNote.hidden=false;}
 }
 function highlightMarker(key){
-  for(const [k,m] of markers)m.setStyle({weight:k===key?4:2,color:k===key?'#052638':'#ffffff',radius:k===key?12:9});
+  for(const [k,m] of markers)m.setStyle({weight:k===key?4:2,color:k===key?'#C8402F':'#1D2B3A',radius:k===key?12:9});
 }
 
 /* ---------- start ---------- */

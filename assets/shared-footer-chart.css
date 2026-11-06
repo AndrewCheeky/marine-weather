@@ -1,0 +1,16 @@
+:host{--ink:#1D2B3A;--paper:#F3EEDF;--amber:#D99A1E}
+.explore-section{background:var(--ink);color:var(--paper);border-top:4px double var(--paper)}
+.section-intro.light p:not(.eyebrow){color:#CFC8B4}
+.eyebrow{color:var(--amber);font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;letter-spacing:.18em}
+.explore-card{background:#24364A;border:1px solid #4A5F75;border-radius:8px}
+.explore-card:hover{border-color:var(--paper)}
+.card-text small{color:#CFC8B4}
+.btn{border-radius:6px}
+.btn-yellow{background:var(--amber);color:#2A1E00}
+.btn-outline{border-color:var(--paper);color:var(--paper)}
+.closing{background:linear-gradient(90deg,rgba(29,43,58,.93),rgba(29,43,58,.78)),url('jamaica-sea-sunset.jpg') center 63%/cover}
+.closing h2 em{color:var(--amber)}
+.closing p:last-child{color:#E2DBC6}
+.site-footer{background:#16222F;color:#CFC8B4}
+.brand-wave{color:#7FA9BC}
+.footer-brand small{color:var(--amber)}
