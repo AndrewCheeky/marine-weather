@@ -17,15 +17,28 @@
 .mw-hero h1{font-size:clamp(38px,5vw,76px)}
 
 .outlook{background:rgba(3,27,43,.88);border:1px solid rgba(125,211,223,.55);border-radius:22px;padding:20px;color:#fff;box-shadow:0 24px 60px rgba(0,0,0,.35);backdrop-filter:blur(6px)}
-.outlook-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.outlook-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.outlook-meta{display:flex;align-items:center;gap:8px}
+.settings-btn{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;padding:0}
+.settings-btn:hover{background:rgba(255,255,255,.2)}
+.settings-btn:focus-visible{outline:3px solid var(--yellow,#ffd846);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.bank-settings{border:0;border-radius:18px;padding:0;width:min(420px,calc(100vw - 32px));color:var(--mw-ink);box-shadow:0 24px 60px rgba(0,0,0,.4)}
+.bank-settings::backdrop{background:rgba(3,27,43,.65)}
+.bank-settings form{padding:20px}
+.bank-settings h2{margin:0 0 6px;font-size:20px}
+.settings-help{margin:0 0 14px;font-size:14px;color:var(--mw-muted);line-height:1.45}
+.settings-fields{display:grid;gap:12px}
+.settings-fields label{display:grid;gap:5px;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--mw-ink-2)}
+.settings-fields select{font:inherit;font-size:16px;font-weight:600;letter-spacing:0;text-transform:none;padding:11px 12px;border-radius:10px;border:1px solid var(--mw-line);background:#fff;color:var(--mw-ink)}
+.settings-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+.settings-actions button{font:inherit;font-weight:800;border-radius:30px;padding:11px 20px;border:0}
+.btn-primary{background:var(--yellow,#ffd846);color:#0b2b39}
+.btn-secondary{background:var(--mw-tint);color:var(--mw-ink)}
 .outlook-head h2{margin:0;font-size:20px;letter-spacing:-.01em}
 .outlook-updated{margin:0;font-size:14px;color:#bfe3ee}
 
-.outlook-picks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
-.outlook-picks label{display:grid;gap:4px;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#cfe8f0;min-width:0}
-.outlook-picks select{font:inherit;font-size:15px;font-weight:650;letter-spacing:0;text-transform:none;width:100%;padding:9px 10px;border-radius:10px;border:0;background:#fff;color:var(--mw-ink)}
 .missing-link{color:#0877a8;font-weight:750}
-@media(max-width:600px){.outlook-picks{grid-template-columns:1fr}}
 .day-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:14px}
 .day-btn{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:#fff;min-height:58px}
 .day-btn .day-name{font-size:12px;font-weight:700;color:#cfe8f0;text-transform:uppercase;letter-spacing:.04em}

@@ -177,17 +177,29 @@ function showPosterFallback(message){
   }
 
   try{bankList=(await M.getJSON('banks/banks.json')).filter(b=>b&&b.key&&b.name);}catch{bankList=[];}
-  // Three bank pickers above the day buttons.
-  const pickBox=el('div',{class:'outlook-picks',role:'group','aria-label':'Choose your banks'});
+  // Bank choice lives in a settings pop-up opened from the gear icon beside the update time.
+  const dlg=document.getElementById('bank-settings');
+  const gear=document.getElementById('bank-settings-btn');
+  const fields=document.getElementById('bank-settings-fields');
   const selects=[0,1,2].map(i=>{
-    const sel=el('select',{'aria-label':'Bank '+(i+1)},el('option',{value:''},'No bank'),...bankList.map(b=>el('option',{value:b.key},b.name)));
-    sel.value=bankList.some(b=>b.key===picks[i])?picks[i]:'';
-    sel.addEventListener('change',()=>{picks[i]=sel.value;savePicks();paintButtons();choose(current);});
-    pickBox.append(el('label',{},el('span',{},'Bank '+(i+1)),sel));
+    const sel=el('select',{id:'bank-pick-'+i},el('option',{value:''},'No bank'),...bankList.map(b=>el('option',{value:b.key},b.name)));
+    fields.append(el('label',{for:'bank-pick-'+i},el('span',{},'Bank '+(i+1)),sel));
     return sel;
   });
-  picks=selects.map(s=>s.value);
-  strip.before(pickBox);
+  picks=picks.map(k=>bankList.some(b=>b.key===k)?k:'');
+  const openSettings=()=>{
+    selects.forEach((sel,i)=>{sel.value=picks[i]||'';});
+    if(typeof dlg.showModal==='function')dlg.showModal();else dlg.setAttribute('open','');
+    selects[0].focus();
+  };
+  gear.addEventListener('click',openSettings);
+  gear.hidden=false;
+  // Tapping outside the box closes it without saving.
+  dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close('cancel');});
+  dlg.addEventListener('close',()=>{
+    if(dlg.returnValue==='save'){picks=selects.map(s=>s.value);savePicks();paintButtons();choose(current);}
+    gear.focus();
+  });
 
   const buttons=[];let current=0;
   function paintButtons(){

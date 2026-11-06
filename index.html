@@ -8,7 +8,7 @@
 <title>Marine Weather Jamaica | Plan · Fish · Explore</title>
 <link rel="stylesheet" href="assets/landing.css?v=8.0.0">
 <link rel="stylesheet" href="assets/pwa.css?v=6.1">
-<link rel="stylesheet" href="assets/forecast.css?v=8.4.4">
+<link rel="stylesheet" href="assets/forecast.css?v=8.5.0">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -38,7 +38,13 @@
     <section class="outlook" id="today-outlook" aria-labelledby="outlook-title">
       <div class="outlook-head">
         <h2 id="outlook-title">Marine outlook</h2>
-        <p id="outlook-updated" class="outlook-updated">Loading latest forecast…</p>
+        <div class="outlook-meta">
+          <button type="button" id="bank-settings-btn" class="settings-btn" aria-haspopup="dialog" aria-controls="bank-settings" title="Choose your banks" hidden>
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6a.5.5 0 0 0 .1-.6l-2-3.5a.5.5 0 0 0-.6-.2l-2.5 1a7.4 7.4 0 0 0-1.7-1L14.4 2.4a.5.5 0 0 0-.5-.4h-4a.5.5 0 0 0-.5.4L9 5.1a7.4 7.4 0 0 0-1.7 1l-2.5-1a.5.5 0 0 0-.6.2l-2 3.5a.5.5 0 0 0 .1.6L4.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6a.5.5 0 0 0-.1.6l2 3.5c.1.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.7c0 .2.2.4.5.4h4c.3 0 .5-.2.5-.4l.4-2.7c.6-.3 1.2-.6 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.5a.5.5 0 0 0-.1-.6L19.4 13zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+            <span class="sr-only">Choose your banks</span>
+          </button>
+          <p id="outlook-updated" class="outlook-updated">Loading latest forecast…</p>
+        </div>
       </div>
       <div class="day-strip" id="seven-day-select" role="group" aria-label="Choose a forecast day"></div>
       <div id="outlook-stale" class="outlook-banner stale" role="status" hidden></div>
@@ -120,9 +126,21 @@
 
 <div id="live-forecast-modal" class="live-forecast-modal" hidden role="dialog" aria-modal="true" aria-label="Live fishing bank forecast"><div class="live-forecast-panel"><div class="live-forecast-top"><strong id="live-forecast-title">Live marine forecast</strong><button id="live-forecast-close" type="button" aria-label="Close live forecast">×</button></div><div class="live-forecast-stage"><div id="live-forecast-loading" class="live-forecast-loading" role="status" aria-live="polite"><span class="live-forecast-spinner" aria-hidden="true"></span><strong>Loading live forecast…</strong><span>Please wait while your marine outlook opens.</span></div><iframe id="live-forecast-frame" title="Live fishing bank forecast" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe></div></div></div>
 
+<dialog id="bank-settings" class="bank-settings" aria-labelledby="bank-settings-title">
+  <form method="dialog" id="bank-settings-form">
+    <h2 id="bank-settings-title">Your banks</h2>
+    <p class="settings-help">Pick up to three banks to show in the 7-day outlook. Your choice is saved on this device.</p>
+    <div id="bank-settings-fields" class="settings-fields"></div>
+    <div class="settings-actions">
+      <button type="submit" value="cancel" class="btn-secondary">Cancel</button>
+      <button type="submit" value="save" class="btn-primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
 <script src="assets/pwa.js?v=8.0.0" defer></script>
 <script src="assets/mw-common.js?v=8.0.0" defer></script>
-<script src="assets/outlook.js?v=8.4.4" defer></script>
+<script src="assets/outlook.js?v=8.5.0" defer></script>
 <script src="assets/banks.js?v=8.3.0" defer></script>
 <script src="assets/shared-footer.js?v=8.0.0" defer></script>
 <script src="assets/marine-alert.js" defer></script>
