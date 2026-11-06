@@ -358,9 +358,11 @@ function toPoster(day){
     const given=site.productionScore&&typeof site.productionScore.reason==='string'&&site.productionScore.reason.trim();
     if(given)return given;
     if(Array.isArray(site.ratingFactors)&&site.ratingFactors.length)return site.ratingFactors.join(' · ');
-    // Feed checked for thunderstorms and found no other factor: say so plainly rather than
-    // pointing at a number that didn't cause the rating.
-    if(Array.isArray(site.ratingFactors)&&site.thunderChecked)return 'Rated by the forecast service; no single factor identified';
+    // Feed (v1.6+) checked the wind, seas, chop, rain and squall rules and none applies: say so
+    // plainly rather than pointing at a number that didn't cause the rating.
+    if(Array.isArray(site.ratingFactors))return site.thunderChecked
+      ?'Rated by the forecast service; wind, seas and rain are within GOOD limits'
+      :'Rated by the forecast service (possibly showers or thunder); wind, seas and rain are within GOOD limits';
     const factors=[];
     const gust=Number(site.gustKn), rainChance=Number(site.rainProbabilityPct);
     const wave=Number(site.waveM), period=Number(site.wavePeriodS);
