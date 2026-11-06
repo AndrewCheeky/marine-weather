@@ -85,9 +85,9 @@
 @media(max-width:600px){.more-grid{grid-template-columns:1fr}}
 .sky-block{display:flex;gap:14px;align-items:flex-start;justify-content:space-between}
 .sky-main{flex:1;min-width:0}
-.moon-face{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;flex:0 0 auto}
-.moon-face p{margin:0;font-size:14px;line-height:1.3}
-.moon-face p span{display:block;color:var(--mw-muted);font-size:13px}
+.moon-face{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;flex:0 0 auto}
+.moon-caption{margin:0}
+.moon-caption dt{white-space:nowrap}
 .moon-disc{display:block;filter:drop-shadow(0 0 8px rgba(255,236,170,.35))}
 .sky-block .sky-stats{flex:1;min-width:0;margin:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}
 .sky-block .stat dd{white-space:nowrap}
