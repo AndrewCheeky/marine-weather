@@ -422,6 +422,24 @@ function toPoster(day){
     [`bank${n}sst`]:fmt(Number.isFinite(site.sstC)?site.sstC*9/5+32:null,'°F'),
     [`bank${n}swell`]:Number.isFinite(site.swellM)?`${fmt(site.swellM*3.28084,'ft')} ${compass(site.swellDirectionDeg)}`.trim():'Not available'
   });
+  // Every location in the feed, so the website can show whichever banks a visitor picks.
+  // Same scoring rules as the three poster areas; a location that can't be scored is left out.
+  const areas=[];
+  for(const loc of day.locations||[]){
+    try{
+      if(!loc||!loc.id||!loc.ready||loc.stale)continue;
+      const score=authoritative(loc)||scoreFromExistingRules(loc);
+      const s1=sea(loc,'x');
+      areas.push({key:String(loc.id).toLowerCase(),name:loc.name||loc.id,
+        status:score?score.condition:null,comfort:score?`${score.score}/5`:null,
+        reason:score?conditionReason(loc,score.condition,true):'',
+        wind:fmt(loc.windKn,'kt'),gust:fmt(loc.gustKn,'kt'),
+        seas:fmt(converted(loc.waveM,3.28084),'ft'),period:fmt(loc.wavePeriodS,'s'),
+        rain:fmt(converted(loc.rainMm,1/25.4),'in',2),rainChance:fmt(loc.rainProbabilityPct,'%',0),
+        current:s1.bankxcurrent,currentDir:s1.bankxcurrentDir,sst:s1.bankxsst,swell:s1.bankxswell});
+    }catch(e){console.warn(`AREA SKIPPED: ${loc&&loc.id} on ${day.date}: ${e.message}`);}
+  }
+  console.log(`AREAS ${day.date}: ${areas.map(a=>a.key).join(', ')}`);
   const poster={
     status:primary.condition,condition:'Marine conditions',comfort:`${primary.score}/5`,
     overallReason:conditionReason(maiden,primary.condition),
@@ -438,6 +456,7 @@ function toPoster(day){
     currentDir:maiden.currentUnitVerified?compass(maiden.currentDirectionDeg):'',
     sst:fmt(Number.isFinite(maiden.sstC)?maiden.sstC*9/5+32:null,'°F'),swell:`${fmt(Number.isFinite(maiden.swellM)?maiden.swellM*3.28084:null,'ft')} ${compass(maiden.swellDirectionDeg)}`, 
     ...sea(bow,1),...sea(cal,2),
+    areas,
     travelWindows:windows
   };
   return {day:day.date,poster,extended:day.dayOffset>=3};

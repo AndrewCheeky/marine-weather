@@ -21,6 +21,11 @@
 .outlook-head h2{margin:0;font-size:20px;letter-spacing:-.01em}
 .outlook-updated{margin:0;font-size:14px;color:#bfe3ee}
 
+.outlook-picks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.outlook-picks label{display:grid;gap:4px;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#cfe8f0;min-width:0}
+.outlook-picks select{font:inherit;font-size:15px;font-weight:650;letter-spacing:0;text-transform:none;width:100%;padding:9px 10px;border-radius:10px;border:0;background:#fff;color:var(--mw-ink)}
+.missing-link{color:#0877a8;font-weight:750}
+@media(max-width:600px){.outlook-picks{grid-template-columns:1fr}}
 .day-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:14px}
 .day-btn{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:#fff;min-height:58px}
 .day-btn .day-name{font-size:12px;font-weight:700;color:#cfe8f0;text-transform:uppercase;letter-spacing:.04em}
