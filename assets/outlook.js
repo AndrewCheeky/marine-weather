@@ -58,7 +58,7 @@ function areaCard(key,a){
   const cur=ok(a.current)?a.current+(ok(a.currentDir)?' '+a.currentDir:''):'';
   return el('article',{class:'area-card '+M.cls(status)+(status==='RED'?' highlight':'')},
     el('header',{},
-      el('div',{},el('p',{class:'area-where'},key==='maiden'?'Inshore · Kingston':'Fishing bank'),el('h3',{},bankName(key))),
+      el('div',{},el('h3',{},bankName(key))),
       M.pill(status,ok(a.comfort)?'Comfort '+a.comfort:null)),
     status&&status!=='GREEN'&&ok(a.reason)?el('p',{class:'area-reason'},'Why: '+a.reason):null,
     el('dl',{class:'area-stats'},[
@@ -70,7 +70,7 @@ function missingCard(key){
   const go=el('a',{href:'#bank-snapshots',class:'missing-link'},'See its 24-hour forecast ↓');
   go.addEventListener('click',()=>{const sel=document.getElementById('bank-select');if(sel&&[...sel.options].some(o=>o.value===key)){sel.value=key;sel.dispatchEvent(new Event('change'));}});
   return el('article',{class:'area-card unknown'},
-    el('header',{},el('div',{},el('p',{class:'area-where'},'Fishing bank'),el('h3',{},bankName(key)))),
+    el('header',{},el('div',{},el('h3',{},bankName(key)))),
     el('p',{class:'area-reason'},'No 7-day outlook is published for this bank yet. ',go));
 }
 const chosen=()=>picks.filter(Boolean);
