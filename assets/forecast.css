@@ -1,4 +1,9 @@
 /* Marine Weather Jamaica v8: readable forecast components (loaded after landing.css). */
+/* Typeface: Montserrat (SIL Open Font License, see assets/fonts/Montserrat-OFL.txt), the closest free
+   match to Gotham. Self-hosted Latin subset of the variable font (all weights), so it also works offline. */
+@font-face{font-family:"Montserrat";src:url("fonts/montserrat-latin.woff") format("woff");font-weight:100 900;font-style:normal;font-display:swap}
+body,button,input,select,textarea,#marine-shared-footer,#marine-shared-footer *{font-family:"Montserrat",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.stat dd,.table-scroll td,.day-btn .day-num{font-variant-numeric:tabular-nums}
 :root{
   --mw-ink:#123145;--mw-ink-2:#365c73;--mw-muted:#5b7486;--mw-line:#d5e6ee;--mw-surface:#ffffff;--mw-tint:#eef6f9;
   --mw-green:#17834a;--mw-green-bg:#e5f5ea;--mw-amber:#f5b942;--mw-amber-ink:#5b3d00;--mw-amber-bg:#fff4d6;
