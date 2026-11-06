@@ -1,12 +1,12 @@
 /* Marine Weather Jamaica: versioned offline app shell; no background forecast requests. */
-const VERSION = 'mwja-pwa-v8.4.4';
+const VERSION = 'mwja-pwa-v8.5.0';
 const SHELL = VERSION + '-shell';
 const FORECAST = VERSION + '-forecasts';
 const CACHE_PREFIX = 'mwja-pwa-';
 const ASSETS = [
   '/', '/index.html', '/how-to-read.html',
-  '/assets/landing.css?v=8.0.0', '/assets/forecast.css?v=8.4.4', '/assets/pwa.css?v=6.1',
-  '/assets/pwa.js?v=8.0.0', '/assets/mw-common.js?v=8.0.0', '/assets/outlook.js?v=8.4.4',
+  '/assets/landing.css?v=8.0.0', '/assets/forecast.css?v=8.5.0', '/assets/pwa.css?v=6.1',
+  '/assets/pwa.js?v=8.0.0', '/assets/mw-common.js?v=8.0.0', '/assets/outlook.js?v=8.5.0',
   '/assets/banks.js?v=8.3.0', '/assets/shared-footer.js?v=8.0.0', '/assets/shared-footer.css?v=5.9',
   '/assets/marine-alert.js', '/banks/banks.json', '/assets/coastal/fishermen-nets.webp',
   '/icons/icon-192.png', '/icons/icon-512.png'
