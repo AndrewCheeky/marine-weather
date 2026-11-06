@@ -1,7 +1,7 @@
 /* Marine Weather Jamaica: 7-day outlook as readable text.
    Reads the published seven-day manifest and per-day JSON (the same data the posters are drawn from).
-   Day buttons and the headline use the WORST rating of inshore + offshore banks, so a green
-   Kingston rating can never hide an offshore alert. */
+   Visitors pick up to three banks (or "No bank"); the choice is remembered in this browser.
+   Day buttons and the warning banner use the WORST rating of the chosen banks. */
 (()=>{'use strict';
 const M=window.MW;if(!M)return;
 const {el}=M;
@@ -26,29 +26,55 @@ function stat(label,value,sub){
   return el('div',{class:'stat'},el('dt',{},label),el('dd',{},value,ok(sub)?el('small',{},sub):null));
 }
 
-// "11.1 kt (Gust 13.7 kt)" -> main "11.1 kt", sub "gusts 13.7 kt" so values don't wrap on phones.
-function splitStat(label,raw,prefix,subPattern,subLabel){
-  let text=String(raw||'').trim();if(prefix)text=text.replace(prefix,'');
-  const m=text.match(subPattern);
-  if(!m)return stat(label,text);
-  return stat(label,text.replace(subPattern,'').trim(),subLabel+m[1].replace(/\s+%/,'%').trim());
+/* ---------- Chosen banks (saved in this browser) ---------- */
+const PICK_KEY='mw.outlookBanks.v1';
+const DEFAULT_PICKS=['maiden','bowditch','california'];
+let bankList=[],picks=DEFAULT_PICKS.slice();
+try{const saved=JSON.parse(localStorage.getItem(PICK_KEY)||'null');if(Array.isArray(saved)&&saved.length===3)picks=saved.map(x=>typeof x==='string'?x:'');}catch{}
+const savePicks=()=>{try{localStorage.setItem(PICK_KEY,JSON.stringify(picks));}catch{}};
+const bankName=key=>bankList.find(b=>b.key===key)?.name||key;
+
+// One shape for every area: from the day's `areas` list, or (older files) from the poster fields.
+function areasFor(p){
+  const map=new Map();
+  const line=(raw,re)=>{const m=String(raw||'').match(re);return m?m[1].trim():'';};
+  const fromPoster={
+    maiden:{status:p.status,comfort:p.comfort,reason:p.overallReason,wind:p.wind,gust:p.gust,seas:p.seas,period:p.period,rain:p.rain,uv:p.uv,
+      current:p.current,currentDir:p.currentDir,sst:p.sst,swell:p.swell},
+  };
+  [[1,'bowditch'],[2,'california']].forEach(([n,key])=>{const k='bank'+n;fromPoster[key]={
+    status:p[k+'status'],comfort:p[k+'comfort'],reason:p[k+'reason'],
+    wind:line(p[k+'windLine'],/^Wind\s*([^(]+)/i),gust:line(p[k+'windLine'],/\(Gust\s*([^)]+)\)/i),
+    seas:line(p[k+'seaLine'],/^Seas\s*([^·]+)/i),period:line(p[k+'seaLine'],/Period\s*(.+)$/i),
+    rain:line(p[k+'rain'],/^([^·]+)/),rainChance:line(p[k+'rain'],/peak chance\s*(.+)$/i).replace(/\s+%/,'%'),
+    current:p[k+'current'],currentDir:p[k+'currentDir'],sst:p[k+'sst'],swell:p[k+'swell']};});
+  for(const [key,a] of Object.entries(fromPoster))map.set(key,{key,...a});
+  for(const a of Array.isArray(p.areas)?p.areas:[])if(a&&a.key)map.set(a.key,{...map.get(a.key),...a,uv:a.uv??map.get(a.key)?.uv});
+  return map;
 }
 
-// Current, sea temperature and swell for one area; prefix '' = inshore, 'bank1' / 'bank2' = offshore.
-function seaStats(p,prefix){
-  const k=f=>prefix+f;
-  const cur=p[k('current')],dir=p[k('currentDir')];
-  return [stat('Surface current',ok(cur)?cur+(ok(dir)?' '+dir:''):''),stat('Sea temperature',p[k('sst')]),stat('Swell',p[k('swell')])];
-}
-
-function areaCard({title,where,status,comfort,reason,stats,highlight}){
-  return el('article',{class:'area-card '+M.cls(status)+(highlight?' highlight':'')},
+function areaCard(key,a){
+  const status=M.status(a.status);
+  const cur=ok(a.current)?a.current+(ok(a.currentDir)?' '+a.currentDir:''):'';
+  return el('article',{class:'area-card '+M.cls(status)+(status==='RED'?' highlight':'')},
     el('header',{},
-      el('div',{},el('p',{class:'area-where'},where),el('h3',{},title)),
-      M.pill(status,ok(comfort)?'Comfort '+comfort:null)),
-    ok(reason)?el('p',{class:'area-reason'},'Why: '+reason):null,
-    el('dl',{class:'area-stats'},stats.filter(Boolean)));
+      el('div',{},el('p',{class:'area-where'},key==='maiden'?'Inshore · Kingston':'Fishing bank'),el('h3',{},bankName(key))),
+      M.pill(status,ok(a.comfort)?'Comfort '+a.comfort:null)),
+    status&&status!=='GREEN'&&ok(a.reason)?el('p',{class:'area-reason'},'Why: '+a.reason):null,
+    el('dl',{class:'area-stats'},[
+      stat('Wind',a.wind,ok(a.gust)?'gusts '+a.gust:''),stat('Seas',a.seas,ok(a.period)?'period '+a.period:''),
+      stat('Rain',a.rain,ok(a.rainChance)?'peak chance '+String(a.rainChance).replace(/\s+%/,'%'):''),stat('UV index',a.uv),
+      stat('Surface current',cur),stat('Sea temperature',a.sst),stat('Swell',a.swell)].filter(Boolean)));
 }
+function missingCard(key){
+  const go=el('a',{href:'#bank-snapshots',class:'missing-link'},'See its 24-hour forecast ↓');
+  go.addEventListener('click',()=>{const sel=document.getElementById('bank-select');if(sel&&[...sel.options].some(o=>o.value===key)){sel.value=key;sel.dispatchEvent(new Event('change'));}});
+  return el('article',{class:'area-card unknown'},
+    el('header',{},el('div',{},el('p',{class:'area-where'},'Fishing bank'),el('h3',{},bankName(key)))),
+    el('p',{class:'area-reason'},'No 7-day outlook is published for this bank yet. ',go));
+}
+const chosen=()=>picks.filter(Boolean);
+function worstFor(p){const m=areasFor(p);return M.worst(chosen().map(k=>m.get(k)?.status));}
 
 /* ---------- Moon: phase as seen from Jamaica + when it is up / visible ---------- */
 const SVGNS='http://www.w3.org/2000/svg';
@@ -84,35 +110,25 @@ function moonFace(p){
 
 function render(day){
   const p=day.poster||{};
-  const inshore=M.status(p.status);
-  const banks=[1,2].map(n=>({n,name:p['bank'+n],status:M.status(p['bank'+n+'status'])})).filter(b=>ok(b.name));
-  const offWorst=M.worst(banks.map(b=>b.status));
+  const map=areasFor(p);
+  const keys=chosen();
+  const rated=keys.map(k=>({k,a:map.get(k)})).filter(x=>x.a);
+  const worst=M.worst(rated.map(x=>x.a.status));
 
-  // Offshore warning banner when any bank is rated worse than the inshore headline.
-  const rank={GREEN:1,AMBER:2,RED:3};
-  if(offWorst&&(!inshore||rank[offWorst]>rank[inshore])){
-    const names=banks.filter(b=>b.status===offWorst).map(b=>short(b.name));
-    const reasons=[...new Set(banks.filter(b=>b.status===offWorst).map(b=>p['bank'+b.n+'reason']).filter(ok))];
-    offshore.className='outlook-banner '+M.cls(offWorst);
-    offshore.replaceChildren(el('strong',{},'⚠ Offshore '+M.word(offWorst).toLowerCase()+': '),names.join(' & '),
+  // Warning banner whenever a chosen bank is rated CAUTION or ALERT.
+  if(worst&&worst!=='GREEN'){
+    const hit=rated.filter(x=>M.status(x.a.status)===worst);
+    const reasons=[...new Set(hit.map(x=>x.a.reason).filter(ok))];
+    offshore.className='outlook-banner '+M.cls(worst);
+    offshore.replaceChildren(el('strong',{},'⚠ '+(worst==='RED'?'Alert':'Caution')+': '),hit.map(x=>short(bankName(x.k))).join(' & '),
       reasons.length?' — '+reasons.join('; '):'',
-      el('span',{class:'banner-sub'},'Inshore Kingston / Maiden Cay is rated '+M.word(inshore).toLowerCase()+'. Check your bank before heading out.'));
+      el('span',{class:'banner-sub'},'Check official marine advisories before heading out.'));
     offshore.hidden=false;
   }else offshore.hidden=true;
 
-  const cards=[areaCard({
-    title:'Kingston / Maiden Cay',where:'Inshore',status:inshore,comfort:p.comfort,reason:inshore!=='GREEN'?p.overallReason:'',
-    stats:[stat('Wind',p.wind,ok(p.gust)?'gusts '+p.gust:''),stat('Seas',p.seas,ok(p.period)?'period '+p.period:''),stat('Rain',p.rain),stat('UV index',p.uv),...seaStats(p,'')]
-  })];
-  for(const b of banks){
-    const k='bank'+b.n;
-    cards.push(areaCard({
-      title:short(b.name),where:'Offshore bank',status:b.status,comfort:p[k+'comfort'],reason:b.status!=='GREEN'?p[k+'reason']:'',
-      highlight:b.status&&b.status===offWorst&&offWorst!=='GREEN',
-      stats:[splitStat('Wind',p[k+'windLine'],/^Wind\s*/i,/\s*\(Gust\s*([^)]+)\)/i,'gusts '),splitStat('Seas',p[k+'seaLine'],/^Seas\s*/i,/\s*·\s*Period\s*(.+)$/i,'period '),splitStat('Rain',p[k+'rain'],null,/\s*·\s*(peak chance.*)$/i,''),...seaStats(p,k)]
-    }));
-  }
-  grid.replaceChildren(...cards);
+  grid.replaceChildren(...(keys.length
+    ?keys.map(k=>map.get(k)?areaCard(k,map.get(k)):missingCard(k))
+    :[el('p',{class:'area-missing'},'Choose up to three banks above to see their 7-day outlook.')]));
 
   // Secondary details live behind a disclosure so the headline stays short on phones.
   const blocks=[];
@@ -156,8 +172,31 @@ function showPosterFallback(message){
     stale.hidden=false;
   }
 
-  const buttons=[];
+  try{bankList=(await M.getJSON('banks/banks.json')).filter(b=>b&&b.key&&b.name);}catch{bankList=[];}
+  // Three bank pickers above the day buttons.
+  const pickBox=el('div',{class:'outlook-picks',role:'group','aria-label':'Choose your banks'});
+  const selects=[0,1,2].map(i=>{
+    const sel=el('select',{'aria-label':'Bank '+(i+1)},el('option',{value:''},'No bank'),...bankList.map(b=>el('option',{value:b.key},b.name)));
+    sel.value=bankList.some(b=>b.key===picks[i])?picks[i]:'';
+    sel.addEventListener('change',()=>{picks[i]=sel.value;savePicks();paintButtons();choose(current);});
+    pickBox.append(el('label',{},el('span',{},'Bank '+(i+1)),sel));
+    return sel;
+  });
+  picks=selects.map(s=>s.value);
+  strip.before(pickBox);
+
+  const buttons=[];let current=0;
+  function paintButtons(){
+    days.forEach((d,i)=>{
+      const p=loaded[i]?.poster;
+      const s=p?worstFor(p):null;
+      const b=buttons[i];if(!b)return;
+      b.className='day-btn '+M.cls(s);
+      b.setAttribute('aria-label',M.dayLabel(d.date,{weekday:'long',day:'numeric',month:'long'})+': worst rating of your banks '+M.word(s).toLowerCase()+((d.category==='extended'||i>=3)?', extended outlook':''));
+    });
+  }
   function choose(i){
+    current=i;
     const d=days[i],data=loaded[i];
     buttons.forEach((b,j)=>b.setAttribute('aria-pressed',String(i===j)));
     if(!data||!data.poster){
@@ -172,10 +211,7 @@ function showPosterFallback(message){
       ' · ',el('a',{href:base+'seven-day-'+d.date+'.png',target:'_blank',rel:'noopener'},'Share image ↗'));
   }
   days.forEach((d,i)=>{
-    const p=loaded[i]?.poster;
-    const s=p?M.worst(p.status,p.bank1status,p.bank2status):M.status(d.worstStatus||d.status);
-    const b=el('button',{type:'button',class:'day-btn '+M.cls(s),'aria-pressed':'false',
-      'aria-label':M.dayLabel(d.date,{weekday:'long',day:'numeric',month:'long'})+': worst rating '+M.word(s).toLowerCase()+((d.category==='extended'||i>=3)?', extended outlook':'')},
+    const b=el('button',{type:'button',class:'day-btn','aria-pressed':'false'},
       el('span',{class:'day-name'},M.dayLabel(d.date,{weekday:'short'})),
       el('span',{class:'day-num'},M.dayLabel(d.date,{day:'numeric'})),
       el('span',{class:'day-dot','aria-hidden':'true'}));
@@ -183,6 +219,7 @@ function showPosterFallback(message){
     buttons.push(b);
   });
   strip.replaceChildren(...buttons);
+  paintButtons();
   const today=M.jaDate();
   const idx=days.findIndex(d=>d.date>=today);
   choose(idx<0?0:idx);
