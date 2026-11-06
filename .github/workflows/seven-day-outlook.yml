@@ -1,7 +1,7 @@
 name: Seven-Day Marine Outlook
 on:
   schedule:
-    - cron: '45 11 * * *' # 06:45 Jamaica time
+    - cron: '52 11 * * *' # 06:52 Jamaica (UTC-5); odd minute avoids GitHub's busiest times
   workflow_dispatch:
 permissions:
   contents: write
