@@ -83,7 +83,7 @@ const svgEl=(tag,a={},text)=>{const e=document.createElementNS(SVGNS,tag);for(co
 function moonDisc(phase,illum,size=96){
   let f=parseFloat(illum);f=Number.isFinite(f)?Math.max(0,Math.min(1,f/100)):(/full/i.test(phase)?1:/new/i.test(phase)?0:0.5);
   const waxing=/waxing|first/i.test(phase);
-  const r=44,cx=50,cy=50,rx=Math.abs(1-2*f)*r;
+  const r=48.5,cx=50,cy=50,rx=Math.abs(1-2*f)*r;
   const svg=svgEl('svg',{viewBox:'0 0 100 100',width:size,height:size,class:'moon-disc',role:'img','aria-label':`${phase}, ${Math.round(f*100)}% lit`});
   const defs=svgEl('defs');const g=svgEl('radialGradient',{id:'moonLit',cx:'45%',cy:'40%',r:'65%'});
   g.append(svgEl('stop',{offset:'0','stop-color':'#fffbe8'}),svgEl('stop',{offset:'1','stop-color':'#e6dcb8'}));defs.append(g);svg.append(defs);
@@ -104,7 +104,7 @@ function moonDisc(phase,illum,size=96){
 // Moon phase picture with its name and how much is lit, e.g. "Waning Crescent · 22% lit".
 function moonFace(p){
   if(!ok(p.moonPhase))return null;
-  return el('div',{class:'moon-face'},moonDisc(p.moonPhase,p.moonIllum,76),
+  return el('div',{class:'moon-face'},moonDisc(p.moonPhase,p.moonIllum,103),
     el('p',{},el('strong',{},p.moonPhase),ok(p.moonIllum)?el('span',{},p.moonIllum+' lit'):null));
 }
 
@@ -136,8 +136,10 @@ function render(day){
   if(tides.length)blocks.push(el('div',{class:'more-block'},el('h4',{},'Tides · Kingston (model)'),el('dl',{},tides)));
   const sky=[stat('Sunrise',p.sunrise),stat('Sunset',p.sunset),stat('Moonrise',p.moonrise),stat('Moonset',p.moonset)].filter(Boolean);
   const face=moonFace(p);
-  if(sky.length||face)blocks.push(el('div',{class:'more-block sky-block'},el('h4',{},'Sun & moon'),
-    el('div',{class:'sky-row'},sky.length?el('dl',{class:'sky-stats'},sky):null,face)));
+  // Heading + times on the left; the moon picture starts level with the heading, so its
+  // bottom lines up with the last row of times.
+  if(sky.length||face)blocks.push(el('div',{class:'more-block sky-block'},
+    el('div',{class:'sky-main'},el('h4',{},'Sun & moon'),sky.length?el('dl',{class:'sky-stats'},sky):null),face));
   moreGrid.replaceChildren(...blocks);
   more.hidden=!blocks.length;
 }
