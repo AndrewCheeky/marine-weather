@@ -102,10 +102,12 @@ function moonDisc(phase,illum,size=96){
   return svg;
 }
 // Moon phase picture with its name and how much is lit, e.g. "Waning Crescent · 22% lit".
+const MOON_SIZE=59; // sized so the picture fills the space beside the heading and sunrise/sunset row
 function moonFace(p){
   if(!ok(p.moonPhase))return null;
-  return el('div',{class:'moon-face'},moonDisc(p.moonPhase,p.moonIllum,103),
-    el('p',{},el('strong',{},p.moonPhase),ok(p.moonIllum)?el('span',{},p.moonIllum+' lit'):null));
+  // Caption styled like the time labels/values so "22% lit" sits on the same line as the moonset time.
+  return el('div',{class:'moon-face'},moonDisc(p.moonPhase,p.moonIllum,MOON_SIZE),
+    el('dl',{class:'moon-caption'},stat(p.moonPhase,ok(p.moonIllum)?p.moonIllum+' lit':'—')));
 }
 
 function render(day){
