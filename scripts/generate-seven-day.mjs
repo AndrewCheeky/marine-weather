@@ -353,6 +353,14 @@ function toPoster(day){
   // Only shown when the existing status is not GREEN; uses observed forecast values.
   function conditionReason(site, condition, compact=false){
     if(condition==='GREEN')return '';
+    // Prefer the reasons the Apps Script feed gives (v1.6+): the production snapshot's own
+    // reason, then its rule-based factors (thunderstorms, squalls, heavy rain, chop, wind/seas).
+    const given=site.productionScore&&typeof site.productionScore.reason==='string'&&site.productionScore.reason.trim();
+    if(given)return given;
+    if(Array.isArray(site.ratingFactors)&&site.ratingFactors.length)return site.ratingFactors.join(' · ');
+    // Feed checked for thunderstorms and found no other factor: say so plainly rather than
+    // pointing at a number that didn't cause the rating.
+    if(Array.isArray(site.ratingFactors)&&site.thunderChecked)return 'Rated by the forecast service; no single factor identified';
     const factors=[];
     const gust=Number(site.gustKn), rainChance=Number(site.rainProbabilityPct);
     const wave=Number(site.waveM), period=Number(site.wavePeriodS);
