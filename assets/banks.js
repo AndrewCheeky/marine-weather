@@ -23,7 +23,7 @@ const hh=stamp=>String(stamp).slice(11,16);
 async function hourlyRows(key,when){
   const today=M.jaDate(),tomorrow=M.jaDate(1);
   try{
-    const data=await M.getJSON(`banks/hourly/${key}-24h.json`);
+    const data=await M.getJSON(`banks/hourly/${key}-24h.json?t=${Date.now()}`);
     if(data.key!==key||!Array.isArray(data.hours))throw Error('bad 24h file');
     const start=when==='tomorrow'?tomorrow+'T07:00':today+'T'+String(M.jaHour()).padStart(2,'0')+':00';
     const end=when==='tomorrow'?tomorrow+'T17:00':null;
@@ -33,7 +33,7 @@ async function hourlyRows(key,when){
     if(rows.length)return {rows,updated:data.generated_at};
   }catch(e){console.warn('24-hour file unavailable for',key,e.message);}
   // Fallback: the shorter window file written with the quick-look images.
-  const data=await M.getJSON(`banks/hourly/${key}-${when}.json`);
+  const data=await M.getJSON(`banks/hourly/${key}-${when}.json?t=${Date.now()}`);
   if(data.day!==(when==='tomorrow'?tomorrow:today))throw Error('No hourly forecast published for this window yet.');
   return {rows:data.hours.map(r=>({stamp:data.day+'T'+r.time,...r})),updated:data.published_at,partial:true};
 }
@@ -41,7 +41,7 @@ async function hourlyRows(key,when){
 // Server rating (conditionColor per hour) for the window; only trusted when it is for the right day.
 async function bankRating(key,when){
   try{
-    const data=await M.getJSON(`banks/hourly/${key}-${when}.json`);
+    const data=await M.getJSON(`banks/hourly/${key}-${when}.json?t=${Date.now()}`);
     const expected=when==='tomorrow'?M.jaDate(1):M.jaDate();
     if(data.day!==expected)return {status:null,note:'rating out of date'};
     if(when==='current'&&M.ageHours(data.published_at)>8)return {status:null,note:'rating out of date'};
@@ -218,7 +218,7 @@ function highlightMarker(key){
   try{
     const list=await M.getJSON('banks/banks.json');
     let coords={};
-    try{const loc=await M.getJSON('banks/locations.json');for(const l of (Array.isArray(loc)?loc:loc.banks||[]))coords[l.key]=l;}catch{}
+    try{const loc=await M.getJSON('banks/locations.json?t='+Date.now());for(const l of (Array.isArray(loc)?loc:loc.banks||[]))coords[l.key]=l;}catch{}
     banks=list.filter(x=>safeKey(x.key)&&x.name).map(b=>({...b,lat:num(coords[b.key]?.lat??b.lat),lon:num(coords[b.key]?.lon??b.lon)}));
     bankSel.replaceChildren(...banks.map(b=>el('option',{value:b.key},b.name)));
     const fromHash=new URLSearchParams(location.hash.split('?')[1]||'').get('bank');
