@@ -60,3 +60,12 @@ jobs:
           path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
+        continue-on-error: true
+      # GitHub refuses a new publish while the previous one is still finishing
+      # ("in progress deployment"). Wait and try again rather than failing.
+      - name: Wait before retrying the publish
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 90
+      - id: deployment_retry
+        if: steps.deployment.outcome == 'failure'
+        uses: actions/deploy-pages@v4
