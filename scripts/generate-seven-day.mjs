@@ -424,10 +424,12 @@ function toPoster(day){
   });
   // Every location in the feed, so the website can show whichever banks a visitor picks.
   // Same scoring rules as the three poster areas; a location that can't be scored is left out.
+  // Diagnostic: every location the feed sent, with the flags that decide whether it is used.
+  console.log(`FEED ${day.date}: `+(day.locations||[]).map(l=>`${l&&l.id}(ready=${l&&l.ready},stale=${l&&l.stale})`).join(', '));
   const areas=[];
   for(const loc of day.locations||[]){
     try{
-      if(!loc||!loc.id||!loc.ready||loc.stale)continue;
+      if(!loc||!loc.id||!loc.ready||loc.stale){console.warn(`AREA SKIPPED: ${loc&&loc.id} on ${day.date}: not ready or stale`);continue;}
       const score=authoritative(loc)||scoreFromExistingRules(loc);
       const s1=sea(loc,'x');
       areas.push({key:String(loc.id).toLowerCase(),name:loc.name||loc.id,
