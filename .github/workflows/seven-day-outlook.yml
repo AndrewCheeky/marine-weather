@@ -1,7 +1,11 @@
 name: Seven-Day Marine Outlook
 on:
   schedule:
-    - cron: '52 11 * * *' # 06:52 Jamaica (UTC-5); odd minute avoids GitHub's busiest times
+    # Live by ~04:30 Jamaica for 06:00 departures. Times are UTC (Jamaica = UTC-5);
+    # odd minutes avoid GitHub's busiest times. The second run is a backup in case the
+    # first is delayed or the Apps Script data wasn't ready; re-running is harmless.
+    - cron: '47 8 * * *'  # 03:47 Jamaica
+    - cron: '22 9 * * *'  # 04:22 Jamaica, backup
   workflow_dispatch:
 permissions:
   contents: write
