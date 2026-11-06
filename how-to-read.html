@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#052638">
-<meta name="description" content="How Marine Weather Jamaica works out its GOOD, CAUTION and ALERT ratings, what the comfort score means, and where the forecast data comes from.">
-<title>How to Read the Forecast | Marine Weather Jamaica</title>
+<meta name="description" content="How Marine Weather Jamaica works: ratings, refresh times and data sources.">
+<title>How This Site Works | Marine Weather Jamaica</title>
 <link rel="stylesheet" href="assets/landing.css?v=8.0.0">
 <link rel="stylesheet" href="assets/forecast.css?v=8.0.0">
 <link rel="manifest" href="manifest.webmanifest">
@@ -14,12 +14,14 @@
   .doc-header{position:static;background:var(--navy,#052638)}
   .doc{max-width:820px;margin:0 auto;padding:40px 20px 60px;color:var(--mw-ink);line-height:1.65;font-size:17px}
   .doc h1{font-size:clamp(30px,5vw,46px);line-height:1.1;letter-spacing:-.03em;margin:0 0 12px}
-  .doc h2{font-size:24px;margin:40px 0 10px;letter-spacing:-.01em}
+  .doc h2{font-size:22px;margin:32px 0 8px;letter-spacing:-.01em}
   .doc .lede{font-size:19px;color:var(--mw-ink-2)}
   .doc table{border-collapse:collapse;width:100%;font-size:15.5px;margin:12px 0}
   .doc th,.doc td{text-align:left;padding:10px;border-bottom:1px solid var(--mw-line);vertical-align:top}
   .doc thead th{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mw-muted)}
-  .doc .rating-pill{min-width:96px}
+  .doc .rating-pill{min-width:0;display:inline-flex;flex-direction:row;gap:4px;padding:2px 8px;font-size:12.5px;vertical-align:1px}
+  .doc .rating-pill::before{display:none}
+  .doc li{margin-bottom:8px}
   .doc .callout{background:var(--mw-red-bg);border-left:6px solid var(--mw-red);padding:14px 16px;border-radius:10px;margin:18px 0}
   .doc .note{background:var(--mw-tint);padding:14px 16px;border-radius:10px}
   .doc a{color:#0877a8}
@@ -34,68 +36,35 @@
 </header>
 
 <main class="doc">
-  <p class="eyebrow teal">HOW TO READ THIS FORECAST</p>
-  <h1>What the ratings mean, and where the numbers come from</h1>
-  <p class="lede">Marine Weather Jamaica turns computer-model forecasts into a simple rating for each area. This page explains how, so you can judge it for yourself.</p>
+  <h1>How this site works</h1>
+  <p class="callout"><strong>Forecast guidance only. Not for navigation.</strong> Always check <a href="https://metservice.gov.jm/" target="_blank" rel="noopener noreferrer">Meteorological Service of Jamaica</a> advisories before going out.</p>
 
-  <div class="callout"><strong>Not for navigation.</strong> This is forecast guidance, not an official warning service. Always check the <a href="https://metservice.gov.jm/" target="_blank" rel="noopener noreferrer">Meteorological Service of Jamaica</a> for small craft warnings and advisories before you go out, and use your own judgement on the water.</div>
+  <h2>Using the forecast</h2>
+  <ul>
+    <li><strong>Ratings:</strong> <span class="rating-pill green">GOOD</span> generally comfortable · <span class="rating-pill amber">CAUTION</span> rougher, take care · <span class="rating-pill red">ALERT</span> rough or risky. The "Why" line gives the main reason.</li>
+    <li><strong>7-day outlook:</strong> covers 07:00–17:00 Jamaica time each day. Tap the gear icon to choose up to three banks; your choice is saved on your device. Days 4–7 are less certain.</li>
+    <li><strong>Your bank:</strong> pick a bank on the map or from the list for its next 24 hours (or tomorrow 07:00–17:00), hour by hour.</li>
+    <li>Wind is in knots, seas in feet, times in Jamaica time.</li>
+  </ul>
 
-  <h2>The three ratings</h2>
+  <h2>Refresh times (Jamaica time)</h2>
   <div class="table-wrap"><table>
-    <thead><tr><th scope="col">Rating</th><th scope="col">What it means</th><th scope="col">Starting point (average over the window)</th></tr></thead>
+    <thead><tr><th scope="col">Forecast</th><th scope="col">Updated</th></tr></thead>
     <tbody>
-      <tr><td><span class="rating-pill green">GOOD</span></td><td>Generally comfortable conditions for small boats.</td><td>Seas up to 1.5 m (about 4.9 ft) <em>and</em> wind up to 12 kt</td></tr>
-      <tr><td><span class="rating-pill amber">CAUTION</span></td><td>Workable, but expect a rougher ride. Smaller vessels should think twice.</td><td>Seas up to 2.0 m (about 6.6 ft) <em>and</em> wind up to 18 kt</td></tr>
-      <tr><td><span class="rating-pill red">ALERT</span></td><td>Rough or risky conditions. Check official advisories and consider staying in.</td><td>Anything rougher than CAUTION</td></tr>
+      <tr><td>Daily forecast and 7-day outlook</td><td>Every morning about 03:40, with backup runs before 04:30</td></tr>
+      <tr><td>Bank forecasts, charts and map</td><td>Every 3 hours (00:17, 03:17, 06:17 … 21:17)</td></tr>
     </tbody>
   </table></div>
-  <p>The rating is then moved <strong>up one level</strong> (worse) for each of these:</p>
+  <p>Each section shows when it was last updated. Times can occasionally run late.</p>
+
+  <h2>Sources and credits</h2>
   <ul>
-    <li><strong>Short, choppy seas:</strong> wave period of 3.5 seconds or less (two levels at 2.5 seconds or less).</li>
-    <li><strong>Thunderstorms</strong> in the forecast.</li>
-    <li><strong>Heavy rain:</strong> 20 mm or more in the day, or a high chance of rain (80%+) with 15 mm or more.</li>
-    <li><strong>Squalls:</strong> strong gusts combined with heavy rain in the same hour.</li>
-  </ul>
-  <p>These thresholds are set in the forecast scripts and may be fine-tuned over time.</p>
-  <p class="note">The <strong>“Why”</strong> line on each card shows the main reason a rating is CAUTION or ALERT, so you can decide whether it matters for your boat and your trip.</p>
-
-  <h2>Inshore and offshore are rated separately</h2>
-  <p>The outlook rates <strong>Kingston / Maiden Cay</strong> (inshore) and the offshore banks — currently <strong>Mackerel (Bowditch)</strong> and <strong>California Bank</strong> — on their own. Conditions offshore are often rougher than in the harbour.</p>
-  <p>The coloured line under each day button shows the <strong>worst</strong> rating of all three areas that day. If any bank is rated worse than Kingston, a warning banner appears at the top. A green Kingston rating never hides an offshore alert.</p>
-
-  <h2>Comfort score (1–5)</h2>
-  <p>The comfort score describes how pleasant the ride is likely to be, where 5 is the calmest. It mostly reflects sea height, then wind speed, and drops for short, choppy seas. It is a comfort guide, not a safety rating — always read it together with the GOOD / CAUTION / ALERT rating.</p>
-
-  <h2>Forecast windows</h2>
-  <ul>
-    <li><strong>Daily outlook:</strong> 07:00–17:00 Jamaica time for each day. Days 1–3 are short-range forecasts. <strong>Days 4–7 are extended outlooks</strong> and are much less certain.</li>
-    <li><strong>Bank forecast:</strong> “Next 24 hours” starts from the current hour; “Tomorrow” covers 07:00–17:00. The rating badge on a bank covers the next few hours (or tomorrow’s daytime), and the charts show every hour.</li>
-    <li><strong>Weather windows:</strong> stretches of at least two hours when conditions look workable. They are guidance only, not route or vessel clearance.</li>
+    <li>Weather and marine forecasts: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>; backup data from <a href="https://www.visualcrossing.com/" target="_blank" rel="noopener noreferrer">Visual Crossing</a>.</li>
+    <li>Depth map: imagery reproduced from the GEBCO_2026 Grid, GEBCO Compilation Group (2026) GEBCO_2026 Grid (<a href="https://www.gebco.net/" target="_blank" rel="noopener noreferrer">gebco.net</a>). Not for navigation or safety at sea.</li>
+    <li>Backup map: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors, tiles by <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>.</li>
   </ul>
 
-  <h2>Units</h2>
-  <ul>
-    <li><strong>Wind and gusts</strong> in knots (kt). Gusts are the strongest bursts expected in that hour.</li>
-    <li><strong>Seas</strong> in feet (ft) — the average wave height, not the biggest single wave. Occasional waves can be noticeably bigger.</li>
-    <li><strong>Wave period</strong> in seconds (s) — the time between waves. Short periods (under about 6 s) mean a steeper, choppier ride.</li>
-    <li><strong>Current</strong> in knots, with the direction it flows towards.</li>
-    <li><strong>All times</strong> are Jamaica time.</li>
-  </ul>
-
-  <h2>Where the data comes from</h2>
-  <ul>
-    <li>Weather and marine forecasts: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> (licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>), which combines several national weather models.</li>
-    <li>Backup weather data and sun and moon times: <a href="https://www.visualcrossing.com/" target="_blank" rel="noopener noreferrer">Visual Crossing</a>.</li>
-    <li>Tides are modelled for Kingston and are approximate elsewhere.</li>
-    <li>Depth map: imagery reproduced from the GEBCO_2026 Grid, GEBCO Compilation Group (2026) GEBCO_2026 Grid (<a href="https://www.gebco.net/" target="_blank" rel="noopener noreferrer">gebco.net</a>). GEBCO imagery is not for navigation or any purpose relating to safety at sea.</li>
-    <li>Backup map (used only if the depth map can't load): © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors, map tiles by <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>.</li>
-  </ul>
-  <p>These are global computer models. They are not checked against local buoys or reports from fishermen, and they can miss small, fast-changing features such as local squalls and currents around the banks. If what you see on the water doesn’t match the forecast, trust what you see.</p>
-
-  <h2>How fresh is it?</h2>
-  <p>The 7-day outlook is refreshed every morning at about 06:45, and bank forecasts about every three hours. Each card shows when it was last updated. If the outlook is more than a day old, the page shows a warning.</p>
-
-  <p style="margin-top:40px"><a class="nav-cta" href="./">← Back to the forecast</a></p>
+  <p style="margin-top:36px"><a class="nav-cta" href="./">← Back to the forecast</a></p>
 </main>
 
 <div id="marine-shared-footer"></div>
