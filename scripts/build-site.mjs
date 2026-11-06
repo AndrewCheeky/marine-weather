@@ -17,7 +17,9 @@ async function copyTree(dir){
   for(const entry of await readdir(dir||'.',{withFileTypes:true})){
     const rel=dir?join(dir,entry.name):entry.name;
     if(entry.isDirectory()){if(!SKIP_DIRS.has(rel)&&!entry.name.startsWith('.'))await copyTree(rel);continue;}
-    if(SKIP_EXT.has(extname(entry.name).toLowerCase())||entry.name==='.gitignore')continue;
+    // Keep the font licence next to the font (the OFL asks for it to travel with the font files).
+    const keepLicence=rel.startsWith(join('assets','fonts'))&&entry.name.endsWith('.txt');
+    if((!keepLicence&&SKIP_EXT.has(extname(entry.name).toLowerCase()))||entry.name==='.gitignore')continue;
     await mkdir(join(OUT,dir||''),{recursive:true});
     await cp(rel,join(OUT,rel));
   }
