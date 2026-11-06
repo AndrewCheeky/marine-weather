@@ -137,7 +137,7 @@ function render(day){
   const sky=[stat('Sunrise',p.sunrise),stat('Sunset',p.sunset),stat('Moonrise',p.moonrise),stat('Moonset',p.moonset)].filter(Boolean);
   const face=moonFace(p);
   if(sky.length||face)blocks.push(el('div',{class:'more-block sky-block'},el('h4',{},'Sun & moon'),
-    el('div',{class:'sky-row'},face,sky.length?el('dl',{class:'sky-stats'},sky):null)));
+    el('div',{class:'sky-row'},sky.length?el('dl',{class:'sky-stats'},sky):null,face)));
   moreGrid.replaceChildren(...blocks);
   more.hidden=!blocks.length;
 }
