@@ -486,13 +486,17 @@ async function loadFeed(){
    const response=await fetch(url,{signal:ac.signal,headers:{Accept:'*/*'}});
    if(!response.ok)throw Error(`Forecast request returned status ${response.status}`);
    const body=(await response.text()).trim();
+   const env=describeResponse(body,response.headers.get('content-type'),response.status,response.url);
+   console.log(`FORECAST RETRIEVAL: response ${JSON.stringify(env)}`);
    let data;
-   if(body.startsWith('{'))data=JSON.parse(body);
-   else{
-    const match=body.match(/^([A-Za-z_$][\w$]*)\s*\(\s*([\s\S]*?)\s*\)\s*;?$/);
-    if(!match||match[1]!==callback)throw Error('Unexpected endpoint response format or callback');
-    data=JSON.parse(match[2]);
+   try{data=parseForecastResponse(body,callback);}
+   catch(parseError){
+    // Not data: show the error text Google/Apps Script sent (tags stripped, first 300 chars).
+    const text=body.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,300);
+    console.log(`FORECAST RETRIEVAL: response text: ${text}`);
+    throw Error(`Unexpected endpoint response (${env.format}): ${parseError.message}`);
    }
+   if(data?.ok===false)throw Error(`Feed reported an error: ${String(data.error||data.message||'no message').slice(0,200)}`);
    if(!data?.ok||!Array.isArray(data.days)||data.days.length!==7)throw Error('Seven-day feed is incomplete');
    if(data.timezone!=='America/Jamaica'||data.days[0].date!==jamaicaDay())throw Error('Seven-day dates or timezone mismatch');
    console.log(`FORECAST RETRIEVAL: success on attempt ${attempt}; ${data.days.length} days`);
