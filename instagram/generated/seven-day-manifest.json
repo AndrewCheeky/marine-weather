@@ -1,0 +1,69 @@
+{
+  "generatedAt": "2026-11-06T15:02:56.139Z-3d7b2f78-14cf-46c8-9ed0-86d5913a048d",
+  "mode": "PRODUCTION",
+  "days": [
+    {
+      "date": "2026-11-06",
+      "category": "short-range",
+      "status": "YELLOW",
+      "worstStatus": "AMBER",
+      "comfort": "4.8/5",
+      "image": "seven-day-2026-11-06.png",
+      "sha256": "e7d2604f88d8cd6955804fe0e1d46d3a37e4ca2e5ca8f2ff4438f467d83d8624"
+    },
+    {
+      "date": "2026-11-07",
+      "category": "short-range",
+      "status": "GREEN",
+      "worstStatus": "GREEN",
+      "comfort": "4.8/5",
+      "image": "seven-day-2026-11-07.png",
+      "sha256": "563cda5279968d08993efa37884c1b9ae1ef9a773f5ff24141a795ada893807c"
+    },
+    {
+      "date": "2026-11-08",
+      "category": "short-range",
+      "status": "YELLOW",
+      "worstStatus": "RED",
+      "comfort": "4.7/5",
+      "image": "seven-day-2026-11-08.png",
+      "sha256": "3674482fa7b3ce755091ad3a3d188db88c9b987c5b9ea184b512151dbaa04b2a"
+    },
+    {
+      "date": "2026-11-09",
+      "category": "extended",
+      "status": "GREEN",
+      "worstStatus": "RED",
+      "comfort": "3/5",
+      "image": "seven-day-2026-11-09.png",
+      "sha256": "c55aec571867ea56e45ffdce944b248f33028dd65f2537e49cfba41ca2adfe6b"
+    },
+    {
+      "date": "2026-11-10",
+      "category": "extended",
+      "status": "GREEN",
+      "worstStatus": "AMBER",
+      "comfort": "3/5",
+      "image": "seven-day-2026-11-10.png",
+      "sha256": "da806cb7df98127974e1e51596b140c22309584576cade98fadf69043e1f9e73"
+    },
+    {
+      "date": "2026-11-11",
+      "category": "extended",
+      "status": "GREEN",
+      "worstStatus": "AMBER",
+      "comfort": "3/5",
+      "image": "seven-day-2026-11-11.png",
+      "sha256": "344bea21a3bf00ebbeab0b8d3be2c4a3e968ec1f3d6bafa1d627817b8ed8843a"
+    },
+    {
+      "date": "2026-11-12",
+      "category": "extended",
+      "status": "GREEN",
+      "worstStatus": "AMBER",
+      "comfort": "2/5",
+      "image": "seven-day-2026-11-12.png",
+      "sha256": "32a2295468753a788b5e96a79c2123e660ad75c5700adb4d68f6381a795e29c2"
+    }
+  ]
+}
