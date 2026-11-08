@@ -1,6 +1,8 @@
 import sharp from 'sharp';
 // Astronomy is supplied by the existing production Google Apps Script functions.
-import {fishingFocus} from './fishing-focus.mjs';
+import {fishingFocus,focusLabel,fishingMethod} from './fishing-focus.mjs';
+// Fishing method from a feed location's own numbers (current only when its units are verified).
+const methodFor=loc=>fishingMethod({windKn:loc&&loc.windKn,waveM:loc&&loc.waveM,currentKn:loc&&loc.currentUnitVerified?loc.currentKn:null});
 import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
@@ -169,7 +171,7 @@ function makeSvg(p){
   const [c,,word]=theme(val(d,`bank${n}status`,'UNRATED'));
   const name=truncate(val(d,`bank${n}`,'FISHING BANK'),28).toUpperCase();
   const picture=globalThis.__marineArt?.[focus]||'';
-  const mixedPicture=focus==='mixed';
+  const mixedPicture=focus!=='pelagic'&&focus!=='reef';
   const hasDeparture=Array.isArray(d.travelWindows) && valid(d.travelWindows[n]?.departure) && d.travelWindows[n].departure!=='None identified';
   // Per-bank visual treatment: no usable departure window => fade the photo, keep text readable.
   const photoOpacity=hasDeparture?1:0.12;
@@ -181,8 +183,8 @@ function makeSvg(p){
    <rect x="${x+3}" y="762" width="500" height="356" fill="${hasDeparture?'url(#bankShade)':'#052d43'}" fill-opacity="${hasDeparture?1:0.78}"/>
    ${top(x+3,713,500,name)}
    ${rr(x+331,774,156,52,c,13)}${t(x+409,806,word,27,white,900,'text-anchor="middle"')}${comfort?t(x+409,822,`COMFORT ${comfort}`,13,white,750,'text-anchor="middle"'):''}
-   ${icon('target',x+22,873,36,white)}${t(x+71,888,focus==='pelagic'?'PELAGIC FOCUS':focus==='reef'?'BOTTOM / REEF FOCUS':'MIXED FISHING',19,'#d8f7ff',850)}
-   ${t(x+71,914,focus==='pelagic'?'Tuna · Wahoo · Dolphin':focus==='reef'?'Snapper · Grouper · Reef fish':'Pelagic · Bottom / Reef',18,white,650)}
+   ${icon('target',x+22,873,36,white)}${t(x+71,888,focusLabel(focus)[0],19,'#d8f7ff',850)}
+   ${t(x+71,914,focusLabel(focus)[1],18,white,650)}
    ${icon('wave',x+22,930,36,'#a7efff')}${t(x+71,949,'CONDITIONS',18,'#b6ecff',850)}
    ${t(x+71,975,truncate(detail,32),19,white,650)}
    ${icon('rain',x+22,988,36,'#56d7ff')}${t(x+71,1006,'RAIN / OUTLOOK',18,'#b6ecff',850)}
@@ -393,7 +395,7 @@ function toPoster(day){
     rain:fmt(maiden.rainMm,'mm'),uv:fmt(maiden.uvMax,'',0),
     bank1:'Mackerel (Bowditch)',bank1status:b1.condition,bank1comfort:`${b1.score}/5`,bank1detail:conditions(bow),bank1rain:rain(bow),
     bank2:'California Bank',bank2status:b2.condition,bank2comfort:`${b2.score}/5`,bank2detail:conditions(cal),bank2rain:rain(cal),
-    bank1focus:'mixed',bank2focus:'mixed',bank1focusVerified:false,bank2focusVerified:false,
+    bank1focus:methodFor(bow),bank2focus:methodFor(cal),bank1focusVerified:true,bank2focusVerified:true,
     highTides:maiden.highTides||'Not available',lowTides:maiden.lowTides||'Not available',
     ...sky,
     current:maiden.currentUnitVerified&&Number.isFinite(maiden.currentKn)?fmt(maiden.currentKn,'kn'):'Not available (units unverified)',
