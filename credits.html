@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#052638">
+<meta name="description" content="Data sources and credits for Marine Weather Jamaica.">
+<title>Credits | Marine Weather Jamaica</title>
+<link rel="preload" href="assets/fonts/montserrat-latin.woff" as="font" type="font/woff" crossorigin>
+<link rel="stylesheet" href="assets/landing.css?v=8.0.0">
+<link rel="stylesheet" href="assets/forecast.css?v=9.2.1">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<style>
+  .doc-header{position:static;background:var(--navy,#052638)}
+  .doc{max-width:820px;margin:0 auto;padding:40px 20px 60px;color:var(--mw-ink);line-height:1.65;font-size:17px}
+  .doc h1{font-size:clamp(30px,5vw,46px);line-height:1.1;letter-spacing:-.03em;margin:0 0 12px}
+  .doc h2{font-size:22px;margin:32px 0 8px;letter-spacing:-.01em}
+  .doc .lede{font-size:19px;color:var(--mw-ink-2)}
+  .doc table{border-collapse:collapse;width:100%;font-size:15.5px;margin:12px 0}
+  .doc th,.doc td{text-align:left;padding:10px;border-bottom:1px solid var(--mw-line);vertical-align:top}
+  .doc thead th{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mw-muted)}
+  .doc .rating-pill{min-width:0;display:inline-flex;flex-direction:row;gap:4px;padding:2px 8px;font-size:12.5px;vertical-align:1px}
+  .doc .rating-pill::before{display:none}
+  .doc li{margin-bottom:8px}
+  .doc .callout{background:var(--mw-red-bg);border-left:6px solid var(--mw-red);padding:14px 16px;border-radius:10px;margin:18px 0}
+  .doc .note{background:var(--mw-tint);padding:14px 16px;border-radius:10px}
+  .doc a{color:#0877a8}
+  .doc ul{padding-left:22px}
+  .table-wrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<header class="site-header doc-header">
+  <a href="./" class="brand" aria-label="Marine Weather Jamaica home"><span class="brand-wave" aria-hidden="true">≋</span><span><strong>MARINE WEATHER</strong><small>J A M A I C A</small></span></a>
+  <nav class="header-actions" aria-label="Quick actions"><a class="nav-cta check-conditions-cta" href="./#bank-snapshots">Check a bank</a></nav>
+</header>
+
+<main class="doc">
+  <h1>Credits</h1>
+  <p class="lede">Marine Weather Jamaica is built on openly available data and software. Thank you to the people and organisations behind them.</p>
+
+  <h2>Forecast data</h2>
+  <p>Forecast data: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>), with <a href="https://www.visualcrossing.com/" target="_blank" rel="noopener noreferrer">Visual Crossing</a> as a backup.</p>
+
+  <h2>Depth map</h2>
+  <p>Depth map: imagery reproduced from the GEBCO_2026 Grid, GEBCO Compilation Group (2026) GEBCO_2026 Grid (<a href="https://www.gebco.net/" target="_blank" rel="noopener noreferrer">gebco.net</a>). Not for navigation or safety at sea.</p>
+
+  <h2>Official warnings</h2>
+  <p>Small craft warnings and marine alerts shown on this site are taken from the public marine forecast of the <a href="https://metservice.gov.jm/" target="_blank" rel="noopener noreferrer">Meteorological Service of Jamaica</a>. Always check their latest advisories before going out.</p>
+
+  <h2>Software and fonts</h2>
+  <ul>
+    <li>Map display: <a href="https://leafletjs.com/" target="_blank" rel="noopener noreferrer">Leaflet</a> (BSD 2-Clause licence).</li>
+    <li>Typeface: <a href="https://fonts.google.com/specimen/Montserrat" target="_blank" rel="noopener noreferrer">Montserrat</a> by Julieta Ulanovsky and contributors (<a href="assets/fonts/Montserrat-OFL.txt">SIL Open Font License 1.1</a>).</li>
+  </ul>
+  <p class="doc-links"><a href="credits.html">Credits</a> · <a href="privacy.html">Privacy</a> · <a href="how-to-read.html">How this site works</a></p>
+  <p style="margin-top:24px"><a class="nav-cta" href="./">← Back to the forecast</a></p>
+</main>
+
+<div id="marine-shared-footer"></div>
+<script src="assets/pwa.js?v=8.0.0" defer></script>
+<script src="assets/shared-footer.js?v=8.0.0" defer></script>
+</body>
+</html>
