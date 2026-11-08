@@ -71,5 +71,21 @@ function pill(s,extra){
   return el('span',{class:'rating-pill '+cls(s)},el('span',{class:'pill-icon','aria-hidden':'true'},s&&status(s)!=='GREEN'?'⚠':'●'),w,extra?el('small',{},extra):null);
 }
 
-window.MW={status,worst,word,cls,jaDate,jaHour,parseTime,updatedText,ageHours,dayLabel,num,fmt,compass,M_TO_FT,getJSON,el,pill};
+// Biggest single waves over a day are often up to about twice the forecast "seas" height.
+function biggestWaves(ft){const v=Number(String(ft??'').replace(/[^0-9.]/g,''));if(!Number.isFinite(v)||v<=0)return '';return 'biggest waves up to about '+(Math.round(v*2*2)/2)+' ft';}
+// Official Met Service small craft level for a bank on a given date (today and tomorrow only).
+function officialLevel(key,date){
+  const sc=window.MW_SMALLCRAFT;
+  if(!sc||!sc.active||!sc.bankLevels||!key)return null;
+  if(date&&date!==jaDate()&&date!==jaDate(1))return null;
+  return sc.bankLevels[key]||null;
+}
+// Apply an official level to a status/reason pair.
+function withOfficial(key,date,status,reason){
+  const lv=officialLevel(key,date);if(!lv)return {status,reason};
+  const label=lv==='WARNING'?'Met Service small craft warning':'Met Service: small craft caution';
+  const r=String(reason||'');
+  return {status:lv==='WARNING'?'RED':(worst([status,'AMBER'])),reason:r.includes('Met Service')?r:label+(r?' · '+r:'')};
+}
+window.MW={status,worst,word,cls,jaDate,jaHour,parseTime,updatedText,ageHours,dayLabel,num,fmt,compass,M_TO_FT,getJSON,el,pill,biggestWaves,officialLevel,withOfficial};
 })();
