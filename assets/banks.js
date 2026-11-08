@@ -38,12 +38,29 @@ async function hourlyRows(key,when){
   return {rows:data.hours.map(r=>({stamp:data.day+'T'+r.time,...r})),updated:data.published_at,partial:true};
 }
 
-// Server rating (conditionColor per hour) for the window; only trusted when it is for the right day.
+// Rating for the day: the full 07:00–17:00 score (with its reason) that the 7-day outlook shows,
+// so the bank card and the outlook always agree and every bank is rated. Falls back to the
+// older per-hour rating file if the outlook has no entry for this bank.
+const outlookDay={};
+async function outlookArea(key,day){
+  if(!(day in outlookDay))outlookDay[day]=M.getJSON(`instagram/generated/seven-day-${day}.json?t=${Date.now()}`).catch(()=>null);
+  const data=await outlookDay[day];
+  const areas=data&&data.poster&&Array.isArray(data.poster.areas)?data.poster.areas:[];
+  return areas.find(a=>a&&a.key===key)||null;
+}
 async function bankRating(key,when){
+  const day=when==='tomorrow'?M.jaDate(1):M.jaDate();
+  const label=(when==='tomorrow'?'tomorrow':'today')+' 07–17';
+  try{
+    const a=await outlookArea(key,day);
+    if(a&&M.status(a.status)){
+      const why=M.status(a.status)!=='GREEN'&&a.reason?String(a.reason).split(/\s*[·;]\s*/).filter(x=>x&&!/^Comfort\s/i.test(x)&&!/^Rated by the forecast service/i.test(x)&&!/within GOOD limits/i.test(x)).slice(0,2).join(' · '):'';
+      return {status:a.status,note:label+(why?' · '+why:'')};
+    }
+  }catch{}
   try{
     const data=await M.getJSON(`banks/hourly/${key}-${when}.json?t=${Date.now()}`);
-    const expected=when==='tomorrow'?M.jaDate(1):M.jaDate();
-    if(data.day!==expected)return {status:null,note:'rating out of date'};
+    if(data.day!==day)return {status:null,note:'rating out of date'};
     if(when==='current'&&M.ageHours(data.published_at)>8)return {status:null,note:'rating out of date'};
     const s=M.worst((data.hours||[]).map(h=>h.conditionColor));
     return {status:s,note:when==='tomorrow'?'tomorrow 07–17':'next few hours'};
@@ -125,7 +142,7 @@ async function update(){
     updatedEl.textContent=(old?'⚠ Not updated since ':'Updated ')+(M.updatedText(updated)||'time unknown')+(partial?' · partial forecast':'')+(old?' · this forecast may be out of date':'');
     updatedEl.classList.toggle('is-stale',old);
     const off=M.withOfficial(key,when==='tomorrow'?M.jaDate(1):M.jaDate(),rate.status,'');
-    setRating(M.pill(off.status,off.reason?off.reason:rate.note));
+    setRating(M.pill(off.status,off.reason?off.reason+' · '+rate.note.split(' · ')[0]:rate.note));
     const w=peak(rows,'avgWindKn'),g=peak(rows,'peakGustKn'),s=peak(rows,'avgWaveM'),c=peak(rows,'avgCurrentKn'),r=peak(rows,'rainProbabilityPct');
     const atSeas=s?rows.find(x=>x.stamp===s.stamp):null;
     statsEl.replaceChildren(
