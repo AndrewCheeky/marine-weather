@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>WhatsApp post · Marine Weather Jamaica</title>
+<link rel="icon" type="image/png" href="../icons/icon-192.png">
+<style>
+@font-face{font-family:"Montserrat";src:url("../assets/fonts/montserrat-latin.woff") format("woff");font-weight:100 900;font-display:swap}
+:root{--ink:#123145;--muted:#5b7486;--line:#d5e6ee;--bg:#eef6f9;--navy:#052638;--wa:#1f8f4e;--green:#17834a;--amber:#b7791f;--red:#c83c45}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Montserrat",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45}
+header{background:var(--navy);color:#fff;padding:14px 16px}
+header h1{margin:0;font-size:18px}
+header p{margin:2px 0 0;font-size:13px;color:#bcd6e2}
+main{max-width:720px;margin:0 auto;padding:16px}
+section{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+h2{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.days button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 0;font:inherit;font-weight:700;color:var(--ink);cursor:pointer}
+.days button small{display:block;font-size:11px;color:var(--muted);font-weight:700}
+.days button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.days button[aria-pressed="true"] small{color:#bcd6e2}
+.banks{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px 12px}
+.banks label{display:flex;gap:8px;align-items:center;font-size:15px;padding:4px 0;cursor:pointer}
+.banks input{width:20px;height:20px;accent-color:var(--navy)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.small-btn{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:6px 12px;font:inherit;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer}
+textarea{width:100%;min-height:260px;border:1px solid var(--line);border-radius:10px;padding:12px;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);resize:vertical}
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:10px}
+.btn{border:0;border-radius:10px;padding:13px 14px;font:inherit;font-weight:800;font-size:15px;cursor:pointer;text-align:center;text-decoration:none}
+.btn-wa{background:var(--wa);color:#fff}
+.btn-dark{background:var(--navy);color:#fff}
+.btn-light{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+.note{font-size:13px;color:var(--muted);margin:8px 0 0}
+.status{font-size:13px;font-weight:700;min-height:1.4em;margin:8px 0 0}
+.preview img{width:100%;height:auto;border-radius:10px;border:1px solid var(--line)}
+.warn{background:#fdecec;border-color:#f3c2c5;color:#7a1d24;font-weight:700}
+</style>
+</head>
+<body>
+<header>
+  <h1>WhatsApp post</h1>
+  <p>Marine Weather Jamaica · private page for preparing the daily post</p>
+</header>
+<main>
+  <section id="problem" class="warn" hidden></section>
+  <section>
+    <h2>Day</h2>
+    <div class="days" id="days" role="group" aria-label="Choose a day"></div>
+  </section>
+  <section>
+    <h2>Banks</h2>
+    <div class="banks" id="banks"></div>
+    <div class="row">
+      <button type="button" class="small-btn" id="all">All banks</button>
+      <button type="button" class="small-btn" id="none">None</button>
+      <button type="button" class="small-btn" id="mine">My 3 from the main page</button>
+    </div>
+  </section>
+  <section>
+    <h2>Message</h2>
+    <textarea id="msg" aria-label="Message text" spellcheck="false"></textarea>
+    <p class="note">You can edit the text before sending. Choosing another day or bank rebuilds it.</p>
+    <div class="actions">
+      <button type="button" class="btn btn-wa" id="share">Share picture + text</button>
+      <a class="btn btn-dark" id="wa" href="#" target="_blank" rel="noopener">Open in WhatsApp (text)</a>
+      <button type="button" class="btn btn-light" id="copy">Copy text</button>
+    </div>
+    <p class="status" id="status" role="status"></p>
+    <p class="note">“Share picture + text” opens your phone’s share menu with the day’s picture. Some WhatsApp versions drop the text when a picture is attached, so the text is also copied: paste it as the caption if it’s missing.</p>
+  </section>
+  <section class="preview">
+    <h2>Picture</h2>
+    <img id="pic" alt="Forecast picture for the chosen day">
+  </section>
+</main>
+<script src="../assets/mw-common.js?v=9.2.0"></script>
+<script>
+(()=>{'use strict';
+const M=window.MW;
+const SITE='https://marine-weather.andrewcheeky.com';
+const ALERT_ENDPOINT='https://script.google.com/macros/s/AKfycbzwP_tF1SeJIBgB7HxTRBi374NiF0tQXGcSBFUk7EPPu1rSAepDsALW-iHeny6yo1Y/exec';
+const BASE='../instagram/generated/';
+const KEY='mw.waBanks.v1',OUTLOOK_KEY='mw.outlookBanks.v1',DEFAULT=['maiden','bowditch','california'];
+const $=id=>document.getElementById(id);
+const ICON={GREEN:'🟢',AMBER:'🟡',RED:'🔴'};
+const ok=v=>v!==null&&v!==undefined&&String(v).trim()!==''&&!/^(—|-|n\/a|unavailable)\b/i.test(String(v).trim());
+let banks=[],days=[],loaded=[],current=0,chosen=[];
+
+const load=k=>{try{const v=JSON.parse(localStorage.getItem(k)||'null');return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x):null;}catch{return null;}};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(chosen));}catch{}};
+const nameOf=k=>(banks.find(b=>b.key===k)||{}).name||k;
+const problem=t=>{$('problem').textContent=t;$('problem').hidden=false;};
+
+// Same area data the main page uses: the day's `areas` list, with older poster fields as a fallback.
+function areasFor(p){
+  const map=new Map();
+  if(p&&p.status)map.set('maiden',{status:p.status,reason:p.overallReason,wind:p.wind,gust:p.gust,seas:p.seas});
+  for(const a of Array.isArray(p&&p.areas)?p.areas:[])if(a&&a.key)map.set(a.key,{...map.get(a.key),...a});
+  return map;
+}
+function reasonShort(r){
+  // Drop the comfort figure and the generic stand-in text used when no specific reason was saved.
+  return String(r||'').split(/\s*[·;]\s*/)
+    .filter(x=>x&&!/^Comfort\s/i.test(x)&&!/^Rated by the forecast service/i.test(x)&&!/within GOOD limits/i.test(x))
+    .slice(0,3).join(' · ');
+}
+function line(key,a,date){
+  if(!a)return '⚪ '+nameOf(key)+': no forecast yet';
+  const o=M.withOfficial(key,date,a.status,a.reason);
+  const s=M.status(o.status);
+  const parts=[ (ICON[s]||'⚪')+' '+nameOf(key)+': '+M.word(s) ];
+  const why=s&&s!=='GREEN'?reasonShort(o.reason):'';
+  if(why)parts.push(why);
+  else{
+    if(ok(a.wind))parts.push('wind '+a.wind);
+    if(ok(a.seas)){const big=M.biggestWaves(a.seas).replace('biggest waves up to about ','biggest ~');parts.push('seas '+a.seas+(big?' ('+big+')':''));}
+  }
+  return parts.join(' · ');
+}
+function build(){
+  const d=days[current],data=loaded[current];
+  if(!d)return '';
+  const date=d.date;
+  const label=M.dayLabel(date,{weekday:'short',day:'numeric',month:'short'});
+  const map=areasFor(data&&data.poster);
+  const out=['🌊 Marine Weather Jamaica · '+label+' (07:00–17:00)',''];
+  if(!chosen.length)out.push('(Choose at least one bank)');
+  chosen.forEach(k=>out.push(line(k,map.get(k),date)));
+  const sc=window.MW_SMALLCRAFT;
+  if(sc&&sc.active&&(date===M.jaDate()||date===M.jaDate(1))){
+    const first=String(sc.text||'').split(/(?<=\.)\s+/)[0]||'';
+    out.push('',(sc.level==='WARNING'?'⚠ Met Service small craft warning':'⚠ Met Service small craft caution')+(first?': '+first:''));
+  }
+  if(current>=3||d.category==='extended')out.push('','ℹ Extended outlook: greater uncertainty.');
+  out.push('','Check official marine warnings before going out.','Full forecast: '+SITE);
+  return out.join('\n');
+}
+function refresh(){
+  const text=build();
+  $('msg').value=text;
+  $('wa').href='https://wa.me/?text='+encodeURIComponent(text);
+  const d=days[current];
+  if(d){$('pic').src=BASE+'seven-day-'+d.date+'.png?v='+encodeURIComponent(d.date);}
+  $('status').textContent='';
+}
+$('msg').addEventListener('input',()=>{$('wa').href='https://wa.me/?text='+encodeURIComponent($('msg').value);});
+
+function paintBanks(){
+  $('banks').replaceChildren(...banks.map(b=>{
+    const box=M.el('input',{type:'checkbox',value:b.key});
+    box.checked=chosen.includes(b.key);
+    box.addEventListener('change',()=>{chosen=banks.map(x=>x.key).filter(k=>k===b.key?box.checked:chosen.includes(k));save();refresh();});
+    return M.el('label',{},box,b.name);
+  }));
+}
+$('all').onclick=()=>{chosen=banks.map(b=>b.key);save();paintBanks();refresh();};
+$('none').onclick=()=>{chosen=[];save();paintBanks();refresh();};
+$('mine').onclick=()=>{chosen=(load(OUTLOOK_KEY)||DEFAULT).filter(k=>banks.some(b=>b.key===k));save();paintBanks();refresh();};
+
+async function copyText(){
+  try{await navigator.clipboard.writeText($('msg').value);return true;}
+  catch{ $('msg').select();try{return document.execCommand('copy');}catch{return false;} }
+}
+$('copy').onclick=async()=>{$('status').textContent=(await copyText())?'Text copied.':'Could not copy: select the text and copy it yourself.';};
+$('share').onclick=async()=>{
+  const text=$('msg').value,copied=await copyText();
+  try{
+    const res=await fetch($('pic').src);if(!res.ok)throw Error('picture not found');
+    const blob=await res.blob();
+    const file=new File([blob],'marine-weather-'+days[current].date+'.png',{type:blob.type||'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],text});
+      $('status').textContent=copied?'Shared. The text is also copied in case WhatsApp dropped it.':'Shared.';
+      return;
+    }
+    if(navigator.share){await navigator.share({text});$('status').textContent='This browser can’t share pictures, so only the text was shared.';return;}
+    window.open($('wa').href,'_blank','noopener');
+    $('status').textContent='This browser can’t share pictures. Opened WhatsApp with the text; save the picture below if you want to add it.';
+  }catch(e){
+    if(e&&e.name==='AbortError'){$('status').textContent='Share cancelled.';return;}
+    $('status').textContent='Couldn’t share the picture ('+(e&&e.message||e)+'). Use “Open in WhatsApp” instead.';
+  }
+};
+
+// Official Met Service small craft warning (same check as the main page).
+function checkAlert(){
+  const cb='mwWaAlert_'+Date.now();
+  const s=document.createElement('script');
+  const done=()=>{s.remove();try{delete window[cb];}catch{}};
+  const t=setTimeout(done,15000);
+  window[cb]=data=>{clearTimeout(t);done();
+    if(data&&data.ok===true){window.MW_SMALLCRAFT=data.smallCraft&&data.smallCraft.active?data.smallCraft:null;refresh();}};
+  s.onerror=()=>{clearTimeout(t);done();};
+  s.src=ALERT_ENDPOINT+'?action=marineAlert&callback='+cb+'&_t='+Date.now();
+  document.head.appendChild(s);
+}
+
+(async()=>{
+  try{banks=(await M.getJSON('../banks/banks.json')).filter(b=>b&&b.key&&b.name);}catch{banks=[];}
+  banks.sort((a,b)=>(a.key==='maiden'?-1:0)-(b.key==='maiden'?-1:0));   // Maiden Cay first
+  if(!banks.length){problem('The bank list could not be loaded.');}
+  chosen=(load(KEY)||load(OUTLOOK_KEY)||DEFAULT).filter(k=>banks.some(b=>b.key===k));
+  paintBanks();
+  let manifest;
+  try{manifest=await M.getJSON(BASE+'seven-day-manifest.json?refresh='+Date.now());}
+  catch{problem('The 7-day outlook could not be loaded, so there is nothing to post yet.');return;}
+  days=(manifest.days||[]).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(String(d.date)));
+  loaded=await Promise.all(days.map(d=>M.getJSON(BASE+'seven-day-'+d.date+'.json?v='+encodeURIComponent(manifest.generatedAt||'')).catch(()=>null)));
+  if(M.parseTime(manifest.generatedAt)&&new Intl.DateTimeFormat('en-CA',{timeZone:'America/Jamaica'}).format(M.parseTime(manifest.generatedAt))!==M.jaDate())
+    problem('Heads up: the outlook was last updated '+M.updatedText(manifest.generatedAt)+', not today. Check before posting.');
+  const buttons=days.map((d,i)=>{
+    const b=M.el('button',{type:'button','aria-pressed':'false'},M.el('small',{},M.dayLabel(d.date,{weekday:'short'})),M.dayLabel(d.date,{day:'numeric'}));
+    b.onclick=()=>{current=i;buttons.forEach((x,j)=>x.setAttribute('aria-pressed',String(i===j)));refresh();};
+    return b;
+  });
+  $('days').replaceChildren(...buttons);
+  const idx=days.findIndex(d=>d.date>=M.jaDate());
+  current=idx<0?0:idx;
+  buttons[current]&&buttons[current].setAttribute('aria-pressed','true');
+  refresh();
+  checkAlert();
+})();
+})();
+</script>
+</body>
+</html>
