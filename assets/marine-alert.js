@@ -11,6 +11,12 @@
   try{acknowledged=sessionStorage.getItem(memoryKey)||'';}catch(_){}
   const hide=()=>{modal.hidden=true;if(lastFocus?.isConnected)lastFocus.focus();};
   function display(data){
+    // Official small craft warning/caution: share it so the outlook and bank card can apply it.
+    if(data?.ok===true){
+      const sc=data.smallCraft&&data.smallCraft.active?data.smallCraft:null;
+      window.MW_SMALLCRAFT=sc;
+      window.dispatchEvent(new CustomEvent('mw:smallcraft',{detail:sc}));
+    }
     if(data?.ok!==true||data.active!==true||!['AMBER','RED'].includes(data.level)||typeof data.message!=='string')return;
     const message=data.message.trim();
     if(message.length<8||message.length>1200)return;

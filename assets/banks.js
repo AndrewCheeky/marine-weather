@@ -124,13 +124,14 @@ async function update(){
     const old=M.ageHours(updated)>8;
     updatedEl.textContent=(old?'⚠ Not updated since ':'Updated ')+(M.updatedText(updated)||'time unknown')+(partial?' · partial forecast':'')+(old?' · this forecast may be out of date':'');
     updatedEl.classList.toggle('is-stale',old);
-    setRating(M.pill(rate.status,rate.note));
+    const off=M.withOfficial(key,when==='tomorrow'?M.jaDate(1):M.jaDate(),rate.status,'');
+    setRating(M.pill(off.status,off.reason?off.reason:rate.note));
     const w=peak(rows,'avgWindKn'),g=peak(rows,'peakGustKn'),s=peak(rows,'avgWaveM'),c=peak(rows,'avgCurrentKn'),r=peak(rows,'rainProbabilityPct');
     const atSeas=s?rows.find(x=>x.stamp===s.stamp):null;
     statsEl.replaceChildren(
       stat('Max wind',w?fmt(w.v)+' kt':'—',w?'at '+hh(w.stamp):''),
       stat('Max gust',g?fmt(g.v)+' kt':'—',g?'at '+hh(g.stamp):''),
-      stat('Max seas',s?fmt(s.v*M.M_TO_FT)+' ft':'—',atSeas&&num(atSeas.avgWavePeriodS)!==null?'period '+fmt(atSeas.avgWavePeriodS)+' s':''),
+      stat('Max seas',s?fmt(s.v*M.M_TO_FT)+' ft':'—',[atSeas&&num(atSeas.avgWavePeriodS)!==null?'period '+fmt(atSeas.avgWavePeriodS)+' s':'',s?M.biggestWaves(s.v*M.M_TO_FT):''].filter(Boolean).join(' · ')),
       stat('Max current',c?fmt(c.v)+' kt':'—',''),
       stat('Peak rain chance',r?Math.round(r.v)+'%':'—',r?'at '+hh(r.stamp):''));
     statsEl.hidden=false;
@@ -234,6 +235,7 @@ function highlightMarker(key){
   }catch{state.textContent='Fishing locations could not be loaded. Please refresh the page.';}
 })();
 bankSel.addEventListener('change',update);period.addEventListener('change',update);
+window.addEventListener('mw:smallcraft',()=>{if(bankSel.value)update();});
 
 /* ---------- live forecast pop-up (unchanged behaviour) ---------- */
 const modal=$('live-forecast-modal'),frame=$('live-forecast-frame'),loading=$('live-forecast-loading'),close=$('live-forecast-close'),modalTitle=$('live-forecast-title');

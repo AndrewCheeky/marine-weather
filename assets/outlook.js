@@ -50,6 +50,8 @@ function areasFor(p){
     current:p[k+'current'],currentDir:p[k+'currentDir'],sst:p[k+'sst'],swell:p[k+'swell']};});
   for(const [key,a] of Object.entries(fromPoster))map.set(key,{key,...a});
   for(const a of Array.isArray(p.areas)?p.areas:[])if(a&&a.key)map.set(a.key,{...map.get(a.key),...a,uv:a.uv??map.get(a.key)?.uv});
+  // Official small craft warning/caution overrides today's and tomorrow's rating straight away.
+  for(const [key,a] of map){const o=M.withOfficial(key,p.__date,a.status,a.reason);map.set(key,{...a,status:o.status,reason:o.reason});}
   return map;
 }
 
@@ -62,7 +64,7 @@ function areaCard(key,a){
       M.pill(status,ok(a.comfort)?'Comfort '+a.comfort:null)),
     status&&status!=='GREEN'&&ok(a.reason)?el('p',{class:'area-reason'},'Why: '+a.reason):null,
     el('dl',{class:'area-stats'},[
-      stat('Wind',a.wind,ok(a.gust)?'gusts '+a.gust:''),stat('Seas',a.seas,ok(a.period)?'period '+a.period:''),
+      stat('Wind',a.wind,ok(a.gust)?'gusts '+a.gust:''),stat('Seas',a.seas,[ok(a.period)?'period '+a.period:'',M.biggestWaves(a.seas)].filter(Boolean).join(' · ')),
       stat('Rain',a.rain,ok(a.rainChance)?'peak chance '+String(a.rainChance).replace(/\s+%/,'%'):''),stat('UV index',a.uv),
       stat('Surface current',cur),stat('Sea temperature',a.sst),stat('Swell',a.swell)].filter(Boolean)));
 }
@@ -169,6 +171,7 @@ function showPosterFallback(message){
   const days=manifest.days.filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(String(d.date)));
   // Load every day so the buttons can show each day's worst rating (older manifests lack worstStatus).
   const loaded=await Promise.all(days.map(d=>M.getJSON(base+'seven-day-'+d.date+'.json?v='+encodeURIComponent(manifest.generatedAt||'')).catch(()=>null)));
+  loaded.forEach((x,i)=>{if(x&&x.poster)x.poster.__date=days[i].date;});
   const generated=manifest.generatedAt;
   updated.textContent='Updated '+(M.updatedText(generated)||'time unknown');
   // After 4:30 AM Jamaica time the outlook should have been made today. If not, say so plainly.
@@ -245,5 +248,19 @@ function showPosterFallback(message){
   const today=M.jaDate();
   const idx=days.findIndex(d=>d.date>=today);
   choose(idx<0?0:idx);
+  // When the Met Service check comes back, show its wording and re-rate today and tomorrow.
+  const official=el('div',{class:'outlook-banner red official-banner',role:'alert'});official.hidden=true;
+  offshore.before(official);
+  const showOfficial=sc=>{
+    if(sc&&sc.active){
+      official.className='outlook-banner '+(sc.level==='WARNING'?'red':'amber')+' official-banner';
+      official.replaceChildren(el('strong',{},sc.level==='WARNING'?'⚠ Met Service small craft warning: ':'⚠ Met Service small craft caution: '),
+        String(sc.text||'').slice(0,300),el('span',{class:'banner-sub'},'Ratings for the affected banks are raised for today and tomorrow.'));
+      official.hidden=false;
+    }else official.hidden=true;
+    paintButtons();choose(current);
+  };
+  window.addEventListener('mw:smallcraft',e=>showOfficial(e.detail));
+  if(window.MW_SMALLCRAFT)showOfficial(window.MW_SMALLCRAFT);
 })();
 })();
