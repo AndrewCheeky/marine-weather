@@ -1,7 +1,6 @@
 name: Cached Bank Forecast Images
 on:
   schedule:
-    # Every 3 hours at :17 past (Jamaica 21:17, 00:17, 03:17, 06:17, 09:17, 12:17, 15:17, 18:17).
     # Apps Script starts this job after each data refresh (about 01:20, 07:20, 13:20, 19:20 Jamaica).
     # This schedule is only a backup, an hour later, in case that kick-off fails.
     - cron: '20 7,13,19,1 * * *'  # 02:20, 08:20, 14:20, 20:20 Jamaica
