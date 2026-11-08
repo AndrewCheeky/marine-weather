@@ -194,3 +194,4 @@ body,button,input,select,textarea,#marine-shared-footer,#marine-shared-footer *{
   .bank-card-head{flex-direction:column}
   .bank-map{height:260px}
 }
+.bank-updated.is-stale{color:var(--mw-red);font-weight:700}

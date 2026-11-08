@@ -120,7 +120,10 @@ async function update(){
   try{
     const [{rows,updated,partial},rate]=await Promise.all([hourlyRows(key,when),bankRating(key,when)]);
     if(id!==seq)return;
-    updatedEl.textContent='Updated '+(M.updatedText(updated)||'time unknown')+(partial?' · partial forecast':'');
+    // Bank data refreshes every 6 hours; older than 8 hours means a refresh was missed.
+    const old=M.ageHours(updated)>8;
+    updatedEl.textContent=(old?'⚠ Not updated since ':'Updated ')+(M.updatedText(updated)||'time unknown')+(partial?' · partial forecast':'')+(old?' · this forecast may be out of date':'');
+    updatedEl.classList.toggle('is-stale',old);
     setRating(M.pill(rate.status,rate.note));
     const w=peak(rows,'avgWindKn'),g=peak(rows,'peakGustKn'),s=peak(rows,'avgWaveM'),c=peak(rows,'avgCurrentKn'),r=peak(rows,'rainProbabilityPct');
     const atSeas=s?rows.find(x=>x.stamp===s.stamp):null;
@@ -151,7 +154,9 @@ async function update(){
     if(id!==seq)return;
     statsEl.hidden=true;charts.hidden=true;hoursBox.hidden=true;
     setRating(M.pill(null));
-    state.textContent='This bank’s forecast has not been published yet. Use “Open live forecast”. ('+e.message+')';
+    // No usable hours usually means the latest update didn't come through.
+    updatedEl.textContent='⚠ No up-to-date forecast for this bank right now';updatedEl.classList.add('is-stale');
+    state.textContent='The latest update may have failed. Check official marine warnings before going out, or use “Open live forecast”. ('+e.message+')';
   }
   highlightMarker(key);
 }

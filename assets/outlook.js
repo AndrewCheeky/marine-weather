@@ -171,7 +171,13 @@ function showPosterFallback(message){
   const loaded=await Promise.all(days.map(d=>M.getJSON(base+'seven-day-'+d.date+'.json?v='+encodeURIComponent(manifest.generatedAt||'')).catch(()=>null)));
   const generated=manifest.generatedAt;
   updated.textContent='Updated '+(M.updatedText(generated)||'time unknown');
-  if(M.ageHours(generated)>30){
+  // After 4:30 AM Jamaica time the outlook should have been made today. If not, say so plainly.
+  const genDay=M.parseTime(generated)?new Intl.DateTimeFormat('en-CA',{timeZone:'America/Jamaica'}).format(M.parseTime(generated)):'';
+  const jaMinutes=M.jaHour()*60+Number(new Intl.DateTimeFormat('en-US',{timeZone:'America/Jamaica',minute:'2-digit'}).format(new Date()));
+  if(jaMinutes>=270&&genDay!==M.jaDate()){
+    stale.textContent='⚠ This morning’s update hasn’t come through. This outlook was last updated '+(M.updatedText(generated)||'at an unknown time')+'. Check official marine warnings before going out.';
+    stale.hidden=false;
+  }else if(M.ageHours(generated)>30){
     stale.textContent='⚠ This outlook is more than a day old. The daily update may have failed — check official advisories before going out.';
     stale.hidden=false;
   }
