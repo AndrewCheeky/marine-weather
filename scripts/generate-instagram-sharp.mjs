@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import {fishingFocus} from './fishing-focus.mjs';
+import {fishingFocus,focusLabel} from './fishing-focus.mjs';
 import {offshoreSummary,worstStatus} from './status-summary.mjs';
 import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
@@ -169,7 +169,7 @@ function makeSvg(p){
   const [c,,word]=theme(val(d,`bank${n}status`,'AMBER'));
   const name=truncate(val(d,`bank${n}`,'FISHING BANK'),28).toUpperCase();
   const picture=globalThis.__marineArt?.[focus]||'';
-  const mixedPicture=focus==='mixed';
+  const mixedPicture=focus!=='pelagic'&&focus!=='reef';
   const bankPicture=mixedPicture ? `${image(globalThis.__marineArt?.pelagic,x+3,763,500,178)}${image(globalThis.__marineArt?.reef,x+3,941,500,177)}` : image(picture,x+3,763,500,355);
   const detail=val(d,`bank${n}detail`);
   const rain=val(d,`bank${n}rain`);
@@ -178,8 +178,8 @@ function makeSvg(p){
    <rect x="${x+3}" y="762" width="500" height="356" fill="url(#bankShade)"/>
    ${top(x+3,713,500,name)}
    ${rr(x+331,774,156,52,c,13)}${t(x+409,806,word,27,white,900,'text-anchor="middle"')}${comfort?t(x+409,822,`COMFORT ${comfort}`,13,white,750,'text-anchor="middle"'):''}
-   ${icon('target',x+22,873,36,white)}${t(x+71,888,focus==='pelagic'?'PELAGIC FOCUS':focus==='reef'?'BOTTOM / REEF FOCUS':'MIXED FISHING',19,'#d8f7ff',850)}
-   ${t(x+71,914,focus==='pelagic'?'Tuna · Wahoo · Dolphin':focus==='reef'?'Snapper · Grouper · Reef fish':'Pelagic · Bottom / Reef',18,white,650)}
+   ${icon('target',x+22,873,36,white)}${t(x+71,888,focusLabel(focus)[0],19,'#d8f7ff',850)}
+   ${t(x+71,914,focusLabel(focus)[1],18,white,650)}
    ${icon('wave',x+22,930,36,'#a7efff')}${t(x+71,949,'CONDITIONS',18,'#b6ecff',850)}
    ${t(x+71,975,truncate(detail,32),19,white,650)}
    ${icon('rain',x+22,988,36,'#56d7ff')}${t(x+71,1006,'RAIN / OUTLOOK',18,'#b6ecff',850)}
