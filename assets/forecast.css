@@ -203,3 +203,9 @@ body,button,input,select,textarea,#marine-shared-footer,#marine-shared-footer *{
   .bank-map{height:260px}
 }
 .bank-updated.is-stale{color:var(--mw-red);font-weight:700}
+
+/* One Caribbean home button (link back to islandsoutside.com) */
+.site-header .header-actions .nav-home{display:inline-flex;align-items:center;gap:8px;color:#fff;text-decoration:none;font-weight:800;font-size:14px;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.08);border-radius:30px;padding:7px 14px 7px 7px;white-space:nowrap}
+.site-header .header-actions .nav-home img{width:24px;height:24px;border-radius:6px;display:block}
+.site-header .header-actions .nav-home:hover{background:rgba(255,255,255,.18);border-color:#fff}
+@media(max-width:600px){.site-header .header-actions .nav-home{padding:6px;min-width:44px;min-height:40px;justify-content:center}.site-header .header-actions .nav-home span{display:none}}
