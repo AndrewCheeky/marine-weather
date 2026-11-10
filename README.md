@@ -1,6 +1,6 @@
 # Marine Weather Jamaica — v8.0
 
-Website: https://marine-weather.andrewcheeky.com (GitHub Pages, custom domain in `CNAME`).
+Website: https://marine.islandsoutside.com (GitHub Pages, custom domain in `CNAME`).
 
 ## How the site is put together
 

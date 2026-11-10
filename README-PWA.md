@@ -4,7 +4,7 @@ Upload these files to the ROOT of the existing `marine-weather` GitHub Pages rep
 
 New files: `manifest.webmanifest`, `sw.js`, `assets/pwa.js`, `assets/pwa.css`, `icons/icon-192.png`, `icons/icon-512.png`. Modified: `index.html` only. No Apps Script changes.
 
-Visit https://marine-weather.andrewcheeky.com/ over HTTPS; Android Chrome: menu > Add to Home screen / Install app. iPhone Safari: Share > Add to Home Screen.
+Visit https://marine.islandsoutside.com/ over HTTPS (the old marine-weather.andrewcheeky.com address redirects here); Android Chrome: menu > Add to Home screen / Install app. iPhone Safari: Share > Add to Home Screen.
 
 Offline: app shell and previously viewed images may remain available. Forecasts and advisory feeds are NOT refreshed offline. The app shows an offline safety notice; never treat cached information as current. Service worker caches only same-origin content, not Google Apps Script or external marine warnings.
 
