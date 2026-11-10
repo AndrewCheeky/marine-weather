@@ -24,7 +24,7 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Generate today and tomorrow images
         env:
-          POSTER_URL: https://marine-weather.andrewcheeky.com/instagram/
+          POSTER_URL: https://marine.islandsoutside.com/instagram/
         run: node scripts/generate-instagram.mjs
       - name: Commit PNGs to GitHub Pages branch
         run: |

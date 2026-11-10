@@ -2,7 +2,7 @@ import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const posterUrl = process.env.POSTER_URL || 'https://marine-weather.andrewcheeky.com/instagram/';
+const posterUrl = process.env.POSTER_URL || 'https://marine.islandsoutside.com/instagram/';
 const outputDir = resolve(process.env.OUTPUT_DIR || 'instagram/generated');
 const maxAttempts = 3;
 const dateInJamaica = (offset = 0) => {
