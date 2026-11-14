@@ -1,5 +1,5 @@
 /* Marine Weather Jamaica: versioned offline app shell; no background forecast requests. */
-const VERSION = 'mwja-pwa-v9.3.4';
+const VERSION = 'mwja-pwa-v9.3.5';
 const SHELL = VERSION + '-shell';
 const FORECAST = VERSION + '-forecasts';
 const CACHE_PREFIX = 'mwja-pwa-';
