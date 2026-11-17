@@ -206,7 +206,7 @@ function showPosterFallback(message){
   // Tapping outside the box closes it without saving.
   dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close('cancel');});
   dlg.addEventListener('close',()=>{
-    if(dlg.returnValue==='save'){picks=selects.map(s=>s.value);savePicks();paintButtons();choose(current);}
+    if(dlg.returnValue==='save'){picks=selects.map(s=>s.value);savePicks();paintButtons();choose(current);try{picks.filter(Boolean).forEach(k=>window.MWTally&&window.MWTally('save',k));}catch{}}
     gear.focus();
   });
 

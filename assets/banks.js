@@ -7,6 +7,7 @@ const M=window.MW;if(!M)return;
 const {el,fmt,num}=M;
 const ENDPOINT='https://script.google.com/macros/s/AKfycbzwP_tF1SeJIBgB7HxTRBi374NiF0tQXGcSBFUk7EPPu1rSAepDsALW-iHeny6yo1Y/exec';
 const $=id=>document.getElementById(id);
+const tally=(k,b)=>{try{window.MWTally&&window.MWTally(k,b||bankSel.value);}catch{}};
 const bankSel=$('bank-select'),period=$('bank-period'),live=$('bank-live');
 const title=$('bank-title'),updatedEl=$('bank-updated'),state=$('bank-state');
 const setRating=node=>{node.id='bank-rating';$('bank-rating').replaceWith(node);};
@@ -223,7 +224,7 @@ async function buildMap(){
       const c=M.cls(ratings[i].status);
       const m=L.circleMarker([b.lat,b.lon],{radius:9,weight:2,color:'#ffffff',fillColor:COLORS[c],fillOpacity:1})
         .addTo(map).bindTooltip(`${b.name}: ${M.word(ratings[i].status)}`,{direction:'top'});
-      m.on('click',()=>{bankSel.value=b.key;update();$('bank-card').scrollIntoView({behavior:'smooth',block:'start'});});
+      m.on('click',()=>{bankSel.value=b.key;update();tally('pick',b.key);$('bank-card').scrollIntoView({behavior:'smooth',block:'start'});});
       markers.set(b.key,m);
     });
     map.fitBounds(L.latLngBounds(placed.map(b=>[b.lat,b.lon])).pad(0.35),{maxZoom:9});
@@ -247,11 +248,14 @@ function highlightMarker(key){
     const fromHash=new URLSearchParams(location.hash.split('?')[1]||'').get('bank');
     bankSel.value=banks.some(b=>b.key===fromHash)?fromHash:banks[0]?.key||'';
     update();
+    tally('open');
     const io=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){io.disconnect();buildMap();}},{rootMargin:'200px'});
     io.observe(mapBox);
   }catch{state.textContent='Fishing locations could not be loaded. Please refresh the page.';}
 })();
-bankSel.addEventListener('change',update);period.addEventListener('change',update);
+bankSel.addEventListener('change',()=>{update();tally('pick');});
+period.addEventListener('change',()=>{update();if(period.value==='tomorrow')tally('tmrw');});
+hoursBox.addEventListener('toggle',()=>{if(hoursBox.open)tally('hours');});
 window.addEventListener('mw:smallcraft',()=>{if(bankSel.value)update();});
 
 /* ---------- live forecast pop-up (unchanged behaviour) ---------- */
@@ -261,6 +265,7 @@ function hideLoading(){if(loadTimer){clearTimeout(loadTimer);loadTimer=null;}loa
 function closeLive(){openSeq++;hideLoading();modal.hidden=true;frame.removeAttribute('src');document.body.style.overflow='';if(previousFocus?.isConnected)previousFocus.focus();}
 if(modal&&frame&&loading&&close){
   live.addEventListener('click',event=>{
+    tally('live');
     if(!live.href)return;event.preventDefault();
     previousFocus=document.activeElement;modalTitle.textContent=(title.textContent||'Fishing bank')+' — Live forecast';
     modal.hidden=false;loading.hidden=false;document.body.style.overflow='hidden';close.focus();
