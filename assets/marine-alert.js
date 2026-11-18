@@ -15,6 +15,7 @@
     if(data?.ok===true){
       const sc=data.smallCraft&&data.smallCraft.active?data.smallCraft:null;
       window.MW_SMALLCRAFT=sc;
+      window.MW_SMALLCRAFT_CHECKED=true;              // the live check answered (with or without a warning)
       window.dispatchEvent(new CustomEvent('mw:smallcraft',{detail:sc}));
     }
     if(data?.ok!==true||data.active!==true||!['AMBER','RED'].includes(data.level)||typeof data.message!=='string')return;
