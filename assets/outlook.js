@@ -122,10 +122,11 @@ function render(day){
   // Warning banner whenever a chosen bank is rated CAUTION or ALERT.
   if(worst&&worst!=='GREEN'){
     const hit=rated.filter(x=>M.status(x.a.status)===worst);
-    const reasons=[...new Set(hit.map(x=>x.a.reason).filter(ok))];
+    // Each reason once ("Met Service small craft warning" is shared by every bank), comfort scores left out.
+    const reasons=[...new Set(hit.flatMap(x=>String(x.a.reason||'').split(/\s*[·;]\s*/)).filter(t=>ok(t)&&!/^Comfort\s/i.test(t)))];
     offshore.className='outlook-banner '+M.cls(worst);
     offshore.replaceChildren(el('strong',{},'⚠ '+(worst==='RED'?'Alert':'Caution')+': '),hit.map(x=>short(bankName(x.k))).join(' & '),
-      reasons.length?' — '+reasons.join('; '):'',
+      reasons.length?' — '+reasons.join(' · '):'',
       el('span',{class:'banner-sub'},'Check official marine advisories before heading out.'));
     offshore.hidden=false;
   }else offshore.hidden=true;

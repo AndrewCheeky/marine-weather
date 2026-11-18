@@ -81,8 +81,18 @@ function officialLevel(key,date){
   return sc.bankLevels[key]||null;
 }
 // Apply an official level to a status/reason pair.
+const OFFICIAL_RE=/^Met Service(?: small craft warning|: small craft caution)(?:\s*·\s*)?/;
 function withOfficial(key,date,status,reason){
-  const lv=officialLevel(key,date);if(!lv)return {status,reason};
+  const lv=officialLevel(key,date);
+  if(!lv){
+    // A warning saved in an earlier update that the live check no longer finds: don't keep it red.
+    const r=String(reason||''),m=r.match(OFFICIAL_RE),near=!date||date===jaDate()||date===jaDate(1);
+    if(m&&near&&window.MW_SMALLCRAFT_CHECKED&&!window.MW_SMALLCRAFT){
+      const rest=r.slice(m[0].length);
+      return {status:worst([status])==='RED'?'AMBER':status,reason:'Met Service warning in this update is no longer in effect'+(rest?' · '+rest:'')};
+    }
+    return {status,reason};
+  }
   const label=lv==='WARNING'?'Met Service small craft warning':'Met Service: small craft caution';
   const r=String(reason||'');
   return {status:lv==='WARNING'?'RED':(worst([status,'AMBER'])),reason:r.includes('Met Service')?r:label+(r?' · '+r:'')};
