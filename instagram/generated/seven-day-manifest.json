@@ -1,0 +1,69 @@
+{
+  "generatedAt": "2026-11-21T16:52:38.217Z-67de532b-ec04-4934-b5be-c7098d675ff3",
+  "mode": "PRODUCTION",
+  "days": [
+    {
+      "date": "2026-11-21",
+      "category": "short-range",
+      "status": "GREEN",
+      "worstStatus": "AMBER",
+      "comfort": "4.2/5",
+      "image": "seven-day-2026-11-21.png",
+      "sha256": "cffa7bada08548775291d72423c9b34858389ef313075cdd7f3f0778a4fc3963"
+    },
+    {
+      "date": "2026-11-22",
+      "category": "short-range",
+      "status": "GREEN",
+      "worstStatus": "AMBER",
+      "comfort": "4.2/5",
+      "image": "seven-day-2026-11-22.png",
+      "sha256": "744ca9e141ae01b047b3316178b06a8265d3bc57d99420cbb02ca58c91bcc507"
+    },
+    {
+      "date": "2026-11-23",
+      "category": "short-range",
+      "status": "GREEN",
+      "worstStatus": "AMBER",
+      "comfort": "4.3/5",
+      "image": "seven-day-2026-11-23.png",
+      "sha256": "c0f801987e0ecb52e1fc769f1dd9938d44aabf3cd3e57c5c9e306ed85ccdb7b7"
+    },
+    {
+      "date": "2026-11-24",
+      "category": "extended",
+      "status": "GREEN",
+      "worstStatus": "AMBER",
+      "comfort": "4.2/5",
+      "image": "seven-day-2026-11-24.png",
+      "sha256": "10f74d3c482e24d4f7dd5a95e9984596018ac6d7e8c6508a4ac2e2e68cc64d7f"
+    },
+    {
+      "date": "2026-11-25",
+      "category": "extended",
+      "status": "GREEN",
+      "worstStatus": "GREEN",
+      "comfort": "4.2/5",
+      "image": "seven-day-2026-11-25.png",
+      "sha256": "d44cb035908ca93551c12284fa9a64948972f9e42203044a0654005944b2762d"
+    },
+    {
+      "date": "2026-11-26",
+      "category": "extended",
+      "status": "GREEN",
+      "worstStatus": "GREEN",
+      "comfort": "4.4/5",
+      "image": "seven-day-2026-11-26.png",
+      "sha256": "4ca7e475e8269b4fb0110197f403803308a4c8b900f8d2f408f1732c4d66c071"
+    },
+    {
+      "date": "2026-11-27",
+      "category": "extended",
+      "status": "GREEN",
+      "worstStatus": "AMBER",
+      "comfort": "4.3/5",
+      "image": "seven-day-2026-11-27.png",
+      "sha256": "d8207dca856a88071b865dbd486cfb9989e0b4e474b211d9e5cb964143843601"
+    }
+  ]
+}
