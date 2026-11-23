@@ -1,15 +1,6 @@
 name: Seven-Day Marine Outlook
 on:
-  schedule:
-    # Live by ~04:30 Jamaica for 06:00 departures. Times are UTC (Jamaica = UTC-5);
-    # odd minutes avoid GitHub's busiest times. The second run is a backup in case the
-    # first is delayed or the Apps Script data wasn't ready; re-running is harmless.
-    - cron: '47 8 * * *'  # 03:47 Jamaica
-    - cron: '22 9 * * *'  # 04:22 Jamaica, backup
-    # Daytime refreshes so a Met Service warning issued or lifted during the day shows within hours.
-    - cron: '13 15 * * *'  # 10:13 Jamaica
-    - cron: '13 19 * * *'  # 14:13 Jamaica
-    - cron: '13 23 * * *'  # 18:13 Jamaica
+  # Started by the marine Apps Script (RefreshChain.gs / GitHubKickoff.gs); GitHub's own timer is off.
   workflow_dispatch:
 permissions:
   contents: write

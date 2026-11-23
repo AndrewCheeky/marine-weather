@@ -1,11 +1,6 @@
 name: Daily Marine Forecast PNG
 on:
-  schedule:
-    # Times are UTC; Jamaica is UTC-5 all year. Odd minutes avoid GitHub's busiest
-    # moments (on the hour / half hour), when scheduled runs are delayed or dropped.
-    # Fishermen leave the dock around 06:00, so forecasts must be live by ~04:30.
-    - cron: '37 8 * * *' # 03:37 Jamaica, primary
-    - cron: '7 9 * * *'  # 04:07 Jamaica, retry if missing/stale
+  # Started by the marine Apps Script (RefreshChain.gs / GitHubKickoff.gs); GitHub's own timer is off.
   workflow_dispatch:
 permissions:
   contents: write
