@@ -138,8 +138,8 @@ async function update(){
   try{
     const [{rows,updated,partial},rate]=await Promise.all([hourlyRows(key,when),bankRating(key,when)]);
     if(id!==seq)return;
-    // Bank data refreshes every 6 hours; older than 8 hours means a refresh was missed.
-    const old=M.ageHours(updated)>8;
+    // Bank data refreshes three times a day (about 1 AM, 10 AM, 6 PM; longest gap 9 h); older than 10 hours means one was missed.
+    const old=M.ageHours(updated)>10;
     updatedEl.textContent=(old?'⚠ Not updated since ':'Updated ')+(M.updatedText(updated)||'time unknown')+(partial?' · partial forecast':'')+(old?' · this forecast may be out of date':'');
     updatedEl.classList.toggle('is-stale',old);
     const off=M.withOfficial(key,when==='tomorrow'?M.jaDate(1):M.jaDate(),rate.status,'');
