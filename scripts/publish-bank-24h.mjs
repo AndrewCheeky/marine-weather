@@ -13,9 +13,10 @@ const auth=await fetch('https://oauth2.googleapis.com/token',{method:'POST',head
 if(!auth.ok)throw Error('Google Sheets authentication failed: '+auth.status);
 const token=(await auth.json()).access_token;
 const sheetId=process.env.PILOT_SHEET_ID||'1JA-38rcUE6yudktWxqHf9ijZtlX9pfLYbDocLKQmHpA';
-const url=`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sheetId)}/values/${encodeURIComponent('Forecast24h!A1:H2000')}`;
+const url=`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sheetId)}/values/${encodeURIComponent('Forecast24h!A:H')}`;
 const response=await fetch(url,{headers:{authorization:'Bearer '+token},signal:AbortSignal.timeout(30000)});
 if(!response.ok)throw Error('Forecast24h sheet read failed: '+response.status);
+// Whole columns: the marine script appends new rows at the bottom, so a fixed A1:H2000 range stopped seeing them.
 const lines=(await response.json()).values||[],headers=lines.shift()||[],ix=Object.fromEntries(headers.map((x,i)=>[x,i]));
 for(const h of ['location_key','hours_json','published_at'])if(ix[h]===undefined)throw Error('Missing Forecast24h header '+h);
 const banks=JSON.parse(await readFile('banks/banks.json','utf8'));
