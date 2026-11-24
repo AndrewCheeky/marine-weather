@@ -58,6 +58,9 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+      - name: Wait 60 s so GitHub has registered the upload
+        # GitHub can take a while to list a just-uploaded site; publishing too soon fails with "Found 0 artifacts".
+        run: sleep 60
       - id: deployment
         uses: actions/deploy-pages@v4
         continue-on-error: true
