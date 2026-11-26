@@ -1,0 +1,66 @@
+[
+ {
+  "name": "m1-open",
+  "caption": "Open the site: today\u2019s sea conditions for Jamaica\u2019s fishing banks.",
+  "tap": null,
+  "hold": 4.3,
+  "new": false
+ },
+ {
+  "name": "m2-outlook",
+  "caption": "Each bank gets a comfort rating, with wind, seas, current and swell.",
+  "tap": [
+   345,
+   307.9
+  ],
+  "hold": 4.3,
+  "new": false
+ },
+ {
+  "name": "m3-days",
+  "caption": "Tap a day to plan up to a week ahead.",
+  "tap": [
+   160.9,
+   102.4
+  ],
+  "hold": 4.3,
+  "new": false
+ },
+ {
+  "name": "m4-tides",
+  "caption": "Tides, sun and moon for planning when to leave and when to fish.",
+  "tap": [
+   216,
+   81.4
+  ],
+  "hold": 4.3,
+  "new": false
+ },
+ {
+  "name": "m5-map",
+  "caption": "Pick your bank from the list, or tap its dot on the depth map.",
+  "tap": [
+   216,
+   -44.5
+  ],
+  "hold": 4.3,
+  "new": false
+ },
+ {
+  "name": "m6-bank",
+  "caption": "Your bank: trip rating, max wind and gusts, seas and current.",
+  "tap": [
+   147,
+   107.7
+  ],
+  "hold": 4.3,
+  "new": false
+ },
+ {
+  "name": "m7-charts",
+  "caption": "Hour by hour: wind, gusts and seas to time your run out and back.",
+  "tap": null,
+  "hold": 4.3,
+  "new": false
+ }
+]
