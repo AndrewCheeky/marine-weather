@@ -1,0 +1,20 @@
+name: Capture video frames (temporary)
+on:
+  push:
+    branches: [video-capture]
+permissions:
+  contents: write
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install playwright && python -m playwright install --with-deps chromium
+      - run: python scripts/capture_marine.py out
+      - name: Push frames to video-frames branch
+        run: |
+          cd out && git init -q && git checkout -q -b video-frames && git add -A
+          git -c user.name=AndrewCheeky -c user.email=noreply@github.com commit -qm frames
+          git push -q -f https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} video-frames
