@@ -1,0 +1,69 @@
+{
+  "generatedAt": "2026-11-28T16:08:24.898Z-78ec58cd-2df0-4fc8-be2c-3c2f88ac7ca9",
+  "mode": "PRODUCTION",
+  "days": [
+    {
+      "date": "2026-11-28",
+      "category": "short-range",
+      "status": "GREEN",
+      "worstStatus": "AMBER",
+      "comfort": "4/5",
+      "image": "seven-day-2026-11-28.png",
+      "sha256": "5b634d10c5abbb1a462d5a988281fe8704c28df23c02cf276839e19dd4ac49b3"
+    },
+    {
+      "date": "2026-11-29",
+      "category": "short-range",
+      "status": "GREEN",
+      "worstStatus": "AMBER",
+      "comfort": "3.7/5",
+      "image": "seven-day-2026-11-29.png",
+      "sha256": "eb1c4c11e4c8d4658fd6e7a6638c6286a9f72bb6b50b1a3b9dded462c3fab7b8"
+    },
+    {
+      "date": "2026-11-30",
+      "category": "short-range",
+      "status": "YELLOW",
+      "worstStatus": "RED",
+      "comfort": "3.1/5",
+      "image": "seven-day-2026-11-30.png",
+      "sha256": "fbaf33b39dc80c03aca7f1bdfb9c2b493fca212a47dbf65792e17ce2ce5d8b2a"
+    },
+    {
+      "date": "2026-12-01",
+      "category": "extended",
+      "status": "GREEN",
+      "worstStatus": "RED",
+      "comfort": "3.9/5",
+      "image": "seven-day-2026-12-01.png",
+      "sha256": "8224997a4eabc94d765a4d936f34bca9d3da8890dbd25539aff9b3334800a93a"
+    },
+    {
+      "date": "2026-12-02",
+      "category": "extended",
+      "status": "GREEN",
+      "worstStatus": "AMBER",
+      "comfort": "4.2/5",
+      "image": "seven-day-2026-12-02.png",
+      "sha256": "02cec0b3a12480bc903e9641ee40baf9eb82aa080dac0cd495bd126b07c91536"
+    },
+    {
+      "date": "2026-12-03",
+      "category": "extended",
+      "status": "GREEN",
+      "worstStatus": "RED",
+      "comfort": "4/5",
+      "image": "seven-day-2026-12-03.png",
+      "sha256": "8fff3b9c0559ab3201c680d68186b9e9701c1b81d64ef25c58a9fe028d579a07"
+    },
+    {
+      "date": "2026-12-04",
+      "category": "extended",
+      "status": "GREEN",
+      "worstStatus": "RED",
+      "comfort": "3.9/5",
+      "image": "seven-day-2026-12-04.png",
+      "sha256": "16061d01009885669db03f08fc1fb5c4dc98165167432f2cc304e01c68c730d0"
+    }
+  ]
+}
